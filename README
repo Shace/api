@@ -1,0 +1,17 @@
+Shace Event API
+=====================================
+
+- Install Play 2.2.x
+- Install Postgresql
+- Create a database called "shace"
+- By default the API is configured to connect with default postgresql user and adress, you can change configuration in file conf/application.conf (don't even try to commit it)
+- To launch the application in debug mode, go into main folder and type "play debug run"
+- You can access and debug the API on "http://localhost:9000/events" for example
+
+To configure an Eclipse project, type "play eclipsify". Then import the main directory into Eclipse with "import project"
+
+Tests are not yet available.
+
+For more information, contact loick.michard@gmail.com
+
+Kindness and chocolate <3

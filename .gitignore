@@ -4,3 +4,25 @@
 *.jar
 *.war
 *.ear
+
+# Play #
+logs
+project/project
+project/target
+target
+tmp
+.history
+dist
+/.idea
+/*.iml
+/out
+/.idea_modules
+/.classpath
+/.project
+/RUNNING_PID
+/.settings
+
+.DS_STORE
+*~
+*#
+/.target
