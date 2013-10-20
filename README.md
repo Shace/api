@@ -66,7 +66,7 @@ Merge current branch with another :
 
 If one or more conflicts appear during merge:
 - `git status` to show all conflicting files
-- `git mergetool` this will ask you for each conflict the action. If you want to merge both files, press enter and git will open default program for merge (meld is a good one).
+- `git mergetool` this will ask you for each conflict the action. If you want to merge both files, press enter and git will open default program for merge (which is probably vi or emacs). To specify a tool, use `git mergetool -t <toolname>` (meld is a good one).
 
 If a file with only local modification (database configuration for example) is in conflict you can:
 - `git stash` to put modifications in a local "box" while merging.
