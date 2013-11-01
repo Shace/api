@@ -14,7 +14,7 @@ Installation
 Configure an Eclipse project
 -----------------------------------
 
-To configure an Eclipse project, type `play eclipsify`. Then import the main directory into Eclipse with `import project`
+To configure an Eclipse project, type `play eclipse`. Then import the main directory into Eclipse with `import project`
 
 To debug into Eclipse, add breakpoints and show variables, you need to: 
 - Launch the server using `play debug run`

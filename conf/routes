@@ -5,6 +5,23 @@
 # Events
 GET		/events						controllers.Events.events()
 POST	/events						controllers.Events.add()
+DELETE	/events/:token				controllers.Events.delete(token : String)
+PUT		/events/:token				controllers.Events.update(token : String)
+GET		/events/:token				controllers.Events.event(token : String)
+
+# Medias
+GET		/medias						controllers.Medias.medias()
+POST	/medias						controllers.Medias.add()
+DELETE	/medias/:uri				controllers.Medias.delete(uri : String)
+PUT		/medias/:uri				controllers.Medias.update(uri : String)
+GET		/medias/:uri				controllers.Medias.media(uri : String)
+
+# Users
+GET		/users						controllers.Users.users()
+POST	/users						controllers.Users.add()
+DELETE	/users/:email				controllers.Users.delete(email : String)
+PUT		/users/:email				controllers.Users.update(email : String)
+GET		/users/:email				controllers.Users.user(email : String)
 
 # Map static resources from the /public folder to the /assets URL path
 GET		/assets/*file				controllers.Assets.at(path="/public", file)

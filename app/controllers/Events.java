@@ -41,12 +41,35 @@ public class Events extends Controller {
     	return ok(result);
     }
 
-    /*
+    /**
      * Add an event
      */
     @BodyParser.Of(BodyParser.Json.class)
     public static Result add() {
     	JsonNode json = request().body().asJson();
 		return TODO;
+    }
+    
+    /**
+     * Delete an event
+     */
+    public static Result delete(String token) {
+    	return TODO;
+    }
+    
+    /**
+     * Update an event
+     */
+    @BodyParser.Of(BodyParser.Json.class)
+    public static Result update(String token) {
+    	JsonNode json = request().body().asJson();
+		return TODO;
+    }
+    
+    /**
+     * Get event information
+     */
+    public static Result event(String token) {
+    	return TODO;
     }
 }
