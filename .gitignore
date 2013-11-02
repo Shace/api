@@ -1,5 +1,7 @@
 *.class
 
+conf/application.conf
+
 # Package Files #
 *.jar
 *.war
