@@ -43,7 +43,7 @@ public class Users extends Controller {
     }
 
     /**
-     * Add an user
+     * Add a user
      */
     @BodyParser.Of(BodyParser.Json.class)
     public static Result add() {
@@ -52,7 +52,7 @@ public class Users extends Controller {
     }
     
     /**
-     * Delete an user
+     * Delete a user
      */
     public static Result delete(Integer id) {
     	List<User> users = User.find.where().findList();
@@ -75,7 +75,7 @@ public class Users extends Controller {
     }
     
     /**
-     * Update an user
+     * Update a user
      */
     @BodyParser.Of(BodyParser.Json.class)
     public static Result update(Integer id) {

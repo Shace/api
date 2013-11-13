@@ -19,9 +19,9 @@ GET		/medias/:uri				controllers.Medias.media(uri : String)
 # Users
 GET		/users						controllers.Users.users()
 POST	/users						controllers.Users.add()
-DELETE	/users/:email				controllers.Users.delete(email : String)
-PUT		/users/:email				controllers.Users.update(email : String)
-GET		/users/:email				controllers.Users.user(email : String)
+DELETE	/users/:id					controllers.Users.delete(id : Integer)
+PUT		/users/:id					controllers.Users.update(id : Integer)
+GET		/users/:info				controllers.Users.user(info : String)
 
 # Map static resources from the /public folder to the /assets URL path
 GET		/assets/*file				controllers.Assets.at(path="/public", file)
