@@ -16,7 +16,21 @@ create table event (
   constraint pk_event primary key (token))
 ;
 
+create table shace_user (
+  id                        integer not null,
+  email                     varchar(254),
+  password                  varchar(40),
+  first_name                varchar(35),
+  last_name                 varchar(35),
+  birth_date                timestamp,
+  inscription_date          timestamp,
+  constraint uq_shace_user_email unique (email),
+  constraint pk_shace_user primary key (id))
+;
+
 create sequence event_seq;
+
+create sequence shace_user_seq;
 
 
 
@@ -25,5 +39,9 @@ create sequence event_seq;
 
 drop table if exists event cascade;
 
+drop table if exists shace_user cascade;
+
 drop sequence if exists event_seq;
+
+drop sequence if exists shace_user_seq;
 

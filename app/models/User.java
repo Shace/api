@@ -5,43 +5,50 @@ import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.validation.Constraint;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
 import play.db.ebean.*;
 import play.data.format.*;
 import play.data.validation.*;
 
 @Entity
+@Table(name="shace_user")
 public class User extends Model {
 	
+	/**
+	 * Unique version uid for serialization
+	 */
+	private static final long serialVersionUID = -378338424543301076L;
+
 	@GeneratedValue
 	@Column(unique=true)
+	@Id
 	public Integer	id; 
 	
-	@Column(length=20)
+	@Column(length=254, unique=true)
 	@Constraints.Email()
-	public String	mail;
+	public String	email;
 	
-	@Column
-	@Constraints.MinLength(6)
+	@Column(length=40)
 	public String	password;
 	
-	@Column(length=20)
-	@Constraints.MinLength(4)
+	@Column(length=35)
+	@Constraints.MinLength(2)
 	public String	firstName;
 	
-	@Column(length=20)
-	@Constraints.MinLength(4)
+	@Column(length=35)
+	@Constraints.MinLength(2)
 	public String	lastName;
 	
 	@Formats.DateTime(pattern="dd/MM/yyyy")
 	public Date		birthDate;
 	
 	@Formats.DateTime(pattern="dd/MM/yyyy")
-	public Date		inscription;
+	public Date		inscriptionDate;
 	
-	public static Finder<String, User> find = new Finder<String, User>
+	public static Finder<Integer, User> find = new Finder<Integer, User>
 	(		
-			String.class, User.class
+			Integer.class, User.class
 	);
 }
