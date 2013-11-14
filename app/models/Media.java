@@ -60,8 +60,6 @@ public class Media extends Model {
 		this.ownerUser = ownerUser;
 		this.ownerEvent = ownerEvent;
 		this.creation = new Date();
-		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-		System.out.println(dateFormat.format(this.creation));
 	}
 
 	
