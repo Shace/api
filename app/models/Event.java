@@ -15,6 +15,12 @@ import play.db.ebean.Model;
 @Entity
 public class Event extends Model {
 
+	public enum Privacy {
+		PUBLIC,
+		PROTECTED,
+		PRIVATE
+	}
+	
 	/**
 	 * Unique version uid for serialization
 	 */

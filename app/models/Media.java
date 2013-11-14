@@ -25,7 +25,7 @@ public class Media extends Model {
 	private static final long serialVersionUID = 8168675220916133843L;
 
 	public enum Type {
-		PHOTOGRAPH,
+		IMAGE,
 		VIDEO
 	}
 

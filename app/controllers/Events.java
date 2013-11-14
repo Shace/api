@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import models.Event;
-import models.Privacy;
 import play.libs.Json;
 import play.mvc.*;
 
@@ -32,7 +31,7 @@ public class Events extends Controller {
 	 */
     public static Result events() {
     	List<Event> events = Event.find.where()
-    	.eq("privacy", Privacy.PUBLIC)
+    	.eq("privacy", Event.Privacy.PUBLIC)
         .findList();
     	
     	ArrayNode eventsNode = Json.newObject().arrayNode();
