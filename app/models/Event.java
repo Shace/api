@@ -15,6 +15,11 @@ import play.db.ebean.Model;
 @Entity
 public class Event extends Model {
 
+	/**
+	 * Unique version uid for serialization
+	 */
+	private static final long serialVersionUID = 3754144269823907391L;
+
 	@GeneratedValue
 	@Column(unique=true)
 	public Integer 		id;
