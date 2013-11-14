@@ -21,7 +21,7 @@ To debug into Eclipse, add breakpoints and show variables, you need to:
 - Launch the server using `play debug run`
 - Play will show you something like `Listening for transport dt_socket at address: 9999`
 - Go to eclipse -> run -> Debug configurations
-- Left click on `Remote Java Application` and select `New`
+- Right click on `Remote Java Application` and select `New`
 - Choose the corresponding project `api`, `Standard (socket attach)` connection type, `localhost` in host and `9999` in port.
 - Click Debug (now the configuration is accesible with the drop-down button near the little bug)
 
