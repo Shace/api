@@ -16,6 +16,17 @@ create table event (
   constraint pk_event primary key (token))
 ;
 
+create table user (
+  id                        integer,
+  mail                      varchar(20),
+  password                  varchar(255),
+  first_name                varchar(20),
+  last_name                 varchar(20),
+  birth_date                timestamp,
+  inscription               timestamp,
+  constraint uq_user_id unique (id))
+;
+
 create sequence event_seq;
 
 
@@ -24,6 +35,8 @@ create sequence event_seq;
 # --- !Downs
 
 drop table if exists event cascade;
+
+drop table if exists user cascade;
 
 drop sequence if exists event_seq;
 
