@@ -47,8 +47,21 @@ public class User extends Model {
 	@Formats.DateTime(pattern="dd/MM/yyyy")
 	public Date		inscriptionDate;
 	
+	public User(String email, String password) {
+		this.email = email;
+		this.password = password;
+		this.inscriptionDate = new Date();
+	}
+	
 	public static Finder<Integer, User> find = new Finder<Integer, User>
 	(		
 			Integer.class, User.class
 	);
+	
+	public static User create(String email, String password) {
+		User newUser = new User(email, password);
+		newUser.save();
+		
+		return newUser;
+	}
 }

@@ -48,7 +48,23 @@ public class Event extends Model {
 	
 	public Date			creation;
 
+	public Event(String token, String name, String description) {
+		this.token = token;
+		this.name = name;
+		this.description = description;
+		this.creation = new Date();
+		this.privacy = Privacy.PUBLIC;
+		this.password = null;
+	}
+	
 	public static Finder<String, Event> find = new Finder<String, Event>(
 			String.class, Event.class
 	);
+	
+	public static Event create(String token, String name, String description) {
+		Event newEvent = new Event(token, name, description);
+		newEvent.save();
+
+		return newEvent;
+	}
 }

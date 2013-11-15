@@ -2,6 +2,9 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
+# Application
+GET		/							controllers.Application.index()
+
 # Events
 GET		/events						controllers.Events.events()
 POST	/events						controllers.Events.add()
