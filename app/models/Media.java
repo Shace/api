@@ -9,12 +9,15 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
 import play.db.ebean.Model;
 
 @Entity
+@Table(name="se_media")
 public class Media extends Model {
 	
 	/**
@@ -24,7 +27,8 @@ public class Media extends Model {
 
 	public enum Type {
 		IMAGE,
-		VIDEO
+		VIDEO,
+		NONE
 	}
 
 	@GeneratedValue
@@ -48,9 +52,11 @@ public class Media extends Model {
 	public Date			creation;
 	
 	@ManyToOne
+	@JoinColumn(name="owner_user_id")
 	public User			ownerUser;
 	
 	@ManyToOne
+	@JoinColumn(name="owner_event_id")
 	public Event		ownerEvent;
 
 	public Media(String name, User ownerUser, Event ownerEvent) {
@@ -58,6 +64,9 @@ public class Media extends Model {
 		this.ownerUser = ownerUser;
 		this.ownerEvent = ownerEvent;
 		this.creation = new Date();
+		this.type = Type.NONE;
+		this.uri = URI.create("");
+		this.rank = 0;
 	}
 
 	

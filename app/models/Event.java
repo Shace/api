@@ -1,7 +1,9 @@
 package models;
 
 import java.util.Date;
+import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -9,10 +11,13 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Lob;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 
 import play.db.ebean.Model;
 
 @Entity
+@Table(name="se_event")
 public class Event extends Model {
 
 	public enum Privacy {
@@ -47,6 +52,9 @@ public class Event extends Model {
 	public Privacy 		privacy;
 	
 	public Date			creation;
+	
+	@OneToMany(mappedBy="ownerEvent", cascade=CascadeType.ALL)
+	public List<Media>	medias;
 
 	public Event(String token, String name, String description) {
 		this.token = token;

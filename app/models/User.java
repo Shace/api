@@ -1,11 +1,14 @@
 package models;
 
 import java.util.Date;
+import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import play.db.ebean.*;
@@ -13,7 +16,7 @@ import play.data.format.*;
 import play.data.validation.*;
 
 @Entity
-@Table(name="shace_user")
+@Table(name="se_user")
 public class User extends Model {
 	
 	/**
@@ -46,6 +49,9 @@ public class User extends Model {
 	
 	@Formats.DateTime(pattern="dd/MM/yyyy")
 	public Date		inscriptionDate;
+	
+	@OneToMany(mappedBy="ownerUser", cascade=CascadeType.ALL)
+	public List<Media>	medias;
 	
 	public User(String email, String password) {
 		this.email = email;

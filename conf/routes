@@ -14,7 +14,7 @@ GET		/events/:token				controllers.Events.event(token : String)
 
 # Medias
 GET		/medias						controllers.Medias.medias()
-POST	/medias						controllers.Medias.add()
+POST	/events/:token/medias		controllers.Medias.add(token : String)
 DELETE	/medias/:id					controllers.Medias.delete(id : Integer)
 PUT		/medias/:id					controllers.Medias.update(id : Integer)
 GET		/medias/:id					controllers.Medias.media(id : Integer)
