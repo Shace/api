@@ -14,7 +14,7 @@ public class Events extends Controller {
 	/**
 	 * Get the object node representing an event
 	 */
-	private static ObjectNode getEventObjectNode(Event event) {
+	public static ObjectNode getEventObjectNode(Event event) {
 		ObjectNode result = Json.newObject();
 		
 		result.put("token", event.token);

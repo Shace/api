@@ -17,6 +17,6 @@ INSERT INTO media
 
 # --- !Downs
 
-DELETE FROM event WHERE token = 'shace';
-DELETE FROM shace_user WHERE email = 'loick.michard@gmail.com';
 DELETE FROM media WHERE name = 'First Image';
+DELETE FROM shace_user WHERE email = 'loick.michard@gmail.com';
+DELETE FROM event WHERE token = 'shace';

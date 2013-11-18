@@ -1,6 +1,12 @@
 package controllers;
 
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
+
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.lang3.CharSet;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -15,7 +21,7 @@ public class Users extends Controller {
 	/**
 	 * Get the object node representing a user
 	 */
-	private static ObjectNode getUserObjectNode(User user) {
+	public static ObjectNode getUserObjectNode(User user) {
 		ObjectNode result = Json.newObject();
 		
 		result.put("id", user.id);
@@ -82,4 +88,20 @@ public class Users extends Controller {
     		return notFound("User with id " + id + " not found");
     	}
     }
+    
+    public static User authenticate(String email, String password) {
+    	MessageDigest cript;
+		try {
+			cript = MessageDigest.getInstance("SHA-1");
+			cript.reset();
+	        cript.update(password.getBytes("utf8"));
+	    	String sha1 = new String(Hex.encodeHex(cript.digest()));
+			return User.find.where().eq("email", email).eq("password", sha1).findUnique();
+		} catch (NoSuchAlgorithmException e) {
+			return null;
+		} catch (UnsupportedEncodingException e) {
+			return null;
+		}
+        
+	}
 }

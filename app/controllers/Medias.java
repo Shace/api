@@ -2,7 +2,10 @@ package controllers;
 
 import java.util.List;
 
+import models.AccessToken;
 import models.Media;
+import models.User;
+
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -14,7 +17,7 @@ public class Medias extends Controller {
 	/**
 	 * Get the object node representing a media
 	 */
-	private static ObjectNode getMediaObjectNode(Media media) {
+	public static ObjectNode getMediaObjectNode(Media media) {
 		ObjectNode result = Json.newObject();
 		
 		result.put("id", media.id);
@@ -50,7 +53,12 @@ public class Medias extends Controller {
      * Add a media
      */
     @BodyParser.Of(BodyParser.Json.class)
-    public static Result add() {
+    public static Result add(String accessToken) {
+    	User connectedUser = AccessTokens.connectedUser(accessToken);
+    	
+    	if (connectedUser == null) {
+    		return unauthorized("Not a connected user");
+    	}
     	//JsonNode json = request().body().asJson();
 		return TODO;
     }
