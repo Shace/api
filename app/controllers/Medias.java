@@ -2,10 +2,11 @@ package controllers;
 
 import java.util.List;
 
-import models.AccessToken;
 import models.Media;
 import models.User;
+import models.Event;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -26,8 +27,8 @@ public class Medias extends Controller {
 		result.put("description", media.description);
 		result.put("uri", media.uri.toString());
 		result.put("rank", media.rank);
-		result.put("owner", media.ownerUser.id);
-		result.put("owner", media.ownerEvent.token);
+		result.put("userOwner", media.ownerUser.id);
+		result.put("eventOwner", media.ownerEvent.token);
 		result.put("creation", media.creation.getTime());
 		
 		return result;
@@ -52,15 +53,43 @@ public class Medias extends Controller {
     /**
      * Add a media
      */
-    @BodyParser.Of(BodyParser.Json.class)
-    public static Result add(String accessToken) {
-    	User connectedUser = AccessTokens.connectedUser(accessToken);
-    	
-    	if (connectedUser == null) {
-    		return unauthorized("Not a connected user");
-    	}
-    	//JsonNode json = request().body().asJson();
-		return TODO;
+    public static Result add(String ownerEventToken, String accessToken) {
+    	User	ownerUser = AccessTokens.connectedUser(accessToken);
+    	Event	ownerEvent = Event.find.byId(ownerEventToken);
+   
+    	if (ownerUser == null)
+    		return unauthorized("No user connected");
+    	else if (ownerEvent == null)
+    		return notFound("Event not found");
+    	// TODO : Check User rights for this Event (can he add a media?) like this
+    	// else if (!Events.hasRightAccess(ownerUser))
+    	// 	return unauthorized("No write access");
+
+    	JsonNode root = request().body().asJson();
+    	if (root == null)
+    		return badRequest("Unexpected format, JSon required");
+    	JsonNode mediaList = root.get("medias");
+
+    	if (mediaList == null)
+    		return badRequest("Missing parameter [medias]");
+		ArrayNode mediasNode = Json.newObject().arrayNode();
+    	for (JsonNode mediaNode : mediaList) {
+        	String	name = mediaNode.findPath("name").textValue();
+        	// TODO : Check behavior when one of the media is invalid : send an error, skip ... ?
+        	if (name == null)
+        		continue ;
+        	Media newMedia = new Media(name, ownerUser, ownerEvent);
+        	String description = mediaNode.path("description").textValue();
+        	if (description != null)
+        		newMedia.description = description;
+        	newMedia.save();
+        	mediasNode.add(getMediaObjectNode(newMedia));
+		}
+    	if (mediasNode.size() == 0)
+    		return badRequest("Empty/Invalid media list");
+  		ObjectNode result = Json.newObject();
+		result.put("medias", mediasNode);
+		return ok(result);
     }
     
     /**
@@ -75,8 +104,7 @@ public class Medias extends Controller {
      */
     @BodyParser.Of(BodyParser.Json.class)
     public static Result update(Integer id) {
-    	//JsonNode json = request().body().asJson();
-		return TODO;
+    	return TODO;
     }
     
     /**

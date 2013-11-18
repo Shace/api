@@ -6,7 +6,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.lang3.CharSet;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
