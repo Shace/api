@@ -1,8 +1,10 @@
 package models;
 
 import java.util.Date;
+import java.util.List;
 import java.net.URI;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -12,6 +14,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import play.db.ebean.Model;
@@ -58,9 +61,12 @@ public class Media extends Model {
 	@ManyToOne
 	@JoinColumn(name="owner_event_id")
 	public Event		ownerEvent;
+	
+	@OneToMany(mappedBy="media", cascade=CascadeType.ALL)
+	public List<MediaTagRelation>	tags;
 
-	public Media(String name, User ownerUser, Event ownerEvent) {
-		this.name = name;
+	public Media(User ownerUser, Event ownerEvent) {
+		this.name = "";
 		this.ownerUser = ownerUser;
 		this.ownerEvent = ownerEvent;
 		this.creation = new Date();
@@ -75,7 +81,8 @@ public class Media extends Model {
 	);
 	
 	 public static Media create(String name, User ownerUser, Event ownerEvent) {
-		 Media media = new Media(name, ownerUser, ownerEvent);
+		 Media media = new Media(ownerUser, ownerEvent);
+		 media.name = name;
 		 media.save();
 		 return media; 
 	 }

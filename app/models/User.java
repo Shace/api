@@ -53,6 +53,9 @@ public class User extends Model {
 	@OneToMany(mappedBy="ownerUser", cascade=CascadeType.ALL)
 	public List<Media>	medias;
 	
+	@OneToMany(mappedBy="creator", cascade=CascadeType.ALL)
+	public List<MediaTagRelation>	tags;
+	
 	public User(String email, String password) {
 		this.email = email;
 		this.password = password;

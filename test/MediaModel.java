@@ -4,7 +4,7 @@ import static org.junit.Assert.*;
 import play.test.WithApplication;
 import static play.test.Helpers.*;
 
-public class MediaModelTest extends WithApplication {
+public class MediaModel extends WithApplication {
 
 	@Before
     public void setUp() {

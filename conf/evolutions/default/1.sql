@@ -8,7 +8,7 @@ create table se_event (
   id                        integer,
   password                  varchar(40),
   name                      varchar(255),
-  description               text,
+  description               clob,
   privacy                   integer,
   creation                  timestamp,
   constraint ck_se_event_privacy check (privacy in (0,1,2)),
@@ -20,7 +20,7 @@ create table se_media (
   id                        integer not null,
   type                      integer,
   name                      varchar(255),
-  description               text,
+  description               clob,
   uri                       varchar(255),
   rank                      integer,
   creation                  timestamp,
@@ -28,6 +28,19 @@ create table se_media (
   owner_event_id            varchar(255),
   constraint ck_se_media_type check (type in (0,1,2)),
   constraint pk_se_media primary key (id))
+;
+
+create table se_media_tag_relation (
+  media_id                  integer,
+  tag_id                    integer,
+  user_id                   integer)
+;
+
+create table se_tag (
+  id                        integer not null,
+  name                      varchar(255),
+  slug                      varchar(255),
+  constraint pk_se_tag primary key (id))
 ;
 
 create table se_user (
@@ -46,26 +59,44 @@ create sequence se_event_seq;
 
 create sequence se_media_seq;
 
+create sequence se_tag_seq;
+
 create sequence se_user_seq;
 
-alter table se_media add constraint fk_se_media_ownerUser_1 foreign key (owner_user_id) references se_user (id);
+alter table se_media add constraint fk_se_media_ownerUser_1 foreign key (owner_user_id) references se_user (id) on delete restrict on update restrict;
 create index ix_se_media_ownerUser_1 on se_media (owner_user_id);
-alter table se_media add constraint fk_se_media_ownerEvent_2 foreign key (owner_event_id) references se_event (token);
+alter table se_media add constraint fk_se_media_ownerEvent_2 foreign key (owner_event_id) references se_event (token) on delete restrict on update restrict;
 create index ix_se_media_ownerEvent_2 on se_media (owner_event_id);
+alter table se_media_tag_relation add constraint fk_se_media_tag_relation_media_3 foreign key (media_id) references se_media (id) on delete restrict on update restrict;
+create index ix_se_media_tag_relation_media_3 on se_media_tag_relation (media_id);
+alter table se_media_tag_relation add constraint fk_se_media_tag_relation_tag_4 foreign key (tag_id) references se_tag (id) on delete restrict on update restrict;
+create index ix_se_media_tag_relation_tag_4 on se_media_tag_relation (tag_id);
+alter table se_media_tag_relation add constraint fk_se_media_tag_relation_creat_5 foreign key (user_id) references se_user (id) on delete restrict on update restrict;
+create index ix_se_media_tag_relation_creat_5 on se_media_tag_relation (user_id);
 
 
 
 # --- !Downs
 
-drop table if exists se_event cascade;
+SET REFERENTIAL_INTEGRITY FALSE;
 
-drop table if exists se_media cascade;
+drop table if exists se_event;
 
-drop table if exists se_user cascade;
+drop table if exists se_media;
+
+drop table if exists se_media_tag_relation;
+
+drop table if exists se_tag;
+
+drop table if exists se_user;
+
+SET REFERENTIAL_INTEGRITY TRUE;
 
 drop sequence if exists se_event_seq;
 
 drop sequence if exists se_media_seq;
+
+drop sequence if exists se_tag_seq;
 
 drop sequence if exists se_user_seq;
 
