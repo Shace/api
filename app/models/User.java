@@ -55,6 +55,8 @@ public class User extends Model {
 	@OneToMany(mappedBy="ownerUser", cascade=CascadeType.ALL)
 	public List<Media>	medias;
 	
+	public boolean	isAdmin = false;
+	
 	@OneToMany(mappedBy="creator", cascade=CascadeType.ALL)
 	public List<MediaTagRelation>	tags;
 	
@@ -62,6 +64,7 @@ public class User extends Model {
 		this.email = email;
 		this.password = Utils.hash(password);
 		this.inscriptionDate = new Date();
+		this.isAdmin = false;
 	}
 	
 	public static Finder<Integer, User> find = new Finder<Integer, User>

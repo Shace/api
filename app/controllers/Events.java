@@ -29,7 +29,7 @@ public class Events extends Controller {
 	/**
 	 * List all visible events
 	 */
-    public static Result events() {
+    public static Result events(String accessToken) {
     	List<Event> events = Event.find.where()
     	.eq("privacy", Event.Privacy.PUBLIC)
         .findList();
@@ -48,7 +48,7 @@ public class Events extends Controller {
      * Add an event
      */
     @BodyParser.Of(BodyParser.Json.class)
-    public static Result add() {
+    public static Result add(String accessToken) {
     	//JsonNode json = request().body().asJson();
 		return TODO;
     }
@@ -56,7 +56,7 @@ public class Events extends Controller {
     /**
      * Delete an event
      */
-    public static Result delete(String token) {
+    public static Result delete(String token, String accessToken) {
     	return TODO;
     }
     
@@ -64,7 +64,7 @@ public class Events extends Controller {
      * Update an event
      */
     @BodyParser.Of(BodyParser.Json.class)
-    public static Result update(String token) {
+    public static Result update(String token, String accessToken) {
     	//JsonNode json = request().body().asJson();
 		return TODO;
     }
@@ -72,7 +72,7 @@ public class Events extends Controller {
     /**
      * Get event information
      */
-    public static Result event(String token) {
+    public static Result event(String token, String accessToken) {
     	return TODO;
     }
 }

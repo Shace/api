@@ -3,10 +3,7 @@ package controllers;
 import java.util.Date;
 import java.util.List;
 
-import org.joda.time.DateTime;
-
-import models.Event;
-import models.Media;
+import models.AccessToken;
 import models.User;
 import play.libs.Json;
 import play.mvc.BodyParser;
@@ -16,7 +13,6 @@ import play.mvc.Result;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 
 public class Users extends Controller {
 
@@ -32,6 +28,7 @@ public class Users extends Controller {
 		result.put("last_name", user.lastName);
 		result.put("birth_date", user.birthDate.getTime());
 		result.put("inscription", user.inscriptionDate.getTime());
+		result.put("is_admin", user.isAdmin);
 		
 		return result;
 	}
@@ -39,7 +36,15 @@ public class Users extends Controller {
 	/**
 	 * List all visible users
 	 */
-    public static Result users() {
+    public static Result users(String accessToken) {
+    	AccessToken	access = AccessTokens.access(accessToken);
+
+    	if (access == null)
+    		return unauthorized("Not a valid token");
+    	else if (!access.isConnectedUser())
+    		return unauthorized("No user connected");
+    	else if (access.user.isAdmin == false)
+    		return forbidden("You need to be admin");
     	List<User> users = User.find.findList();
     	
     	ArrayNode usersNode = Json.newObject().arrayNode();
@@ -58,7 +63,7 @@ public class Users extends Controller {
      * The user properties are contained into the HTTP Request body as Json format.
 	 * @return An HTTP Json response containing the properties of the created user
      */    @BodyParser.Of(BodyParser.Json.class)
-    public static Result add() {
+    public static Result add(String accessToken) {
     	JsonNode root = request().body().asJson();
     	if (root == null)
     		return badRequest("Unexpected format, JSon required");
@@ -79,7 +84,7 @@ public class Users extends Controller {
     /**
      * Delete a user
      */
-    public static Result delete(Integer id) {
+    public static Result delete(Integer id, String accessToken) {
     	return TODO;
     }
     
@@ -87,7 +92,7 @@ public class Users extends Controller {
      * Update a user
      */
     @BodyParser.Of(BodyParser.Json.class)
-    public static Result update(Integer id) {
+    public static Result update(Integer id, String accessToken) {
     	//JsonNode json = request().body().asJson();
 		return TODO;
     }
@@ -95,7 +100,7 @@ public class Users extends Controller {
     /**
      * Get user information
      */
-    public static Result user(Integer id) {
+    public static Result user(Integer id, String accessToken) {
     	User user = User.find.byId(id);
     
     	if (user != null) {

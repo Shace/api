@@ -2,6 +2,7 @@ package controllers;
 
 import java.util.List;
 
+import models.AccessToken;
 import models.Media;
 import models.User;
 import play.libs.Json;
@@ -25,7 +26,7 @@ public class Medias extends Controller {
 	 * List all the available media.
 	 * @return An HTTP Json response containing the properties of all the media
 	 */
-	public static Result medias() {
+	public static Result medias(String accessToken) {
 		List<Media> medias = Media.find.findList();
 
 		ArrayNode mediasNode = Json.newObject().arrayNode();
@@ -46,13 +47,16 @@ public class Medias extends Controller {
      */
     @BodyParser.Of(BodyParser.Json.class)
     public static Result add(String ownerEventToken, String accessToken) {
-    	User	ownerUser = AccessTokens.connectedUser(accessToken);
-    	Event	ownerEvent = Event.find.byId(ownerEventToken);
-   
-    	if (ownerUser == null)
+    	AccessToken	access = AccessTokens.access(accessToken);
+    	if (access == null)
+    		return unauthorized("Not a valid token");
+    	else if (!access.isConnectedUser())
     		return unauthorized("No user connected");
-    	else if (ownerEvent == null)
+
+    	Event		ownerEvent = Event.find.byId(ownerEventToken);
+    	if (ownerEvent == null)
     		return notFound("Event not found");
+  
     	// TODO : Check User rights for this Event (can he add a media?) like this
     	// else if (!Events.hasWriteAccess(ownerUser))
     	// 	return unauthorized("No write access");
@@ -66,8 +70,10 @@ public class Medias extends Controller {
     		return badRequest("Missing parameter [medias]");
 		ArrayNode mediasNode = Json.newObject().arrayNode();
     	for (JsonNode mediaNode : mediaList) {
-        	Media newMedia = new Media(ownerUser, ownerEvent);
+
+        	Media newMedia = new Media(access.user, ownerEvent);
         	updateOneMedia(newMedia, mediaNode);
+
         	newMedia.save();
         	mediasNode.add(getMediaObjectNode(newMedia));
 		}
@@ -83,18 +89,20 @@ public class Medias extends Controller {
      * @param id : the media identifier
      * @return An HTTP response that specifies if the deletion succeeded or not
      */
-    public static Result delete(Integer id) {
-    	// TODO : Get connected User instead of this
-    	User	currentUser = User.find.findUnique();
-    	Media	currentMedia = Media.find.byId(id);
-
-    	if (currentUser == null)
+    public static Result delete(Integer id, String accessToken) {
+    	AccessToken	access = AccessTokens.access(accessToken);
+    	if (access == null)
+    		return unauthorized("Not a valid token");
+    	else if (!access.isConnectedUser())
     		return unauthorized("No user connected");
-    	else if (currentMedia == null)
+    	
+    	Media	currentMedia = Media.find.byId(id);
+    	if (currentMedia == null)
     		return notFound("Media not found");
     	Event	currentEvent = currentMedia.ownerEvent;
     	if (currentEvent == null)
     		return notFound("Media not found");
+
     	// TODO : Check User rights for this Event (can he edit a media?) like this
     	// else if (!Events.hasWriteAccess(ownerUser))
     	// 	return unauthorized("No write access");
@@ -110,18 +118,20 @@ public class Medias extends Controller {
 	 * @return An HTTP Json response containing the new properties of edited media
      */
     @BodyParser.Of(BodyParser.Json.class)
-    public static Result update(Integer id) {
-    	// TODO : Get connected User instead of this
-    	User	currentUser = User.find.findUnique();
-    	Media	currentMedia = Media.find.byId(id);
-
-    	if (currentUser == null)
+    public static Result update(Integer id, String accessToken) {
+    	AccessToken	access = AccessTokens.access(accessToken);
+    	if (access == null)
+    		return unauthorized("Not a valid token");
+    	else if (!access.isConnectedUser())
     		return unauthorized("No user connected");
-    	else if (currentMedia == null)
+
+    	Media	currentMedia = Media.find.byId(id);
+    	if (currentMedia == null)
     		return notFound("Media not found");
     	Event	currentEvent = currentMedia.ownerEvent;
     	if (currentEvent == null)
     		return notFound("Media not found");
+
     	// TODO : Check User rights for this Event (can he edit a media?) like this
     	// else if (!Events.hasWriteAccess(ownerUser))
     	// 	return unauthorized("No write access");
@@ -141,7 +151,7 @@ public class Medias extends Controller {
      * @param id : the media identifier
 	 * @return An HTTP Json response containing the properties of the specified media
      */
-    public static Result media(Integer id) {
+    public static Result media(Integer id, String accessToken) {
     	// TODO : Get connected User instead of this
     	User	currentUser = User.find.findUnique();
     	Media	currentMedia = Media.find.byId(id);

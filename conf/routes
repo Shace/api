@@ -7,28 +7,28 @@ GET		/							controllers.Application.index()
 
 # AccessToken
 POST	/access_token				controllers.AccessTokens.accessToken()
-DELETE	/accesss_token				controllers.AccessTokens.delete()
+DELETE	/access_token				controllers.AccessTokens.delete(access_token)
 
 # Events
-GET		/events						controllers.Events.events()
-POST	/events						controllers.Events.add()
-DELETE	/events/:token				controllers.Events.delete(token : String)
-PUT		/events/:token				controllers.Events.update(token : String)
-GET		/events/:token				controllers.Events.event(token : String)
+GET		/events						controllers.Events.events(access_token)
+POST	/events						controllers.Events.add(access_token)
+DELETE	/events/:token				controllers.Events.delete(token : String, access_token)
+PUT		/events/:token				controllers.Events.update(token : String, access_token)
+GET		/events/:token				controllers.Events.event(token : String, access_token)
 
 # Medias
-GET		/medias						controllers.Medias.medias()
+GET		/medias						controllers.Medias.medias(access_token)
 POST	/events/:token/medias		controllers.Medias.add(token : String, access_token)
-DELETE	/medias/:id					controllers.Medias.delete(id : Integer)
-PUT		/medias/:id					controllers.Medias.update(id : Integer)
-GET		/medias/:id					controllers.Medias.media(id : Integer)
+DELETE	/medias/:id					controllers.Medias.delete(id : Integer, access_token)
+PUT		/medias/:id					controllers.Medias.update(id : Integer, access_token)
+GET		/medias/:id					controllers.Medias.media(id : Integer, access_token)
 
 # Users
-GET		/users						controllers.Users.users()
-POST	/users						controllers.Users.add()
-DELETE	/users/:id					controllers.Users.delete(id : Integer)
-PUT		/users/:id					controllers.Users.update(id : Integer)
-GET		/users/:id					controllers.Users.user(id : Integer)
+GET		/users						controllers.Users.users(access_token)
+POST	/users						controllers.Users.add(access_token)
+DELETE	/users/:id					controllers.Users.delete(id : Integer, access_token)
+PUT		/users/:id					controllers.Users.update(id : Integer, access_token)
+GET		/users/:id					controllers.Users.user(id : Integer, access_token)
 
 # Map static resources from the /public folder to the /assets URL path
 GET		/assets/*file				controllers.Assets.at(path="/public", file)

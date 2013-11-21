@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import models.AccessToken;
 import models.User;
+import models.AccessToken.Type;
 import play.libs.Json;
 import play.mvc.*;
 
@@ -26,29 +27,15 @@ public class AccessTokens extends Controller {
 		
 		return result;
 	}
-	
 
     /**
-     * Add a user
+     * Delete a token
      */
-    public static Result add() {
-		return TODO;
-    }
-    
-    /**
-     * Delete a user
-     */
-    public static Result delete() {
+    public static Result delete(String accessToken) {
     	return TODO;
     }
     
-    /**
-     * Update a user
-     */
-    public static Result update(Integer id) {
-		return TODO;
-    }
-    
+
     /**
      * Get access token
      */
@@ -59,20 +46,18 @@ public class AccessTokens extends Controller {
     	if (json == null) {
     		return badRequest("Expecting Json data");
 		} 
-    	
     	String email = json.path("email").textValue();
     	String password = json.path("password").textValue();
+    	boolean autoRenew = json.path("auto_renew").booleanValue();
     	if (email == null) {
-			return badRequest("Missing parameter [email]");
+    		return ok(getAccessTokenObjectNode(AccessToken.create(autoRenew, null, Type.GUEST)));
         } else if (password == null) {
         	return badRequest("Missing parameter [password]");
         } else {
-    		boolean autoRenew = json.path("auto_renew").booleanValue();
         	AccessToken res = authenticate(email, password, autoRenew);
         	if (res== null) {
         		return unauthorized("Invalid user or password");
-        	}
-        	        	
+        	}        	        	
     		return ok(getAccessTokenObjectNode(res));
         }
     }
@@ -83,14 +68,14 @@ public class AccessTokens extends Controller {
     	if (user == null) {
     		return null;
     	}
-		return AccessToken.create(autoRenew, user);
+		return AccessToken.create(autoRenew, user, Type.USER);
 	}
 
 
 	/*
-     * Get connected user
+     * Get access object
      */
-    public static User connectedUser(String accessToken) {
+    public static AccessToken access(String accessToken) {
     	
     	if (accessToken == null) {
     		return null;
@@ -106,6 +91,6 @@ public class AccessTokens extends Controller {
     		token.expiration = new Date((new Date()).getTime() + AccessToken.autoRenewExpirationTime);
     		token.save();
 		}
-    	return token.user;
+    	return token;
     }
 }
