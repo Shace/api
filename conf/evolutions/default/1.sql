@@ -3,12 +3,21 @@
 
 # --- !Ups
 
+create table se_access_token (
+  token                     varchar(40) not null,
+  auto_renew                boolean,
+  creation                  timestamp,
+  expiration                timestamp,
+  user_id                   integer,
+  constraint pk_se_access_token primary key (token))
+;
+
 create table se_event (
   token                     varchar(255) not null,
   id                        integer,
   password                  varchar(40),
   name                      varchar(255),
-  description               clob,
+  description               text,
   privacy                   integer,
   creation                  timestamp,
   constraint ck_se_event_privacy check (privacy in (0,1,2)),
@@ -20,7 +29,7 @@ create table se_media (
   id                        integer not null,
   type                      integer,
   name                      varchar(255),
-  description               clob,
+  description               text,
   uri                       varchar(255),
   rank                      integer,
   creation                  timestamp,
@@ -55,6 +64,8 @@ create table se_user (
   constraint pk_se_user primary key (id))
 ;
 
+create sequence se_access_token_seq;
+
 create sequence se_event_seq;
 
 create sequence se_media_seq;
@@ -63,34 +74,36 @@ create sequence se_tag_seq;
 
 create sequence se_user_seq;
 
-alter table se_media add constraint fk_se_media_ownerUser_1 foreign key (owner_user_id) references se_user (id) on delete restrict on update restrict;
-create index ix_se_media_ownerUser_1 on se_media (owner_user_id);
-alter table se_media add constraint fk_se_media_ownerEvent_2 foreign key (owner_event_id) references se_event (token) on delete restrict on update restrict;
-create index ix_se_media_ownerEvent_2 on se_media (owner_event_id);
-alter table se_media_tag_relation add constraint fk_se_media_tag_relation_media_3 foreign key (media_id) references se_media (id) on delete restrict on update restrict;
-create index ix_se_media_tag_relation_media_3 on se_media_tag_relation (media_id);
-alter table se_media_tag_relation add constraint fk_se_media_tag_relation_tag_4 foreign key (tag_id) references se_tag (id) on delete restrict on update restrict;
-create index ix_se_media_tag_relation_tag_4 on se_media_tag_relation (tag_id);
-alter table se_media_tag_relation add constraint fk_se_media_tag_relation_creat_5 foreign key (user_id) references se_user (id) on delete restrict on update restrict;
-create index ix_se_media_tag_relation_creat_5 on se_media_tag_relation (user_id);
+alter table se_access_token add constraint fk_se_access_token_user_1 foreign key (user_id) references se_user (id);
+create index ix_se_access_token_user_1 on se_access_token (user_id);
+alter table se_media add constraint fk_se_media_ownerUser_2 foreign key (owner_user_id) references se_user (id);
+create index ix_se_media_ownerUser_2 on se_media (owner_user_id);
+alter table se_media add constraint fk_se_media_ownerEvent_3 foreign key (owner_event_id) references se_event (token);
+create index ix_se_media_ownerEvent_3 on se_media (owner_event_id);
+alter table se_media_tag_relation add constraint fk_se_media_tag_relation_media_4 foreign key (media_id) references se_media (id);
+create index ix_se_media_tag_relation_media_4 on se_media_tag_relation (media_id);
+alter table se_media_tag_relation add constraint fk_se_media_tag_relation_tag_5 foreign key (tag_id) references se_tag (id);
+create index ix_se_media_tag_relation_tag_5 on se_media_tag_relation (tag_id);
+alter table se_media_tag_relation add constraint fk_se_media_tag_relation_creat_6 foreign key (user_id) references se_user (id);
+create index ix_se_media_tag_relation_creat_6 on se_media_tag_relation (user_id);
 
 
 
 # --- !Downs
 
-SET REFERENTIAL_INTEGRITY FALSE;
+drop table if exists se_access_token cascade;
 
-drop table if exists se_event;
+drop table if exists se_event cascade;
 
-drop table if exists se_media;
+drop table if exists se_media cascade;
 
-drop table if exists se_media_tag_relation;
+drop table if exists se_media_tag_relation cascade;
 
-drop table if exists se_tag;
+drop table if exists se_tag cascade;
 
-drop table if exists se_user;
+drop table if exists se_user cascade;
 
-SET REFERENTIAL_INTEGRITY TRUE;
+drop sequence if exists se_access_token_seq;
 
 drop sequence if exists se_event_seq;
 

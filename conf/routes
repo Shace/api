@@ -5,6 +5,10 @@
 # Application
 GET		/							controllers.Application.index()
 
+# AccessToken
+POST	/access_token				controllers.AccessTokens.accessToken()
+DELETE	/accesss_token				controllers.AccessTokens.delete()
+
 # Events
 GET		/events						controllers.Events.events()
 POST	/events						controllers.Events.add()
@@ -14,7 +18,7 @@ GET		/events/:token				controllers.Events.event(token : String)
 
 # Medias
 GET		/medias						controllers.Medias.medias()
-POST	/events/:token/medias		controllers.Medias.add(token : String)
+POST	/events/:token/medias		controllers.Medias.add(token : String, access_token)
 DELETE	/medias/:id					controllers.Medias.delete(id : Integer)
 PUT		/medias/:id					controllers.Medias.update(id : Integer)
 GET		/medias/:id					controllers.Medias.media(id : Integer)

@@ -2,12 +2,14 @@ package controllers;
 
 import java.util.List;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import models.User;
 import play.libs.Json;
-import play.mvc.*;
+import play.mvc.BodyParser;
+import play.mvc.Controller;
+import play.mvc.Result;
+
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 
 public class Users extends Controller {
@@ -15,7 +17,7 @@ public class Users extends Controller {
 	/**
 	 * Get the object node representing a user
 	 */
-	private static ObjectNode getUserObjectNode(User user) {
+	public static ObjectNode getUserObjectNode(User user) {
 		ObjectNode result = Json.newObject();
 		
 		result.put("id", user.id);
@@ -82,4 +84,12 @@ public class Users extends Controller {
     		return notFound("User with id " + id + " not found");
     	}
     }
+    
+    public static User authenticate(String email, String password) {
+    	String sha1 = Utils.hash(password);
+    	
+    	if (sha1 == null)
+    		return null;
+		return User.find.where().eq("email", email).eq("password", sha1).findUnique();
+	}
 }

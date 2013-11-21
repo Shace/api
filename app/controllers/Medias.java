@@ -2,13 +2,13 @@ package controllers;
 
 import java.util.List;
 
-import models.Event;
 import models.Media;
 import models.User;
 import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
+import models.Event;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -45,9 +45,8 @@ public class Medias extends Controller {
 	 * @return An HTTP Json response containing the properties of all the added media
      */
     @BodyParser.Of(BodyParser.Json.class)
-    public static Result add(String ownerEventToken) {
-    	// TODO : Get connected User instead of this
-    	User	ownerUser = User.find.all().get(0);
+    public static Result add(String ownerEventToken, String accessToken) {
+    	User	ownerUser = AccessTokens.connectedUser(accessToken);
     	Event	ownerEvent = Event.find.byId(ownerEventToken);
    
     	if (ownerUser == null)

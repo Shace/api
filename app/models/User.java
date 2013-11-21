@@ -11,6 +11,8 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import controllers.Utils;
+
 import play.db.ebean.*;
 import play.data.format.*;
 import play.data.validation.*;
@@ -58,7 +60,7 @@ public class User extends Model {
 	
 	public User(String email, String password) {
 		this.email = email;
-		this.password = password;
+		this.password = Utils.hash(password);
 		this.inscriptionDate = new Date();
 	}
 	
@@ -73,4 +75,5 @@ public class User extends Model {
 		
 		return newUser;
 	}
+	
 }

@@ -3,6 +3,7 @@ import static org.junit.Assert.assertNotNull;
 import static play.mvc.Http.Status.BAD_REQUEST;
 import static play.mvc.Http.Status.CREATED;
 import static play.mvc.Http.Status.NOT_FOUND;
+import static play.mvc.Http.Status.UNAUTHORIZED;
 import static play.mvc.Http.Status.OK;
 import static play.test.Helpers.POST;
 import static play.test.Helpers.PUT;
@@ -10,12 +11,15 @@ import static play.test.Helpers.callAction;
 import static play.test.Helpers.fakeApplication;
 import static play.test.Helpers.inMemoryDatabase;
 import static play.test.Helpers.status;
+import models.AccessToken;
 import models.Event;
 import models.Media;
 import models.User;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import controllers.AccessTokens;
 
 import play.api.libs.json.Json;
 import play.mvc.Result;
@@ -36,12 +40,15 @@ public class MediasController extends WithApplication {
      */
     @Test
     public void createMedias() {
+    	AccessToken token = AccessTokens.authenticate(ownerUser.email, "secret", true);
+    	
+    	assertNotNull(token);
     	/**
     	 * Valid request creating one media
     	 */
     	standardAddMedia(
     			"{\"medias\":[{\"name\":\"Test Image\",\"description\":\"Here is the test image description\"}]}",
-    			ownerEvent.token, CREATED, 1);
+    			ownerEvent.token, CREATED, 1, token.token);
 
     	
     	/**
@@ -49,7 +56,7 @@ public class MediasController extends WithApplication {
     	 */
     	standardAddMedia(
     			"{\"name\":\"Test Image\",\"description\":\"Here is the second image of shace event\"}",
-    			ownerEvent.token, BAD_REQUEST, 1);
+    			ownerEvent.token, BAD_REQUEST, 1, token.token);
 
 
     	/**
@@ -57,10 +64,17 @@ public class MediasController extends WithApplication {
     	 */
     	standardAddMedia(
     			"{\"medias\":[{\"name\":\"Test Image\",\"description\":\"Here is the test image description\"}]}",
-    			"UNVALID_EVENT", NOT_FOUND, 1);
+    			"UNVALID_EVENT", NOT_FOUND, 1, token.token);
+    	
+    	
+    	/**
+    	 * Valid request with a not connected user
+    	 */
+    	standardAddMedia(
+    			"{\"medias\":[{\"name\":\"Test Image\",\"description\":\"Here is the test image description\"}]}",
+    			ownerEvent.token, UNAUTHORIZED, 1, null);
 
     	
-    	// TODO : Make a test with a not connected user
     	// TODO : Make a test a connected user that has no write rights on the event
     	
     	/**
@@ -69,7 +83,7 @@ public class MediasController extends WithApplication {
     	standardAddMedia(
     			"{\"medias\":[{\"name\":\"Test Image1\",\"description\":\"Here is the test image 1 description\"}," +
     			"			  {\"name\":\"Test Image2\",\"description\":\"Here is the test image 2 description\"}]}",
-    			ownerEvent.token, CREATED, 3);
+    			ownerEvent.token, CREATED, 3, token.token);
     	
     }
 	
@@ -124,9 +138,9 @@ public class MediasController extends WithApplication {
      * @param expectedStatus : the expected Http response status
      * @param expectedNewMediaNumber : the expected number of media in the table after running this test
      */
-	private void	standardAddMedia(String jsonBody, String eventToken, int expectedStatus, int expectedNewMediaNumber) {
+	private void	standardAddMedia(String jsonBody, String eventToken, int expectedStatus, int expectedNewMediaNumber, String token) {
     	FakeRequest fakeRequest = new FakeRequest(POST, "/events/" + eventToken + "/medias").withJsonBody(Json.parse(jsonBody));
-    	Result result = callAction(controllers.routes.ref.Medias.add(eventToken), fakeRequest);
+    	Result result = callAction(controllers.routes.ref.Medias.add(eventToken, token), fakeRequest);
 
     	assertEquals(expectedStatus, status(result));
     	assertEquals(expectedNewMediaNumber, Media.find.all().size());
