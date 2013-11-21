@@ -27,29 +27,15 @@ public class AccessTokens extends Controller {
 		
 		return result;
 	}
-	
 
     /**
-     * Add a user
+     * Delete a token
      */
-    public static Result add() {
-		return TODO;
-    }
-    
-    /**
-     * Delete a user
-     */
-    public static Result delete() {
+    public static Result delete(String accessToken) {
     	return TODO;
     }
     
-    /**
-     * Update a user
-     */
-    public static Result update(Integer id) {
-		return TODO;
-    }
-    
+
     /**
      * Get access token
      */
@@ -68,18 +54,32 @@ public class AccessTokens extends Controller {
         } else if (password == null) {
         	return badRequest("Missing parameter [password]");
         } else {
-        	User user = Users.authenticate(email, password);
-        	if (user == null) {
+        	AccessToken res = authenticate(email, password, autoRenew);
+        	if (res== null) {
         		return unauthorized("Invalid user or password");
         	}        	        	
-    		return ok(getAccessTokenObjectNode(AccessToken.create(autoRenew, user, Type.USER)));
+    		return ok(getAccessTokenObjectNode(res));
         }
     }
     
-    /*
-     * Get connected user
+    public static AccessToken authenticate(String email, String password,
+			boolean autoRenew) {
+    	User user = Users.authenticate(email, password);
+    	if (user == null) {
+    		return null;
+    	}
+		return AccessToken.create(autoRenew, user, Type.USER);
+	}
+
+
+	/*
+     * Get access object
      */
     public static AccessToken access(String accessToken) {
+    	
+    	if (accessToken == null) {
+    		return null;
+    	}
     	
     	AccessToken token = AccessToken.find.where().eq("token", accessToken).where().gt("expiration", new Date()).setMaxRows(1).findUnique();
     	

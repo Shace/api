@@ -1,20 +1,17 @@
 package controllers;
 
-import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
-import org.apache.commons.codec.binary.Hex;
+import models.User;
+import play.libs.Json;
+import play.mvc.BodyParser;
+import play.mvc.Controller;
+import play.mvc.Result;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import models.AccessToken;
-import models.User;
-import play.libs.Json;
-import play.mvc.*;
-
 
 public class Users extends Controller {
 
@@ -64,7 +61,7 @@ public class Users extends Controller {
      * Add a user
      */
     @BodyParser.Of(BodyParser.Json.class)
-    public static Result add() {
+    public static Result add(String accessToken) {
     	//JsonNode json = request().body().asJson();
 		return TODO;
     }
@@ -72,7 +69,7 @@ public class Users extends Controller {
     /**
      * Delete a user
      */
-    public static Result delete(Integer id) {
+    public static Result delete(Integer id, String accessToken) {
     	return TODO;
     }
     
@@ -80,7 +77,7 @@ public class Users extends Controller {
      * Update a user
      */
     @BodyParser.Of(BodyParser.Json.class)
-    public static Result update(Integer id) {
+    public static Result update(Integer id, String accessToken) {
     	//JsonNode json = request().body().asJson();
 		return TODO;
     }
@@ -88,7 +85,7 @@ public class Users extends Controller {
     /**
      * Get user information
      */
-    public static Result user(Integer id) {
+    public static Result user(Integer id, String accessToken) {
     	User user = User.find.byId(id);
     
     	if (user != null) {
@@ -99,18 +96,10 @@ public class Users extends Controller {
     }
     
     public static User authenticate(String email, String password) {
-    	MessageDigest cript;
-		try {
-			cript = MessageDigest.getInstance("SHA-1");
-			cript.reset();
-	        cript.update(password.getBytes("utf8"));
-	    	String sha1 = new String(Hex.encodeHex(cript.digest()));
-			return User.find.where().eq("email", email).eq("password", sha1).findUnique();
-		} catch (NoSuchAlgorithmException e) {
-			return null;
-		} catch (UnsupportedEncodingException e) {
-			return null;
-		}
-        
+    	String sha1 = Utils.hash(password);
+    	
+    	if (sha1 == null)
+    		return null;
+		return User.find.where().eq("email", email).eq("password", sha1).findUnique();
 	}
 }

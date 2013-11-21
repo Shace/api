@@ -7,7 +7,7 @@ import static play.test.Helpers.*;
 import static org.fest.assertions.Assertions.*;
 
 
-public class ApplicationControllerTest {
+public class ApplicationController {
 
 	
     @Test
