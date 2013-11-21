@@ -1,13 +1,19 @@
 package controllers;
 
+import java.util.Date;
 import java.util.List;
 
+import org.joda.time.DateTime;
+
+import models.Event;
+import models.Media;
 import models.User;
 import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -21,10 +27,10 @@ public class Users extends Controller {
 		ObjectNode result = Json.newObject();
 		
 		result.put("id", user.id);
-		result.put("mail", user.email);
-		result.put("firstname", user.firstName);
-		result.put("lastname", user.lastName);
-		result.put("birthdate", user.birthDate.getTime());
+		result.put("email", user.email);
+		result.put("first_name", user.firstName);
+		result.put("last_name", user.lastName);
+		result.put("birth_date", user.birthDate.getTime());
 		result.put("inscription", user.inscriptionDate.getTime());
 		
 		return result;
@@ -48,12 +54,26 @@ public class Users extends Controller {
     }
 
     /**
-     * Add a user
-     */
-    @BodyParser.Of(BodyParser.Json.class)
+     * Create a new user.
+     * The user properties are contained into the HTTP Request body as Json format.
+	 * @return An HTTP Json response containing the properties of the created user
+     */    @BodyParser.Of(BodyParser.Json.class)
     public static Result add() {
-    	//JsonNode json = request().body().asJson();
-		return TODO;
+    	JsonNode root = request().body().asJson();
+    	if (root == null)
+    		return badRequest("Unexpected format, JSon required");
+    	String email = root.get("email").textValue();
+    	if (email == null)
+    		return badRequest("Missing parameter [email]");
+
+    	String password = root.get("password").textValue();
+    	if (password == null)
+    		return badRequest("Missing parameter [password]");
+
+    	User newUser = User.create(email, password);
+    	updateOneUser(newUser, root);
+    	newUser.save();
+		return created(getUserObjectNode(newUser));
     }
     
     /**
@@ -92,4 +112,29 @@ public class Users extends Controller {
     		return null;
 		return User.find.where().eq("email", email).eq("password", sha1).findUnique();
 	}
+    
+    /**
+     * Update the user properties from a Json object.
+     * @param currentUser : The user to update
+     * @param currentNode : The new properties to set
+     */
+    private static void updateOneUser(User currentUser, JsonNode currentNode) {
+    	String	email = currentNode.findPath("email").textValue();
+    	if (email != null)
+    		currentUser.email = email;
+    	String	password = currentNode.findPath("password").textValue();
+    	if (password != null)
+    		currentUser.password = Utils.hash(password);
+    	String	firstName = currentNode.findPath("first_name").textValue();
+    	if (firstName != null)
+    		currentUser.firstName = firstName;
+    	String	lastName = currentNode.findPath("last_name").textValue();
+    	if (lastName != null)
+    		currentUser.lastName = lastName;
+    	Long	dateTime = currentNode.findPath("birth_date").asLong();
+    	if (dateTime != null) {
+        	Date	birthDate = new Date(dateTime);
+    		currentUser.birthDate = birthDate;
+    	}
+    }
 }

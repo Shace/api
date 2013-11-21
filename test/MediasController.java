@@ -4,6 +4,7 @@ import static play.mvc.Http.Status.BAD_REQUEST;
 import static play.mvc.Http.Status.CREATED;
 import static play.mvc.Http.Status.NOT_FOUND;
 import static play.mvc.Http.Status.UNAUTHORIZED;
+import static play.mvc.Http.Status.NO_CONTENT;
 import static play.mvc.Http.Status.OK;
 import static play.test.Helpers.POST;
 import static play.test.Helpers.PUT;
@@ -33,16 +34,14 @@ public class MediasController extends WithApplication {
         start(fakeApplication(inMemoryDatabase()));
         ownerEvent = Event.create("Valid Event", "First Shace's Event", "This is the first Event of the awesome shace app");
         ownerUser = User.create("toto@gmail.com", "secret");
+    	token = AccessTokens.authenticate(ownerUser.email, "secret", true);
     }
-	
+
     /**
      * Checks the media creation in database through the media controller
      */
     @Test
     public void createMedias() {
-    	AccessToken token = AccessTokens.authenticate(ownerUser.email, "secret", true);
-    	
-    	assertNotNull(token);
     	/**
     	 * Valid request creating one media
     	 */
@@ -75,7 +74,7 @@ public class MediasController extends WithApplication {
     			ownerEvent.token, UNAUTHORIZED, 1, null);
 
     	
-    	// TODO : Make a test a connected user that has no write rights on the event
+    	// TODO : Make a test with a connected user that has no write rights on the event
     	
     	/**
     	 * Valid request creating two medias
@@ -106,7 +105,7 @@ public class MediasController extends WithApplication {
     	 */
     	standardUpdateMedia(
     			"{\"name\":\"New Test Name\",\"description\":\"New Test Description\"}",
-    			newMedia.id, OK, true, "New Test Name", "New Test Description");
+    			newMedia.id, OK, true, "New Test Name", "New Test Description", token.token);
     	newMedia = Media.find.byId(newMedia.id);
 
     	
@@ -115,7 +114,7 @@ public class MediasController extends WithApplication {
     	 */
     	standardUpdateMedia(
     			"{}",
-    			newMedia.id, OK, true, newMedia.name, newMedia.description);
+    			newMedia.id, OK, true, newMedia.name, newMedia.description, token.token);
     	newMedia = Media.find.byId(newMedia.id);
     	
     	
@@ -124,19 +123,82 @@ public class MediasController extends WithApplication {
     	 */
     	standardUpdateMedia(
     			"{\"name\":\"New Test Name\",\"description\":\"New Test Description\"}",
-    			4242, NOT_FOUND, false, "", "");
+    			4242, NOT_FOUND, false, "", "", token.token);
+    	
+    	
+    	/**
+    	 * Valid request with a not connected user
+    	 */
+    	// TODO: Uncomment this when the access tokens are available for the update method on the controller
+//    	standardUpdateMedia(
+//    			"{\"name\":\"New Test Name1\",\"description\":\"New Test Description1\"}",
+//    			newMedia.id, UNAUTHORIZED, false, "", "", null);
 
 
-    	// TODO : Make a test with a not connected user
     	// TODO : Make a test a connected user that has no write rights on the media event
     }
-    
+
     /**
+     * Checks the media deletion in database through the media controller
+     */
+    @Test
+    public void deleteMedias() {
+    	/**
+    	 * Initialization
+    	 */
+    	Media newMedia = new Media(ownerUser, ownerEvent);
+    	newMedia.name = "Test Name";
+    	newMedia.description = "Test Description";
+    	newMedia.save();
+    	Media newMedia1 = new Media(ownerUser, ownerEvent);
+    	newMedia1.name = "Test Name";
+    	newMedia1.description = "Test Description";
+    	newMedia1.save();
+    	Media newMedia2 = new Media(ownerUser, null);
+    	newMedia2.name = "Test Name";
+    	newMedia2.description = "Test Description";
+    	newMedia2.save();
+    	
+    	assertEquals(3, Media.find.all().size());
+
+    	/**
+    	 * Valid request deleting one media
+    	 */
+    	standardDeleteMedia(newMedia.id, NO_CONTENT, 2, token.token);
+
+
+    	/**
+    	 * Unvalid request with a not existing media
+    	 */
+    	standardDeleteMedia(4242, NOT_FOUND, 2, token.token);
+
+
+    	/**
+    	 * Unvalid request with a not existing event
+    	 */
+    	standardDeleteMedia(newMedia2.id, NOT_FOUND, 2, token.token);
+
+    	
+    	
+    	/**
+    	 * Valid request with a not connected user
+    	 */
+    	// TODO: Uncomment this when the access tokens are available for the update method on the controller
+//    	standardDeleteMedia(newMedia2.id, UNAUTHORIZED, 1, null);
+
+
+    	
+    	// TODO : Make a test with a connected user that has no write rights on the event
+    }
+    
+
+	/**
      * Simple useful function that generates "add media" test from the parameters.
      * @param jsonBody : the request json body
      * @param eventToken : the token of the event that will contain (or not) the media
      * @param expectedStatus : the expected Http response status
      * @param expectedNewMediaNumber : the expected number of media in the table after running this test
+	 * @param token : the string corresponding to the current connected user (or null if there is not)
      */
 	private void	standardAddMedia(String jsonBody, String eventToken, int expectedStatus, int expectedNewMediaNumber, String token) {
     	FakeRequest fakeRequest = new FakeRequest(POST, "/events/" + eventToken + "/medias").withJsonBody(Json.parse(jsonBody));
@@ -154,8 +216,9 @@ public class MediasController extends WithApplication {
 	 * @param checkNewValues : check or not the new values (name, description ...)
 	 * @param expectedNewName : the expected new media name
 	 * @param expectedNewDescription : the expected new media description
+	 * @param token : the string corresponding to the current connected user (or null if there is not)
 	 */
-	private void	standardUpdateMedia(String jsonBody, Integer mediaId, int expectedStatus, boolean checkNewValues, String expectedNewName, String expectedNewDescription) {
+	private void	standardUpdateMedia(String jsonBody, Integer mediaId, int expectedStatus, boolean checkNewValues, String expectedNewName, String expectedNewDescription, String token) {
     	FakeRequest fakeRequest = new FakeRequest(PUT, "/medias/" + mediaId).withJsonBody(Json.parse(jsonBody));
     	Result result = callAction(controllers.routes.ref.Medias.update(mediaId), fakeRequest);
 
@@ -167,7 +230,22 @@ public class MediasController extends WithApplication {
     	assertEquals(expectedNewName, currentMedia.name);
     	assertEquals(expectedNewDescription, currentMedia.description);
 	}
-	    
+    
+	/**
+     * Simple useful function that generates "delete media" test from the parameters.
+	 * @param mediaId : the id of the media to update
+     * @param expectedStatus : the expected Http response status
+     * @param expectedNewMediaNumber : the expected number of media in the table after running this test
+	 * @param token : the string corresponding to the current connected user (or null if there is not)
+	 */
+    private void	standardDeleteMedia(Integer mediaId, int expectedStatus, int expectedNewMediaNumber, String token) {
+    	Result result = callAction(controllers.routes.ref.Medias.delete(mediaId));
+
+    	assertEquals(expectedStatus, status(result));
+    	assertEquals(expectedNewMediaNumber, Media.find.all().size());
+	}
+
     private Event	ownerEvent;
     private User	ownerUser;
+    private AccessToken token;
 }

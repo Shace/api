@@ -172,7 +172,6 @@ public class Medias extends Controller {
     	String description = currentNode.path("description").textValue();
     	if (description != null)
     		currentMedia.description = description;
-
     }
 
 	/**
