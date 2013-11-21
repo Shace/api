@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import models.AccessToken;
 import models.User;
+import models.AccessToken.Type;
 import play.libs.Json;
 import play.mvc.*;
 
@@ -59,28 +60,26 @@ public class AccessTokens extends Controller {
     	if (json == null) {
     		return badRequest("Expecting Json data");
 		} 
-    	
     	String email = json.path("email").textValue();
     	String password = json.path("password").textValue();
+    	boolean autoRenew = json.path("auto_renew").booleanValue();
     	if (email == null) {
-			return badRequest("Missing parameter [email]");
+    		return ok(getAccessTokenObjectNode(AccessToken.create(autoRenew, null, Type.GUEST)));
         } else if (password == null) {
         	return badRequest("Missing parameter [password]");
         } else {
         	User user = Users.authenticate(email, password);
         	if (user == null) {
         		return unauthorized("Invalid user or password");
-        	}
-        	        	
-    		boolean autoRenew = json.path("auto_renew").booleanValue();
-    		return ok(getAccessTokenObjectNode(AccessToken.create(autoRenew, user)));
+        	}        	        	
+    		return ok(getAccessTokenObjectNode(AccessToken.create(autoRenew, user, Type.USER)));
         }
     }
     
     /*
      * Get connected user
      */
-    public static User connectedUser(String accessToken) {
+    public static AccessToken access(String accessToken) {
     	
     	AccessToken token = AccessToken.find.where().eq("token", accessToken).where().gt("expiration", new Date()).setMaxRows(1).findUnique();
     	
@@ -92,6 +91,6 @@ public class AccessTokens extends Controller {
     		token.expiration = new Date((new Date()).getTime() + AccessToken.autoRenewExpirationTime);
     		token.save();
 		}
-    	return token.user;
+    	return token;
     }
 }

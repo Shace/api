@@ -24,7 +24,7 @@ PUT		/medias/:id					controllers.Medias.update(id : Integer)
 GET		/medias/:id					controllers.Medias.media(id : Integer)
 
 # Users
-GET		/users						controllers.Users.users()
+GET		/users						controllers.Users.users(access_token)
 POST	/users						controllers.Users.add()
 DELETE	/users/:id					controllers.Users.delete(id : Integer)
 PUT		/users/:id					controllers.Users.update(id : Integer)

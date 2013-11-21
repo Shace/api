@@ -7,8 +7,9 @@ INSERT INTO se_event
 	VALUES ('shace', 'ShaceEvent', 'ShaceEvent first event', 0, NOW(), NEXTVAL('se_event_seq'));
 
 INSERT INTO se_user
-	(id, email, password, first_name, last_name, birth_date, inscription_date)
-	VALUES (NEXTVAL('se_user_seq'), 'loick.michard@gmail.com', '7c4a8d09ca3762af61e59520943dc26494f8941b', 'Loick', 'Michard', NOW(), NOW());
+	(id, email, password, first_name, last_name, birth_date, inscription_date, is_admin)
+	VALUES (NEXTVAL('se_user_seq'), 'loick.michard@gmail.com', '7c4a8d09ca3762af61e59520943dc26494f8941b', 'Loick', 'Michard', NOW(), NOW(), false),
+			(NEXTVAL('se_user_seq'), 'admin@shace.com', '7c4a8d09ca3762af61e59520943dc26494f8941b', 'Admin', 'Admin', NOW(), NOW(), true);
 
 INSERT INTO se_media
 	(id, type, name, description, uri, rank, creation, owner_user_id, owner_event_id)
@@ -17,6 +18,7 @@ INSERT INTO se_media
 
 # --- !Downs
 
+DELETE FROM se_access_token;
 DELETE FROM se_media WHERE name = 'First Image';
 DELETE FROM se_event WHERE token = 'shace';
 DELETE FROM se_user WHERE email = 'loick.michard@gmail.com';

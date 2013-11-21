@@ -15,6 +15,11 @@ import play.db.ebean.*;
 @Table(name="se_access_token")
 public class AccessToken extends Model {
 	
+	public enum Type {
+		GUEST,
+		USER
+	}
+	
 	/**
 	 * Unique version uid for serialization
 	 */
@@ -43,12 +48,15 @@ public class AccessToken extends Model {
 	@ManyToOne
 	public User		user;
 	
-	public AccessToken(String token, boolean autoRenew, User user) {
+	public Type		type;
+	
+	public AccessToken(String token, boolean autoRenew, User user, Type type) {
 		this.token = token;
 		this.autoRenew = autoRenew;
 		this.creation = new Date();
 		this.expiration = new Date(this.creation.getTime() + ((autoRenew) ? autoRenewExpirationTime : temporaryExpirationTime));
 		this.user = user;
+		this.type = type;
 	}
 	
 	public static Finder<String, AccessToken> find = new Finder<String, AccessToken>
@@ -56,13 +64,20 @@ public class AccessToken extends Model {
 		String.class, AccessToken.class
 	);
 	
-	public static AccessToken create(boolean autoRenew, User user) {
+	public static AccessToken create(boolean autoRenew, User user, Type type) {
 		String token = UUID.randomUUID().toString();
 		
-		AccessToken newAccessToken = new AccessToken(token, autoRenew, user);
+		AccessToken newAccessToken = new AccessToken(token, autoRenew, user, type);
 		newAccessToken.save();
 		
 		return newAccessToken;
 	}
 
+	public boolean isGuest() {
+		return this.type == Type.GUEST;
+	}
+	
+	public boolean isConnectedUser() {
+		return this.type == Type.USER;
+	}
 }

@@ -53,10 +53,13 @@ public class User extends Model {
 	@OneToMany(mappedBy="ownerUser", cascade=CascadeType.ALL)
 	public List<Media>	medias;
 	
+	public boolean	isAdmin = false;
+	
 	public User(String email, String password) {
 		this.email = email;
 		this.password = password;
 		this.inscriptionDate = new Date();
+		this.isAdmin = false;
 	}
 	
 	public static Finder<Integer, User> find = new Finder<Integer, User>

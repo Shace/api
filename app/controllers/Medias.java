@@ -2,8 +2,8 @@ package controllers;
 
 import java.util.List;
 
+import models.AccessToken;
 import models.Media;
-import models.User;
 import models.Event;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -54,10 +54,12 @@ public class Medias extends Controller {
      * Add a media
      */
     public static Result add(String ownerEventToken, String accessToken) {
-    	User	ownerUser = AccessTokens.connectedUser(accessToken);
-    	Event	ownerEvent = Event.find.byId(ownerEventToken);
+    	AccessToken	access = AccessTokens.access(accessToken);
+    	Event		ownerEvent = Event.find.byId(ownerEventToken);
    
-    	if (ownerUser == null)
+    	if (access == null)
+    		return unauthorized("Not a valid token");
+    	else if (!access.isConnectedUser())
     		return unauthorized("No user connected");
     	else if (ownerEvent == null)
     		return notFound("Event not found");
@@ -78,7 +80,7 @@ public class Medias extends Controller {
         	// TODO : Check behavior when one of the media is invalid : send an error, skip ... ?
         	if (name == null)
         		continue ;
-        	Media newMedia = new Media(name, ownerUser, ownerEvent);
+        	Media newMedia = new Media(name, access.user, ownerEvent);
         	String description = mediaNode.path("description").textValue();
         	if (description != null)
         		newMedia.description = description;

@@ -10,6 +10,7 @@ import org.apache.commons.codec.binary.Hex;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import models.AccessToken;
 import models.User;
 import play.libs.Json;
 import play.mvc.*;
@@ -29,6 +30,7 @@ public class Users extends Controller {
 		result.put("lastname", user.lastName);
 		result.put("birthdate", user.birthDate.getTime());
 		result.put("inscription", user.inscriptionDate.getTime());
+		result.put("is_admin", user.isAdmin);
 		
 		return result;
 	}
@@ -36,7 +38,15 @@ public class Users extends Controller {
 	/**
 	 * List all visible users
 	 */
-    public static Result users() {
+    public static Result users(String accessToken) {
+    	AccessToken	access = AccessTokens.access(accessToken);
+
+    	if (access == null)
+    		return unauthorized("Not a valid token");
+    	else if (!access.isConnectedUser())
+    		return unauthorized("No user connected");
+    	else if (access.user.isAdmin == false)
+    		return forbidden("You need to be admin");
     	List<User> users = User.find.findList();
     	
     	ArrayNode usersNode = Json.newObject().arrayNode();

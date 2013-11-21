@@ -9,6 +9,8 @@ create table se_access_token (
   creation                  timestamp,
   expiration                timestamp,
   user_id                   integer,
+  type                      integer,
+  constraint ck_se_access_token_type check (type in (0,1)),
   constraint pk_se_access_token primary key (token))
 ;
 
@@ -47,6 +49,7 @@ create table se_user (
   last_name                 varchar(35),
   birth_date                timestamp,
   inscription_date          timestamp,
+  is_admin                  boolean,
   constraint uq_se_user_email unique (email),
   constraint pk_se_user primary key (id))
 ;
