@@ -20,7 +20,7 @@ public class AccessTokens extends Controller {
 		ObjectNode result = Json.newObject();
 		
 		result.put("token", accessToken.token);
-		result.put("autoRenew", accessToken.autoRenew);
+		result.put("auto_renew", accessToken.autoRenew);
 		result.put("expiration", accessToken.expiration.getTime());
 		result.put("creation", accessToken.creation.getTime());
 		
@@ -67,7 +67,7 @@ public class AccessTokens extends Controller {
         } else if (password == null) {
         	return badRequest("Missing parameter [password]");
         } else {
-    		boolean autoRenew = json.path("autoRenew").booleanValue();
+    		boolean autoRenew = json.path("auto_renew").booleanValue();
         	AccessToken res = authenticate(email, password, autoRenew);
         	if (res== null) {
         		return unauthorized("Invalid user or password");
