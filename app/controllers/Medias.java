@@ -177,7 +177,7 @@ public class Medias extends Controller {
      * @param currentNode : The new properties to set
      */
     private static void updateOneMedia(Media currentMedia, JsonNode currentNode) {
-    	String	name = currentNode.findPath("name").textValue();
+    	String	name = currentNode.path("name").textValue();
     	if (name != null)
     		currentMedia.name = name;
     	String description = currentNode.path("description").textValue();

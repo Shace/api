@@ -63,16 +63,17 @@ public class Users extends Controller {
      * Create a new user.
      * The user properties are contained into the HTTP Request body as Json format.
 	 * @return An HTTP Json response containing the properties of the created user
-     */    @BodyParser.Of(BodyParser.Json.class)
+     */    
+    @BodyParser.Of(BodyParser.Json.class)
     public static Result add(String accessToken) {
     	JsonNode root = request().body().asJson();
     	if (root == null)
     		return badRequest("Unexpected format, JSon required");
-    	String email = root.get("email").textValue();
+    	String email = root.path("email").textValue();
     	if (email == null)
     		return badRequest("Missing parameter [email]");
 
-    	String password = root.get("password").textValue();
+    	String password = root.path("password").textValue();
     	if (password == null)
     		return badRequest("Missing parameter [password]");
 
@@ -125,19 +126,19 @@ public class Users extends Controller {
      * @param currentNode : The new properties to set
      */
     private static void updateOneUser(User currentUser, JsonNode currentNode) {
-    	String	email = currentNode.findPath("email").textValue();
+    	String	email = currentNode.path("email").textValue();
     	if (email != null)
     		currentUser.email = email;
-    	String	password = currentNode.findPath("password").textValue();
+    	String	password = currentNode.path("password").textValue();
     	if (password != null)
     		currentUser.password = Utils.hash(password);
-    	String	firstName = currentNode.findPath("first_name").textValue();
+    	String	firstName = currentNode.path("first_name").textValue();
     	if (firstName != null)
     		currentUser.firstName = firstName;
-    	String	lastName = currentNode.findPath("last_name").textValue();
+    	String	lastName = currentNode.path("last_name").textValue();
     	if (lastName != null)
     		currentUser.lastName = lastName;
-    	Long	dateTime = currentNode.findPath("birth_date").asLong();
+    	Long	dateTime = currentNode.path("birth_date").asLong();
     	if (dateTime != null) {
         	Date	birthDate = new Date(dateTime);
     		currentUser.birthDate = birthDate;
