@@ -3,13 +3,13 @@ package controllers;
 import java.util.List;
 
 import models.AccessToken;
+import models.Event;
 import models.Media;
 import models.User;
 import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
-import models.Event;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * @author olivie_a
  * @category controllers
  */
+@CORS
 public class Medias extends Controller {
 
 	/**

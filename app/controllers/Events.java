@@ -2,15 +2,18 @@ package controllers;
 
 import java.util.List;
 
+import models.Event;
+import play.libs.Json;
+import play.mvc.BodyParser;
+import play.mvc.Controller;
+import play.mvc.Result;
+
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import models.Event;
-import play.libs.Json;
-import play.mvc.*;
-
+@CORS
 public class Events extends Controller {
-
+    
 	/**
 	 * Get the object node representing an event
 	 */
