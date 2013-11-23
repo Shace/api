@@ -144,4 +144,19 @@ public class Users extends Controller {
     		currentUser.birthDate = birthDate;
     	}
     }
+    
+    /**
+     * Get user information of connected user
+     * 
+     * @return An HTTP Json response containing the properties of the connected user
+     */
+    public static Result me(String accessToken) {
+        AccessToken access = AccessTokens.access(accessToken);
+        if (access == null)
+            return unauthorized("Not a valid token");
+        else if (!access.isConnectedUser())
+            return unauthorized("No user connected");
+        
+        return ok(getUserObjectNode(access.user));
+    }
 }
