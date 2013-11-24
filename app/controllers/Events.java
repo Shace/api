@@ -30,6 +30,7 @@ public class Events extends Controller {
         result.put("name", event.name);
         result.put("description", event.description);
         result.put("creation", event.creation.getTime());
+        result.put("privacy", event.privacy.toString().toLowerCase());
 
         return result;
     }
