@@ -3,9 +3,9 @@ import static org.junit.Assert.assertNotNull;
 import static play.mvc.Http.Status.BAD_REQUEST;
 import static play.mvc.Http.Status.CREATED;
 import static play.mvc.Http.Status.NOT_FOUND;
-import static play.mvc.Http.Status.UNAUTHORIZED;
 import static play.mvc.Http.Status.NO_CONTENT;
 import static play.mvc.Http.Status.OK;
+import static play.mvc.Http.Status.UNAUTHORIZED;
 import static play.test.Helpers.POST;
 import static play.test.Helpers.PUT;
 import static play.test.Helpers.callAction;
@@ -14,26 +14,27 @@ import static play.test.Helpers.inMemoryDatabase;
 import static play.test.Helpers.status;
 import models.AccessToken;
 import models.Event;
+import models.Event.Privacy;
 import models.Media;
 import models.User;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import controllers.AccessTokens;
-
 import play.api.libs.json.Json;
 import play.mvc.Result;
 import play.test.FakeRequest;
 import play.test.WithApplication;
+import controllers.AccessTokens;
 
 public class MediasController extends WithApplication {
 
 	@Before
     public void setUp() {
         start(fakeApplication(inMemoryDatabase()));
-        ownerEvent = Event.create("Valid Event", "First Shace's Event", "This is the first Event of the awesome shace app");
         ownerUser = User.create("toto@gmail.com", "secret");
+        ownerEvent = Event.create("Valid Event", Privacy.PUBLIC, ownerUser);
+
     	token = AccessTokens.authenticate(ownerUser.email, "secret", true);
     }
 

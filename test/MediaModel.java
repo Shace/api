@@ -1,16 +1,24 @@
-import models.*;
-import org.junit.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static play.test.Helpers.fakeApplication;
+import static play.test.Helpers.inMemoryDatabase;
+import models.Event;
+import models.Event.Privacy;
+import models.Media;
+import models.User;
+
+import org.junit.Before;
+import org.junit.Test;
+
 import play.test.WithApplication;
-import static play.test.Helpers.*;
 
 public class MediaModel extends WithApplication {
 
 	@Before
     public void setUp() {
         start(fakeApplication(inMemoryDatabase()));
-        ownerEvent = Event.create("First Event", "First Shace's Event", "This is the first Event of the awesome shace app");
         ownerUser = User.create("toto@gmail.com", "secret");
+        ownerEvent = Event.create("First Event", Privacy.PUBLIC, ownerUser);
     }
 	
     @Test

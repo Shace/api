@@ -147,7 +147,7 @@ public class Users extends Controller {
         if (root == null)
             return badRequest("Unexpected format, JSON required");
         
-        User user = User.find.ref(id);
+        User user = User.find.byId(id);
         if (user == null) {
             return notFound("User with id " + id + " not found");
         }
