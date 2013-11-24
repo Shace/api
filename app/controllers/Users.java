@@ -32,6 +32,8 @@ public class Users extends Controller {
         result.put("last_name", user.lastName);
         if (user.birthDate != null) {
             result.put("birth_date", user.birthDate.getTime());
+        } else {
+            result.putNull("birth_date");
         }
         result.put("inscription", user.inscriptionDate.getTime());
         result.put("is_admin", user.isAdmin);
