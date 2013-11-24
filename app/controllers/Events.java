@@ -59,6 +59,7 @@ public class Events extends Controller {
     /**
      * Add an event.
      * The event properties are contained into the HTTP Request body as JSON format.
+     * 
      * @return An HTTP JSON response containing the properties of the added event
      */
     @BodyParser.Of(BodyParser.Json.class)
@@ -163,6 +164,7 @@ public class Events extends Controller {
 
     /**
      * Get the properties of the event identified by the token parameter.
+     * 
      * @param token : the event identifier
      * @return An HTTP JSON response containing the properties of the specified event
      */

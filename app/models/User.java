@@ -11,11 +11,10 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import play.data.format.Formats;
+import play.data.validation.Constraints;
+import play.db.ebean.Model;
 import controllers.Utils;
-
-import play.db.ebean.*;
-import play.data.format.*;
-import play.data.validation.*;
 
 @Entity
 @Table(name="se_user")
@@ -55,7 +54,7 @@ public class User extends Model {
 	@OneToMany(mappedBy="ownerUser", cascade=CascadeType.ALL)
 	public List<Media>	medias;
 	
-	public boolean	isAdmin = false;
+	public boolean	isAdmin;
 	
 	@OneToMany(mappedBy="creator", cascade=CascadeType.ALL)
 	public List<MediaTagRelation>	tags;

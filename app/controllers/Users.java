@@ -159,6 +159,7 @@ public class Users extends Controller {
 
     /**
      * Get the properties of the user identified by the id parameter.
+     * 
      * @param id : the user identifier
      * @return An HTTP JSON response containing the properties of the specified user
      */
