@@ -5,11 +5,12 @@ import java.util.List;
 import models.AccessToken;
 import models.Event;
 import models.Media;
-import models.User;
 import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
+import Utils.CustomSerializer;
+import Utils.RequestParameters;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -30,14 +31,15 @@ public class Medias extends Controller {
 	public static Result medias(String accessToken) {
 		List<Media> medias = Media.find.findList();
 
-		ArrayNode mediasNode = Json.newObject().arrayNode();
+    	ArrayNode mediasNode = Json.newObject().arrayNode();
 
-		for (Media media : medias) {
-			mediasNode.add(getMediaObjectNode(media));
-		}
-		ObjectNode result = Json.newObject();
-		result.put("medias", mediasNode);
-		return ok(result);
+    	for (Media media : medias) {
+    		mediasNode.add(mediaToJson(media, new RequestParameters(request())));
+    	}
+    	ObjectNode result = Json.newObject();
+    	result.put("medias", mediasNode);
+    	return ok(result);
+    	//		return ok(CustomSerializer.serialize(medias, request().getQueryString("fields")));
 	}
 
     /**
@@ -76,7 +78,8 @@ public class Medias extends Controller {
         	updateOneMedia(newMedia, mediaNode);
 
         	newMedia.save();
-        	mediasNode.add(getMediaObjectNode(newMedia));
+        	RequestParameters	params = RequestParameters.create(request());
+        	mediasNode.add(mediaToJson(newMedia, params));
 		}
     	if (mediasNode.size() == 0)
     		return badRequest("Empty/Invalid media list");
@@ -143,7 +146,8 @@ public class Medias extends Controller {
        	updateOneMedia(currentMedia, root);
        	currentMedia.save();
   		ObjectNode result = Json.newObject();
-		result.put("medias", getMediaObjectNode(currentMedia));
+    	RequestParameters	params = RequestParameters.create(request());
+		result.put("medias", mediaToJson(currentMedia, params));
 		return ok(result);
     }
     
@@ -153,13 +157,12 @@ public class Medias extends Controller {
 	 * @return An HTTP Json response containing the properties of the specified media
      */
     public static Result media(Integer id, String accessToken) {
-    	// TODO : Get connected User instead of this
-    	User	currentUser = User.find.findUnique();
+       	AccessToken	access = AccessTokens.access(accessToken);
+    	if (access == null)
+    		return unauthorized("Not a valid token");
     	Media	currentMedia = Media.find.byId(id);
 
-    	if (currentUser == null)
-    		return unauthorized("No user connected");
-    	else if (currentMedia == null)
+    	if (currentMedia == null)
     		return notFound("Media not found");
     	Event	currentEvent = currentMedia.ownerEvent;
     	if (currentEvent == null)
@@ -168,7 +171,8 @@ public class Medias extends Controller {
     	// else if (!Events.hasWriteAccess(ownerUser))
     	// 	return unauthorized("No write access");
     	
-   		return ok(getMediaObjectNode(currentMedia));
+    	RequestParameters	params = RequestParameters.create(request());
+   		return ok(mediaToJson(currentMedia, params));
     }
     
     /**
@@ -188,20 +192,23 @@ public class Medias extends Controller {
 	/**
 	 * Convert a Media to a Json object.
 	 * @param media : A Media object to convert
+	 * @param fields 
+	 * @param depth 
 	 * @return The Json object containing the media information
 	 */
-	private static ObjectNode getMediaObjectNode(Media media) {
+	private static ObjectNode mediaToJson(Media media, RequestParameters params) {
+//		JSONSerializer tmp = new JSONSerializer();
 		ObjectNode result = Json.newObject();
-		
+
 		result.put("id", media.id);
-		result.put("name", media.name);
-		result.put("type", media.type.toString());
-		result.put("description", media.description);
-		result.put("uri", media.uri.toString());
-		result.put("rank", media.rank);
-		result.put("userOwner", media.ownerUser.id);
-		result.put("eventOwner", media.ownerEvent.token);
-		result.put("creation", media.creation.getTime());
+			result.put("name", media.name);
+			result.put("type", media.type.toString());
+			result.put("uri", media.uri.toString());
+			result.put("description", media.description);
+			result.put("rank", media.rank);
+			result.put("user-owner", media.ownerUser.id);
+			result.put("event-owner", media.ownerEvent.token);
+			result.put("creation", media.creation.getTime());
 		
 		return result;
 	}

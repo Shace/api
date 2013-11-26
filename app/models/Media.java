@@ -1,6 +1,7 @@
 package models;
 
 import java.util.Date;
+
 import java.util.List;
 import java.net.URI;
 
@@ -17,7 +18,11 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import Utils.JSONable;
+
+
 import play.db.ebean.Model;
+import models.Event;
 
 @Entity
 @Table(name="se_media")
@@ -34,39 +39,9 @@ public class Media extends Model {
 		NONE
 	}
 
-	@GeneratedValue
-	@Column(unique=true)
-	@Id
-	public Integer 		id;
-	
-	@Enumerated(EnumType.ORDINAL)
-	public Type			type;
-
-	@Column(length=255)
-	public String		name;
-	
-	@Lob
-	public String		description;
-	
-	public URI			uri;
-
-	public Integer 		rank;
-	
-	public Date			creation;
-	
-	@ManyToOne
-	@JoinColumn(name="owner_user_id")
-	public User			ownerUser;
-	
-	@ManyToOne
-	@JoinColumn(name="owner_event_id")
-	public Event		ownerEvent;
-	
-	@OneToMany(mappedBy="media", cascade=CascadeType.ALL)
-	public List<MediaTagRelation>	tags;
-
 	public Media(User ownerUser, Event ownerEvent) {
 		this.name = "";
+		this.description = "";
 		this.ownerUser = ownerUser;
 		this.ownerEvent = ownerEvent;
 		this.creation = new Date();
@@ -74,6 +49,47 @@ public class Media extends Model {
 		this.uri = URI.create("");
 		this.rank = 0;
 	}
+	
+	@JSONable
+	@GeneratedValue
+	@Column(unique=true)
+	@Id
+	public Integer 		id;
+	
+	@JSONable
+	@Enumerated(EnumType.ORDINAL)
+	public Type			type;
+
+	@JSONable
+	@Column(length=255)
+	public String		name;
+	
+	@JSONable
+	@Lob
+	public String		description;
+	
+	@JSONable
+	public URI			uri;
+
+	@JSONable(defaultField=false)
+	public Integer 		rank;
+	
+	@JSONable
+	public Date			creation;
+	
+	@JSONable(defaultField=false)
+	@ManyToOne
+	@JoinColumn(name="owner_user_id")
+	public User			ownerUser;
+	
+	@JSONable(defaultField=false)
+	@ManyToOne
+	@JoinColumn(name="owner_event_id")
+	public Event		ownerEvent;
+	
+	@JSONable(defaultField=false)
+	@OneToMany(mappedBy="media", cascade=CascadeType.ALL)
+	public List<MediaTagRelation>	tags;
 
 	
 	public static Finder<Integer, Media> find = new Finder<Integer, Media>(

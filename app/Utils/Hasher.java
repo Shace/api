@@ -1,4 +1,4 @@
-package controllers;
+package Utils;
 
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
@@ -8,7 +8,7 @@ import org.apache.commons.codec.binary.Hex;
 
 //TODO: Doc
 
-public class Utils {
+public class Hasher {
 
 	public static String hash(String str) {
     	MessageDigest cript;

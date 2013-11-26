@@ -10,6 +10,8 @@ import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
 
+import Utils.Hasher;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -112,7 +114,7 @@ public class Users extends Controller {
     }
     
     public static User authenticate(String email, String password) {
-    	String sha1 = Utils.hash(password);
+    	String sha1 = Hasher.hash(password);
     	
     	if (sha1 == null)
     		return null;
@@ -130,7 +132,7 @@ public class Users extends Controller {
     		currentUser.email = email;
     	String	password = currentNode.findPath("password").textValue();
     	if (password != null)
-    		currentUser.password = Utils.hash(password);
+    		currentUser.password = Hasher.hash(password);
     	String	firstName = currentNode.findPath("first_name").textValue();
     	if (firstName != null)
     		currentUser.firstName = firstName;
