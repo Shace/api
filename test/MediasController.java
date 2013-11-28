@@ -102,7 +102,7 @@ public class MediasController extends WithApplication {
     	
     	
     	/**
-    	 * Valid request creating one media
+    	 * Valid request updating one media
     	 */
     	standardUpdateMedia(
     			"{\"name\":\"New Test Name\",\"description\":\"New Test Description\"}",
@@ -130,10 +130,9 @@ public class MediasController extends WithApplication {
     	/**
     	 * Valid request with a not connected user
     	 */
-    	// TODO: Uncomment this when the access tokens are available for the update method on the controller
-//    	standardUpdateMedia(
-//    			"{\"name\":\"New Test Name1\",\"description\":\"New Test Description1\"}",
-//    			newMedia.id, UNAUTHORIZED, false, "", "", null);
+    	standardUpdateMedia(
+    			"{\"name\":\"New Test Name1\",\"description\":\"New Test Description1\"}",
+    			newMedia.id, UNAUTHORIZED, false, "", "", null);
 
 
     	// TODO : Make a test a connected user that has no write rights on the media event
@@ -184,14 +183,15 @@ public class MediasController extends WithApplication {
     	/**
     	 * Valid request with a not connected user
     	 */
-    	// TODO: Uncomment this when the access tokens are available for the update method on the controller
-//    	standardDeleteMedia(newMedia2.id, UNAUTHORIZED, 1, null);
+    	standardDeleteMedia(newMedia2.id, UNAUTHORIZED, 2, null);
 
 
     	
     	// TODO : Make a test with a connected user that has no write rights on the event
     }
-    
+   
+	// TODO : Make the tests for the medias() and media() methods
+
 
 	/**
      * Simple useful function that generates "add media" test from the parameters.

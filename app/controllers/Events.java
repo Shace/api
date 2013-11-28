@@ -83,7 +83,7 @@ public class Events extends Controller {
         } else if (privacy == null) {
             return badRequest("Missing parameter [privacy]");
         } else if (!privacy.equals("public") && !privacy.equals("protected") && !privacy.equals("private")) {
-            return badRequest("[privacy] have to be ine ('public', 'protected', 'private')");
+            return badRequest("[privacy] have to be in ('public', 'protected', 'private')");
         } else {
             if (Event.find.byId(token) != null) {
                 return badRequest("token already exists");
@@ -102,7 +102,7 @@ public class Events extends Controller {
             updateOneEvent(event, json);
             
             event.save();
-            return ok(getEventObjectNode(event));
+            return created(getEventObjectNode(event));
         }
     }
 
@@ -151,7 +151,7 @@ public class Events extends Controller {
         }
         
         if (access.user.id != event.ownerUser.id && access.user.isAdmin == false)
-            return forbidden("Can't update other users");
+            return forbidden("No edit rights on this event");
         
         JsonNode root = request().body().asJson();
         if (root == null)
