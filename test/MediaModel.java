@@ -22,10 +22,11 @@ public class MediaModel extends WithApplication {
     }
 	
     @Test
-    public void createAndRetrieveMedia() {
-    	Media.create("First Photo", ownerUser, ownerEvent);
-    	Media createdMedia = Media.find.where().eq("name", "First Photo").findUnique();
+    public void createRetrieveDeleteMedia() {
+    	Media test = Media.create("First Photo", ownerUser, ownerEvent);
+    	assertNotNull(test);
 
+    	Media createdMedia = Media.find.where().eq("name", "First Photo").findUnique();
     	assertNotNull(createdMedia);
 
     	User user = createdMedia.ownerUser;
@@ -35,8 +36,12 @@ public class MediaModel extends WithApplication {
     	Event event = createdMedia.ownerEvent;
     	assertNotNull(event);
     	assertEquals("First Event", event.token);
+    	
+    	int previousSize = Media.find.all().size();
+    	createdMedia.delete();
+    	assertEquals(previousSize - 1, Media.find.all().size());
     }
-    
-    Event	ownerEvent;
+	
+     Event	ownerEvent;
     User	ownerUser;
 }
