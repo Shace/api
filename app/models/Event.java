@@ -8,9 +8,10 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -30,10 +31,6 @@ public class Event extends Model {
 	 * Unique version uid for serialization
 	 */
 	private static final long serialVersionUID = 3754144269823907391L;
-
-	@GeneratedValue
-	@Column(unique=true)
-	public Integer 		id;
 	
 	@Id
 	@Column(length=255, unique=true)
@@ -55,22 +52,24 @@ public class Event extends Model {
 	
 	@OneToMany(mappedBy="ownerEvent", cascade=CascadeType.ALL)
 	public List<Media>	medias;
+	
+	@ManyToOne
+    @JoinColumn(name="owner_user_id")
+    public User         ownerUser;
 
-	public Event(String token, String name, String description) {
+	public Event(String token, Privacy privacy, User ownerUser) {
 		this.token = token;
-		this.name = name;
-		this.description = description;
 		this.creation = new Date();
-		this.privacy = Privacy.PUBLIC;
-		this.password = null;
+		this.privacy = privacy;
+		this.ownerUser = ownerUser;
 	}
 	
 	public static Finder<String, Event> find = new Finder<String, Event>(
 			String.class, Event.class
 	);
 	
-	public static Event create(String token, String name, String description) {
-		Event newEvent = new Event(token, name, description);
+	public static Event create(String token, Privacy privacy, User ownerUser) {
+		Event newEvent = new Event(token, privacy, ownerUser);
 		newEvent.save();
 
 		return newEvent;

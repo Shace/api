@@ -15,7 +15,7 @@ public class CustomSerializer {
 		}
 		return new JSONSerializer().
 				prettyPrint(true).
-				transform(new ModelTransformer(), Model.class).
+//				transform(new ModelTransformer(), Model.class).
 				transform(new ToStringTransformer(), URI.class).
 				include(fields).
 				serialize(obj);

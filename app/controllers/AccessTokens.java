@@ -30,6 +30,11 @@ public class AccessTokens extends Controller {
         result.put("expiration", accessToken.expiration.getTime());
         result.put("creation", accessToken.creation.getTime());
         result.put("type", accessToken.type.toString().toLowerCase());
+        if (accessToken.user != null && accessToken.type == Type.USER) {
+            result.put("user_id", accessToken.user.id);
+        } else {
+            result.putNull("user_id");
+        }
 
         return result;
     }

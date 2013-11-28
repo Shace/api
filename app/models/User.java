@@ -11,12 +11,9 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
-import Utils.Hasher;
-
-
-import play.db.ebean.*;
-import play.data.format.*;
-import play.data.validation.*;
+import play.data.format.Formats;
+import play.data.validation.Constraints;
+import play.db.ebean.Model;
 
 @Entity
 @Table(name="se_user")
@@ -56,14 +53,14 @@ public class User extends Model {
 	@OneToMany(mappedBy="ownerUser", cascade=CascadeType.ALL)
 	public List<Media>	medias;
 	
-	public boolean	isAdmin = false;
+	public boolean	isAdmin;
 	
 	@OneToMany(mappedBy="creator", cascade=CascadeType.ALL)
 	public List<MediaTagRelation>	tags;
 	
 	public User(String email, String password) {
 		this.email = email;
-		this.password = Hasher.hash(password);
+		this.password = Utils.Hasher.hash(password);
 		this.inscriptionDate = new Date();
 		this.isAdmin = false;
 	}

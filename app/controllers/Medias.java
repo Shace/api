@@ -31,15 +31,15 @@ public class Medias extends Controller {
 	public static Result medias(String accessToken) {
 		List<Media> medias = Media.find.findList();
 
-    	ArrayNode mediasNode = Json.newObject().arrayNode();
-
-    	for (Media media : medias) {
-    		mediasNode.add(mediaToJson(media, new RequestParameters(request())));
-    	}
-    	ObjectNode result = Json.newObject();
-    	result.put("medias", mediasNode);
-    	return ok(result);
-    	//		return ok(CustomSerializer.serialize(medias, request().getQueryString("fields")));
+//    	ArrayNode mediasNode = Json.newObject().arrayNode();
+//
+//    	for (Media media : medias) {
+//    		mediasNode.add(mediaToJson(media, new RequestParameters(request())));
+//    	}
+//    	ObjectNode result = Json.newObject();
+//    	result.put("medias", mediasNode);
+//    	return ok(result);
+		return ok(CustomSerializer.serialize(medias, request().getQueryString("fields")));
 	}
 
     /**
@@ -181,7 +181,7 @@ public class Medias extends Controller {
      * @param currentNode : The new properties to set
      */
     private static void updateOneMedia(Media currentMedia, JsonNode currentNode) {
-    	String	name = currentNode.findPath("name").textValue();
+    	String	name = currentNode.path("name").textValue();
     	if (name != null)
     		currentMedia.name = name;
     	String description = currentNode.path("description").textValue();

@@ -10,8 +10,6 @@ import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
 
-import Utils.Hasher;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -19,130 +17,224 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @CORS
 public class Users extends Controller {
 
-	/**
-	 * Get the object node representing a user
-	 */
-	public static ObjectNode getUserObjectNode(User user) {
-		ObjectNode result = Json.newObject();
-		
-		result.put("id", user.id);
-		result.put("email", user.email);
-		result.put("first_name", user.firstName);
-		result.put("last_name", user.lastName);
-		result.put("birth_date", user.birthDate.getTime());
-		result.put("inscription", user.inscriptionDate.getTime());
-		result.put("is_admin", user.isAdmin);
-		
-		return result;
-	}
-	
-	/**
-	 * List all visible users
-	 */
+    /**
+     * Convert a user to a JSON object.
+     * 
+     * @param user A User object to convert
+     * @return The JSON object containing the user information
+     */
+    public static ObjectNode getUserObjectNode(User user) {
+        ObjectNode result = Json.newObject();
+
+        result.put("id", user.id);
+        result.put("email", user.email);
+        result.put("first_name", user.firstName);
+        result.put("last_name", user.lastName);
+        if (user.birthDate != null) {
+            result.put("birth_date", user.birthDate.getTime());
+        } else {
+            result.putNull("birth_date");
+        }
+        result.put("inscription", user.inscriptionDate.getTime());
+        result.put("is_admin", user.isAdmin);
+
+        return result;
+    }
+
+    /**
+     * List all the visible users (only admins can do that).
+     * 
+     * @return An HTTP JSON response containing the properties of all the users
+     */
     public static Result users(String accessToken) {
-    	AccessToken	access = AccessTokens.access(accessToken);
+        AccessToken access = AccessTokens.access(accessToken);
 
-    	if (access == null)
-    		return unauthorized("Not a valid token");
-    	else if (!access.isConnectedUser())
-    		return unauthorized("No user connected");
-    	else if (access.user.isAdmin == false)
-    		return forbidden("You need to be admin");
-    	List<User> users = User.find.findList();
-    	
-    	ArrayNode usersNode = Json.newObject().arrayNode();
-    	
-    	for (User user : users) {
-    		usersNode.add(getUserObjectNode(user));
-    	}
-    	ObjectNode result = Json.newObject();
-    	result.put("users", usersNode);
-    	
-    	return ok(result);
+        if (access == null)
+            return unauthorized("Not a valid token");
+        else if (!access.isConnectedUser())
+            return unauthorized("No user connected");
+        else if (access.user.isAdmin == false)
+            return forbidden("You need to be admin");
+        List<User> users = User.find.findList();
+
+        ArrayNode usersNode = Json.newObject().arrayNode();
+
+        for (User user : users) {
+            usersNode.add(getUserObjectNode(user));
+        }
+        ObjectNode result = Json.newObject();
+        result.put("users", usersNode);
+
+        return ok(result);
     }
 
     /**
-     * Create a new user.
-     * The user properties are contained into the HTTP Request body as Json format.
-	 * @return An HTTP Json response containing the properties of the created user
-     */    @BodyParser.Of(BodyParser.Json.class)
+     * Create a new user. The user properties are contained into the HTTP Request body as JSON format.
+     * 
+     * @return An HTTP JSON response containing the properties of the created
+     *         user
+     */
+    @BodyParser.Of(BodyParser.Json.class)
     public static Result add(String accessToken) {
-    	JsonNode root = request().body().asJson();
-    	if (root == null)
-    		return badRequest("Unexpected format, JSon required");
-    	String email = root.get("email").textValue();
-    	if (email == null)
-    		return badRequest("Missing parameter [email]");
+        AccessToken access = AccessTokens.access(accessToken);
 
-    	String password = root.get("password").textValue();
-    	if (password == null)
-    		return badRequest("Missing parameter [password]");
+        if (access == null)
+            return unauthorized("Not a valid token");
+        if (access.isConnectedUser())
+            return badRequest("Already a connected user");
 
-    	User newUser = User.create(email, password);
-    	updateOneUser(newUser, root);
-    	newUser.save();
-		return created(getUserObjectNode(newUser));
+        JsonNode root = request().body().asJson();
+        if (root == null)
+            return badRequest("Unexpected format, JSON required");
+        String email = root.path("email").textValue();
+        if (email == null)
+            return badRequest("Missing parameter [email]");
+
+        String password = root.path("password").textValue();
+        if (password == null)
+            return badRequest("Missing parameter [password]");
+
+        if (User.find.where().eq("email", email).findUnique() != null) {
+            return badRequest("Email already exists");
+        }
+        
+        User newUser = new User(email, password);
+        updateOneUser(newUser, root);
+        newUser.save();
+        return created(getUserObjectNode(newUser));
     }
-    
+
     /**
-     * Delete a user
+     * Delete the user identified by the id parameter.
+     * 
+     * @param id : the user identifier
+     * @return An HTTP response that specifies if the deletion succeeded or not
      */
     public static Result delete(Integer id, String accessToken) {
-    	return TODO;
+        AccessToken access = AccessTokens.access(accessToken);
+
+        if (access == null)
+            return unauthorized("Not a valid token");
+        if (!access.isConnectedUser())
+            return badRequest("No user connected");
+        else if (access.user.isAdmin == false)
+            return forbidden("You need to be admin");
+        
+        // TODO This is a really tricky operation. All the medias, events, tokens, ... need to be delete !
+        // For now, deletion is not yet possible
+        // Maybe only set a valid flag
+        
+        return TODO;
     }
-    
+
     /**
-     * Update a user
+     * Update the user identified by the id parameter.
+     * The new user properties are contained into the HTTP Request body as JSON format.
+     * 
+     * @param id : the user identifier
+     * @return An HTTP JSON response containing the new properties of edited user
      */
     @BodyParser.Of(BodyParser.Json.class)
     public static Result update(Integer id, String accessToken) {
-    	//JsonNode json = request().body().asJson();
-		return TODO;
+        AccessToken access = AccessTokens.access(accessToken);
+
+        if (access == null)
+            return unauthorized("Not a valid token");
+        if (!access.isConnectedUser())
+            return badRequest("No user connected");
+        if (access.user.id != id && access.user.isAdmin == false)
+            return forbidden("Can't update other users");
+        
+        JsonNode root = request().body().asJson();
+        if (root == null)
+            return badRequest("Unexpected format, JSON required");
+        
+        User user = User.find.byId(id);
+        if (user == null) {
+            return notFound("User with id " + id + " not found");
+        }
+        updateOneUser(user, root);
+        user.update();
+        
+        return ok(getUserObjectNode(user));
     }
-    
+
     /**
-     * Get user information
+     * Get the properties of the user identified by the id parameter.
+     * 
+     * @param id : the user identifier
+     * @return An HTTP JSON response containing the properties of the specified user
      */
     public static Result user(Integer id, String accessToken) {
-    	User user = User.find.byId(id);
-    
-    	if (user != null) {
-    		return ok(getUserObjectNode(user));
-    	} else {
-    		return notFound("User with id " + id + " not found");
-    	}
+        AccessToken access = AccessTokens.access(accessToken);
+
+        if (access == null)
+            return unauthorized("Not a valid token");
+        if (!access.isConnectedUser())
+            return badRequest("No user connected");
+        if (access.user.id != id && access.user.isAdmin == false)
+            return forbidden("Can't view other users");
+        
+        User user = User.find.byId(id);
+
+        if (user != null) {
+            return ok(getUserObjectNode(user));
+        } else {
+            return notFound("User with id " + id + " not found");
+        }
     }
-    
-    public static User authenticate(String email, String password) {
-    	String sha1 = Hasher.hash(password);
-    	
-    	if (sha1 == null)
-    		return null;
-		return User.find.where().eq("email", email).eq("password", sha1).findUnique();
-	}
-    
+
     /**
-     * Update the user properties from a Json object.
+     * Get user by email and password
+     * 
+     * @param email User email
+     * @param password User password
+     * @return The user corresponding to the email and password, null if not found
+     */
+    public static User authenticate(String email, String password) {
+        String sha1 = Utils.Hasher.hash(password);
+
+        if (sha1 == null)
+            return null;
+        return User.find.where().eq("email", email).eq("password", sha1).findUnique();
+    }
+
+    /**
+     * Update the user properties from a JSON object.
+     * 
      * @param currentUser : The user to update
      * @param currentNode : The new properties to set
      */
     private static void updateOneUser(User currentUser, JsonNode currentNode) {
-    	String	email = currentNode.findPath("email").textValue();
-    	if (email != null)
-    		currentUser.email = email;
-    	String	password = currentNode.findPath("password").textValue();
-    	if (password != null)
-    		currentUser.password = Hasher.hash(password);
-    	String	firstName = currentNode.findPath("first_name").textValue();
-    	if (firstName != null)
-    		currentUser.firstName = firstName;
-    	String	lastName = currentNode.findPath("last_name").textValue();
-    	if (lastName != null)
-    		currentUser.lastName = lastName;
-    	Long	dateTime = currentNode.findPath("birth_date").asLong();
-    	if (dateTime != null) {
-        	Date	birthDate = new Date(dateTime);
-    		currentUser.birthDate = birthDate;
-    	}
+        String password = currentNode.path("password").textValue();
+        if (password != null)
+            currentUser.password = Utils.Hasher.hash(password);
+        String firstName = currentNode.path("first_name").textValue();
+        if (firstName != null)
+            currentUser.firstName = firstName;
+        String lastName = currentNode.path("last_name").textValue();
+        if (lastName != null)
+            currentUser.lastName = lastName;
+        Long dateTime = currentNode.path("birth_date").asLong();
+        if (currentNode.path("birth_date").canConvertToLong()) {
+            Date birthDate = new Date(dateTime);
+            currentUser.birthDate = birthDate;
+        }
+    }
+
+    /**
+     * Get user information of connected user
+     * 
+     * @return An HTTP JSON response containing the properties of the connected
+     *         user
+     */
+    public static Result me(String accessToken) {
+        AccessToken access = AccessTokens.access(accessToken);
+        if (access == null)
+            return unauthorized("Not a valid token");
+        else if (!access.isConnectedUser())
+            return unauthorized("No user connected");
+
+        return ok(getUserObjectNode(access.user));
     }
 }
