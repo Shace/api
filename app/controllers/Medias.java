@@ -9,7 +9,6 @@ import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
-import Utils.CustomSerializer;
 import Utils.RequestParameters;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -31,15 +30,15 @@ public class Medias extends Controller {
 	public static Result medias(String accessToken) {
 		List<Media> medias = Media.find.findList();
 
-//    	ArrayNode mediasNode = Json.newObject().arrayNode();
-//
-//    	for (Media media : medias) {
-//    		mediasNode.add(mediaToJson(media, new RequestParameters(request())));
-//    	}
-//    	ObjectNode result = Json.newObject();
-//    	result.put("medias", mediasNode);
-//    	return ok(result);
-		return ok(CustomSerializer.serialize(medias, request().getQueryString("fields")));
+    	ArrayNode mediasNode = Json.newObject().arrayNode();
+
+    	for (Media media : medias) {
+    		mediasNode.add(mediaToJson(media, new RequestParameters(request())));
+    	}
+    	ObjectNode result = Json.newObject();
+    	result.put("medias", mediasNode);
+    	return ok(result);
+//		return ok(CustomSerializer.serialize(medias, request().getQueryString("fields")));
 	}
 
     /**
