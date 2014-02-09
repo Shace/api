@@ -5,11 +5,13 @@ import java.util.List;
 import models.AccessToken;
 import models.Event;
 import models.Event.Privacy;
+import models.Media;
 import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
 
+import com.avaje.ebean.Ebean;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -31,6 +33,12 @@ public class Events extends Controller {
         result.put("description", event.description);
         result.put("creation", event.creation.getTime());
         result.put("privacy", event.privacy.toString().toLowerCase());
+        
+        ArrayNode medias = result.putArray("medias");
+        for (Media media : event.medias) {
+            if (media.image.files.size() > 0)
+                medias.add(Medias.mediaToJson(media, null));
+        }
 
         return result;
     }
@@ -150,7 +158,7 @@ public class Events extends Controller {
             return notFound("Event with token " + token + " not found");
         }
         
-        if (access.user.id != event.ownerUser.id && access.user.isAdmin == false)
+        if (access.user.id != event.owner.id && access.user.isAdmin == false)
             return forbidden("No edit rights on this event");
         
         JsonNode root = request().body().asJson();
@@ -174,15 +182,14 @@ public class Events extends Controller {
 
         if (access == null)
             return unauthorized("Not a valid token");
-        if (!access.isConnectedUser())
-            return badRequest("No user connected");
         
-        Event event = Event.find.byId(token);
+        //Event event = Event.find.byId(token);
+        Event event = Ebean.find(Event.class).fetch("medias").fetch("medias.owner").fetch("owner").fetch("medias.image").fetch("medias.image.files").fetch("medias.image.files.file").where().eq("token", token).findUnique();
         if (event == null) {
             return notFound("Event with token " + token + " not found");
         }
         
-        if (event.privacy != Privacy.PUBLIC && access.user.id != event.ownerUser.id && access.user.isAdmin == false)
+        if (event.privacy != Privacy.PUBLIC && (!access.isConnectedUser() || (access.user.id != event.owner.id && access.user.isAdmin == false)))
             return forbidden("Can't view other user's events");
         
         return ok(getEventObjectNode(event));

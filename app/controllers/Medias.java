@@ -1,13 +1,17 @@
 package controllers;
 
+import java.io.File;
 import java.util.List;
 
 import models.AccessToken;
 import models.Event;
+import models.Image;
 import models.Media;
 import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
+import play.mvc.Http.MultipartFormData;
+import play.mvc.Http.MultipartFormData.FilePart;
 import play.mvc.Result;
 import Utils.RequestParameters;
 
@@ -92,7 +96,7 @@ public class Medias extends Controller {
      * @param id : the media identifier
      * @return An HTTP response that specifies if the deletion succeeded or not
      */
-    public static Result delete(Integer id, String accessToken) {
+    public static Result delete(String token, Integer id, String accessToken) {
     	AccessToken	access = AccessTokens.access(accessToken);
     	if (access == null)
     		return unauthorized("Not a valid token");
@@ -102,7 +106,7 @@ public class Medias extends Controller {
     	Media	currentMedia = Media.find.byId(id);
     	if (currentMedia == null)
     		return notFound("Media not found");
-    	Event	currentEvent = currentMedia.ownerEvent;
+    	Event	currentEvent = currentMedia.event;
     	if (currentEvent == null)
     		return notFound("Media not found");
 
@@ -121,7 +125,7 @@ public class Medias extends Controller {
 	 * @return An HTTP Json response containing the new properties of edited media
      */
     @BodyParser.Of(BodyParser.Json.class)
-    public static Result update(Integer id, String accessToken) {
+    public static Result update(String token, Integer id, String accessToken) {
     	AccessToken	access = AccessTokens.access(accessToken);
     	if (access == null)
     		return unauthorized("Not a valid token");
@@ -131,7 +135,7 @@ public class Medias extends Controller {
     	Media	currentMedia = Media.find.byId(id);
     	if (currentMedia == null)
     		return notFound("Media not found");
-    	Event	currentEvent = currentMedia.ownerEvent;
+    	Event	currentEvent = currentMedia.event;
     	if (currentEvent == null)
     		return notFound("Media not found");
 
@@ -155,7 +159,7 @@ public class Medias extends Controller {
      * @param id : the media identifier
 	 * @return An HTTP Json response containing the properties of the specified media
      */
-    public static Result media(Integer id, String accessToken) {
+    public static Result media(String token, Integer id, String accessToken) {
        	AccessToken	access = AccessTokens.access(accessToken);
     	if (access == null)
     		return unauthorized("Not a valid token");
@@ -163,7 +167,7 @@ public class Medias extends Controller {
 
     	if (currentMedia == null)
     		return notFound("Media not found");
-    	Event	currentEvent = currentMedia.ownerEvent;
+    	Event	currentEvent = currentMedia.event;
     	if (currentEvent == null)
     		return notFound("Media not found");
     	// TODO : Check User rights for this Event (can he edit a media?) like this
@@ -195,20 +199,57 @@ public class Medias extends Controller {
 	 * @param depth 
 	 * @return The Json object containing the media information
 	 */
-	private static ObjectNode mediaToJson(Media media, RequestParameters params) {
+	public static ObjectNode mediaToJson(Media media, RequestParameters params) {
 //		JSONSerializer tmp = new JSONSerializer();
 		ObjectNode result = Json.newObject();
 
 		result.put("id", media.id);
-			result.put("name", media.name);
-			result.put("type", media.type.toString());
-			result.put("uri", media.uri.toString());
-			result.put("description", media.description);
-			result.put("rank", media.rank);
-			result.put("user-owner", media.ownerUser.id);
-			result.put("event-owner", media.ownerEvent.token);
-			result.put("creation", media.creation.getTime());
+		result.put("name", media.name);
+		result.put("type", media.type.toString());
+		result.put("description", media.description);
+		result.put("rank", media.rank);
+		result.put("owner", media.owner.id);
+		result.put("event", media.event.token);
+		result.put("creation", media.creation.getTime());
+		result.put("image", Images.getImageObjectNode(media.image));
 		
 		return result;
 	}
+	
+	/**
+     * Add a file to the media identified by the id parameter.
+     * @param id : the media identifier
+     * @return An HTTP response that specifies if the file upload success
+     */
+    public static Result addFile(String token, Integer id, String accessToken) {
+        AccessToken access = AccessTokens.access(accessToken);
+        if (access == null)
+            return unauthorized("Not a valid token");
+        else if (!access.isConnectedUser())
+            return unauthorized("No user connected");
+        
+        Media   currentMedia = Media.find.byId(id);
+        if (currentMedia == null)
+            return notFound("Media not found");
+        Event   currentEvent = currentMedia.event;
+        if (currentEvent == null)
+            return notFound("Media not found");
+
+        if (access.user.id == currentMedia.owner.id) {
+            MultipartFormData body = request().body().asMultipartFormData();
+            FilePart filePart = body.getFile("file");
+            if (filePart != null) {
+              File file = filePart.getFile();
+              try {
+                currentMedia.image.addFile(file);
+              } catch (Image.BadFormat b) {
+                  return badRequest("Bad format image");
+              }
+            }
+        } else {
+            return forbidden("Only the owner can edit a media");
+        }
+        currentMedia.update();
+        return noContent();
+    }
 }

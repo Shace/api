@@ -29,11 +29,11 @@ public class MediaModel extends WithApplication {
     	Media createdMedia = Media.find.where().eq("name", "First Photo").findUnique();
     	assertNotNull(createdMedia);
 
-    	User user = createdMedia.ownerUser;
+    	User user = createdMedia.owner;
     	assertNotNull(user);
     	assertEquals("toto@gmail.com", user.email);
 
-    	Event event = createdMedia.ownerEvent;
+    	Event event = createdMedia.event;
     	assertNotNull(event);
     	assertEquals("First Event", event.token);
     	

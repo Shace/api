@@ -22,9 +22,12 @@ GET		/events/:token				controllers.Events.event(token : String, access_token)
 # Medias
 GET		/medias						controllers.Medias.medias(access_token)
 POST	/events/:token/medias		controllers.Medias.add(token : String, access_token)
-DELETE	/medias/:id					controllers.Medias.delete(id : Integer, access_token)
-PUT		/medias/:id					controllers.Medias.update(id : Integer, access_token)
-GET		/medias/:id					controllers.Medias.media(id : Integer, access_token)
+DELETE	/events/:token/medias/:id	controllers.Medias.delete(token : String, id : Integer, access_token)
+PUT		/events/:token/medias/:id	controllers.Medias.update(token : String, id : Integer, access_token)
+GET		/events/:token/medias/:id	controllers.Medias.media(token : String, id : Integer, access_token)
+
+# File
+POST	/events/:token/medias/:id	controllers.Medias.addFile(token : String, id : Integer, access_token)
 
 # Users
 GET		/users						controllers.Users.users(access_token)

@@ -1,6 +1,10 @@
 # This is the main configuration file for the application.
 # ~~~~~
 
+# File storage
+storage.path="/Users/loickmichard/ShaceEvent/api/public/medias"
+storage.baseurl="//192.168.1.69:9000/assets/medias/"
+
 # Secret key
 # ~~~~~
 # The secret key is used to secure cryptographics functions.

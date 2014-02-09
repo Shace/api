@@ -3,13 +3,14 @@ package models;
 import java.util.Date;
 import java.util.UUID;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import play.db.ebean.*;
+import play.db.ebean.Model;
 
 @Entity
 @Table(name="se_access_token")
@@ -41,11 +42,14 @@ public class AccessToken extends Model {
 
 	public boolean 	autoRenew;
 
-	public Date		creation;
+	//public Date		creation;
 	
-	public Date		expiration;
+	//public Date		expiration;
 	
-	@ManyToOne
+	public long creation;
+	public long expiration;
+	
+	@ManyToOne(cascade=CascadeType.ALL)
 	public User		user;
 	
 	public Type		type;
@@ -53,8 +57,8 @@ public class AccessToken extends Model {
 	public AccessToken(String token, boolean autoRenew, User user, Type type) {
 		this.token = token;
 		this.autoRenew = autoRenew;
-		this.creation = new Date();
-		this.expiration = new Date(this.creation.getTime() + ((autoRenew) ? autoRenewExpirationTime : temporaryExpirationTime));
+		this.creation = new Date().getTime();
+		this.expiration = this.creation + ((autoRenew) ? autoRenewExpirationTime : temporaryExpirationTime);
 		this.user = user;
 		this.type = type;
 	}

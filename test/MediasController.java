@@ -221,7 +221,7 @@ public class MediasController extends WithApplication {
 	 */
 	private void	standardUpdateMedia(String jsonBody, Integer mediaId, int expectedStatus, boolean checkNewValues, String expectedNewName, String expectedNewDescription, String token) {
     	FakeRequest fakeRequest = new FakeRequest(PUT, "/medias/" + mediaId).withJsonBody(Json.parse(jsonBody));
-    	Result result = callAction(controllers.routes.ref.Medias.update(mediaId, token), fakeRequest);
+    	Result result = callAction(controllers.routes.ref.Medias.update("", mediaId, token), fakeRequest);
 
     	assertEquals(expectedStatus, status(result));
     	if (!checkNewValues)
@@ -240,7 +240,7 @@ public class MediasController extends WithApplication {
 	 * @param token : the string corresponding to the current connected user (or null if there is not)
 	 */
     private void	standardDeleteMedia(Integer mediaId, int expectedStatus, int expectedNewMediaNumber, String token) {
-    	Result result = callAction(controllers.routes.ref.Medias.delete(mediaId, token));
+    	Result result = callAction(controllers.routes.ref.Medias.delete("", mediaId, token));
 
     	assertEquals(expectedStatus, status(result));
     	assertEquals(expectedNewMediaNumber, Media.find.all().size());

@@ -10,6 +10,8 @@ import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
 
+import com.avaje.ebean.Ebean;
+import com.avaje.ebean.SqlUpdate;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -27,8 +29,8 @@ public class AccessTokens extends Controller {
 
         result.put("token", accessToken.token);
         result.put("auto_renew", accessToken.autoRenew);
-        result.put("expiration", accessToken.expiration.getTime());
-        result.put("creation", accessToken.creation.getTime());
+        result.put("expiration", accessToken.expiration);
+        result.put("creation", accessToken.creation);
         result.put("type", accessToken.type.toString().toLowerCase());
         if (accessToken.user != null && accessToken.type == Type.USER) {
             result.put("user_id", accessToken.user.id);
@@ -111,17 +113,19 @@ public class AccessTokens extends Controller {
         if (accessToken == null) {
             return null;
         }
-
-        AccessToken token = AccessToken.find.where().eq("token", accessToken).where().gt("expiration", new Date())
-                .setMaxRows(1).findUnique();
+        
+        AccessToken token = Ebean.find(AccessToken.class).fetch("user").where().eq("token", accessToken).where().gt("expiration", new Date().getTime()).setMaxRows(1).findUnique();
 
         if (token == null) {
             return null;
         }
 
         if (token.autoRenew) {
-            token.expiration = new Date((new Date()).getTime() + AccessToken.autoRenewExpirationTime);
-            token.save();
+            token.expiration = new Date().getTime() + AccessToken.autoRenewExpirationTime;
+            SqlUpdate update = Ebean.createSqlUpdate("UPDATE se_access_token SET expiration=:expiration WHERE token=:token")
+                    .setParameter("expiration",token.expiration)
+                    .setParameter("token", token.token);
+            update.execute();
         }
         return token;
     }

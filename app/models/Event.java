@@ -10,7 +10,6 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -42,7 +41,6 @@ public class Event extends Model {
 	@Column(length=255)
 	public String		name;
 	
-	@Lob
 	public String		description;
 	
 	@Enumerated(EnumType.ORDINAL)
@@ -50,18 +48,18 @@ public class Event extends Model {
 	
 	public Date			creation;
 	
-	@OneToMany(mappedBy="ownerEvent", cascade=CascadeType.ALL)
+	@OneToMany(mappedBy="event", cascade=CascadeType.ALL)
 	public List<Media>	medias;
 	
 	@ManyToOne
-    @JoinColumn(name="owner_user_id")
-    public User         ownerUser;
+    @JoinColumn(name="owner_id")
+    public User         owner;
 
 	public Event(String token, Privacy privacy, User ownerUser) {
 		this.token = token;
 		this.creation = new Date();
 		this.privacy = privacy;
-		this.ownerUser = ownerUser;
+		this.owner = ownerUser;
 	}
 	
 	public static Finder<String, Event> find = new Finder<String, Event>(

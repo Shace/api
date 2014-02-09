@@ -28,7 +28,7 @@ public class EventModel extends WithApplication {
     	Event createdEvent = Event.find.byId("event test token");
     	assertNotNull(createdEvent);
 
-    	User user = createdEvent.ownerUser;
+    	User user = createdEvent.owner;
     	assertNotNull(user);
     	assertEquals("toto@gmail.com", user.email);
 
