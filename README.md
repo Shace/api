@@ -1,5 +1,6 @@
 Shace Event API
 =====================================
+[![Build Status](https://travis-ci.org/ShaceEvent/api.png)](https://travis-ci.org/ShaceEvent/api)
 
 Installation
 -----------------------------------
@@ -17,7 +18,7 @@ Configure an Eclipse project
 
 To configure an Eclipse project, type `play eclipse`. Then import the main directory into Eclipse with `import project`
 
-To debug into Eclipse, add breakpoints and show variables, you need to: 
+To debug into Eclipse, add breakpoints and show variables, you need to:
 - Launch the server using `play debug run`
 - Play will show you something like `Listening for transport dt_socket at address: 9999`
 - Go to eclipse -> run -> Debug configurations
@@ -39,7 +40,7 @@ Using Git
 `master` is the main branch.
 At the beginning we will not create branch, to speed up global project creation.
 Next for each big features, you have to create a branch with the name of the feature, for example `media-upload`
-For minor correction (one commit, few lines changed), you can work directly on `master` 
+For minor correction (one commit, few lines changed), you can work directly on `master`
 
 Get a synchronized version of the repository:
 - `git clone https://github.com/ShaceEvent/api.git`
