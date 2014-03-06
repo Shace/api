@@ -1,5 +1,4 @@
 language: java
-services: postgres
 env:
   - PLAY_VERSION=2.2.1
 before_script:
