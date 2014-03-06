@@ -4,7 +4,7 @@ env:
 before_script:
   - cp conf/application.conf.example conf/application.conf
   - psql -c 'create database shace;' -U postgres
-  - psql -c 'ALTER USER postgres WITH PASSWORD "postgres"' -U postgres
+  - sed -i s,db.default.password=postgres,db.default.password='', conf/application.conf
   - wget http://downloads.typesafe.com/play/${PLAY_VERSION}/play-${PLAY_VERSION}.zip
   - unzip -q play-${PLAY_VERSION}.zip
 
