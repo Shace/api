@@ -1,1 +1,1 @@
-web: play run --http.port=$PORT $PLAY_OPTS --applyEvolutions.default=true
+web: target/universal/stage/bin/shace-api -Dhttp.port=$PORT -DapplyEvolutions.default=true
