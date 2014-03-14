@@ -1,0 +1,1 @@
+web: play run --http.port=$PORT $PLAY_OPTS --applyEvolutions.default=true
