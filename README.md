@@ -1,6 +1,6 @@
 Shace Event API
 =====================================
-[![Build Status](https://travis-ci.org/ShaceEvent/api.png)](https://travis-ci.org/ShaceEvent/api)
+[![Build Status](https://travis-ci.org/Shace/api.png)](https://travis-ci.org/Shace/api)
 
 Installation
 -----------------------------------
@@ -43,7 +43,7 @@ Next for each big features, you have to create a branch with the name of the fea
 For minor correction (one commit, few lines changed), you can work directly on `master`
 
 Get a synchronized version of the repository:
-- `git clone https://github.com/ShaceEvent/api.git`
+- `git clone https://github.com/Shace/api.git`
 
 Get last version of current branch:
 - `git pull`
