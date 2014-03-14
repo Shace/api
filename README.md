@@ -8,8 +8,8 @@ Installation
 - Install Play 2.2.x
 - Install Postgresql
 - Create a database called `shace`
-- Copy conf/application.conf.example to conf/application.conf
-- By default the API is configured to connect with default postgresql user and adress, you can change configuration in file `conf/application.conf`
+- Copy conf/env.example.sh to conf/env.sh
+- By default the API is configured to connect with default postgresql user and adress, you can change configuration in file `conf/env.sh`
 - To launch the application in debug mode, go into main folder and type `play debug run`
 - You can access and debug the API on `http://localhost:9000/events` for example
 
