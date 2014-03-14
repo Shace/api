@@ -2,7 +2,7 @@
 
 export MEDIA_PATH=`pwd`/../public/media/
 export MEDIA_ROOT_URL="127.0.0.1:9000"
-export MEDIA_ROOT_URL='8mtC^AGeQs`=ImcCTmGp^oKhjDr`IHs:n77isJy;Poko?KEHskTixTXCmkUltiEx'
+export SECRET_KEY='8mtC^AGeQs`=ImcCTmGp^oKhjDr`IHs:n77isJy;Poko?KEHskTixTXCmkUltiEx'
 
 # The commented part are for a basic mysql installation
 export DB_DRIVER="org.postgresql.Driver" # "com.mysql.jdbc.Driver"
