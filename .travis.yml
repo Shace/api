@@ -1,10 +1,12 @@
 language: java
 env:
   - PLAY_VERSION=2.2.1
+  - MEDIA_PATH=$HOME
+  - MEDIA_ROOT_URL="localhost"
+  - DB_DRIVER="org.postgresql.Driver"
+  - DATABASE_URL="postgresql://postgres@localhost:5432/shace"
 before_script:
-  - cp conf/application.conf.example conf/application.conf
   - psql -c 'create database shace;' -U postgres
-  - sed -i s,db.default.password=postgres,db.default.password=\"\", conf/application.conf
   - wget http://downloads.typesafe.com/play/${PLAY_VERSION}/play-${PLAY_VERSION}.zip
   - unzip -q play-${PLAY_VERSION}.zip
 
