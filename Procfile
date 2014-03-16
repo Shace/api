@@ -1,1 +1,1 @@
-web: target/universal/stage/bin/api -Dhttp.port=$PORT
+web: target/universal/stage/bin/api -Dhttp.port=$PORT -DapplyEvolutions.default=true
