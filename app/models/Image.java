@@ -63,7 +63,7 @@ public class Image extends Model {
         try {
             BufferedImage original = ImageIO.read(file);
             if (original == null)
-                throw new BadFormat();
+                throw new BadFormat("BufferedImage fail");
             for (ImageFormat format : ImageFormats.get().formats) {
                 BufferedImage resized = resizeImage(original, format.width, format.height, format.crop);
                 this.files.add(ImageFileRelation.create(this, models.File.create(Storage.storeImage(resized)), format.width, format.height, format.name));
