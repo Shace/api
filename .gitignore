@@ -28,5 +28,4 @@ dist
 *~
 *#
 /.target
-/conf/evolutions/default/1.sql
 play-*
