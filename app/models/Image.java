@@ -26,35 +26,39 @@ public class Image extends Model {
 
     public static class BadFormat extends IOException {
         private static final long serialVersionUID = 2619200964548042413L;
+
+         public BadFormat(String message) {
+            super(message);
+        }
     }
-    
+
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 6727022222330879650L;
 
     public Image() {
         this.creation = new Date();
     }
-    
+
     @GeneratedValue
     @Column(unique=true)
     @Id
     public Integer      id;
-    
+
     public Date         creation;
-    
+
     @OneToMany(mappedBy="image", cascade=CascadeType.ALL)
     public List<ImageFileRelation>   files;
-    
+
     public static Image create() {
         Image image = new Image();
         image.save();
-        
+
         image.files = new ArrayList<>();
         return image;
     }
-    
+
     public void addFile(File file) throws BadFormat {
         try {
             BufferedImage original = ImageIO.read(file);
@@ -66,10 +70,10 @@ public class Image extends Model {
             }
             this.save();
         } catch (IOException e) {
-            throw new BadFormat();
+            throw new BadFormat(e.getMessage());
         }
     }
-    
+
     private BufferedImage resizeImage(BufferedImage original, int width, int height, boolean crop) {
         if (!crop) {
             if (original.getWidth() > width || original.getHeight() > height) {
