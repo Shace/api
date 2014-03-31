@@ -1,5 +1,6 @@
 Shace Event API
 =====================================
+[![Build Status](https://travis-ci.org/Shace/api.png)](https://travis-ci.org/Shace/api)
 
 Installation
 -----------------------------------
@@ -7,8 +8,8 @@ Installation
 - Install Play 2.2.x
 - Install Postgresql
 - Create a database called `shace`
-- Copy conf/application.conf.example to conf/application.conf
-- By default the API is configured to connect with default postgresql user and adress, you can change configuration in file `conf/application.conf`
+- Copy conf/env.example.sh to conf/env.sh
+- By default the API is configured to connect with default postgresql user and adress, you can change configuration in file `conf/env.sh`
 - To launch the application in debug mode, go into main folder and type `play debug run`
 - You can access and debug the API on `http://localhost:9000/events` for example
 
@@ -17,7 +18,7 @@ Configure an Eclipse project
 
 To configure an Eclipse project, type `play eclipse`. Then import the main directory into Eclipse with `import project`
 
-To debug into Eclipse, add breakpoints and show variables, you need to: 
+To debug into Eclipse, add breakpoints and show variables, you need to:
 - Launch the server using `play debug run`
 - Play will show you something like `Listening for transport dt_socket at address: 9999`
 - Go to eclipse -> run -> Debug configurations
@@ -39,10 +40,10 @@ Using Git
 `master` is the main branch.
 At the beginning we will not create branch, to speed up global project creation.
 Next for each big features, you have to create a branch with the name of the feature, for example `media-upload`
-For minor correction (one commit, few lines changed), you can work directly on `master` 
+For minor correction (one commit, few lines changed), you can work directly on `master`
 
 Get a synchronized version of the repository:
-- `git clone https://github.com/ShaceEvent/api.git`
+- `git clone https://github.com/Shace/api.git`
 
 Get last version of current branch:
 - `git pull`
