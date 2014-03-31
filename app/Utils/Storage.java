@@ -24,7 +24,7 @@ public class Storage {
                 
         Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpg");
         if (!writers.hasNext())
-            throw new Image.BadFormat();
+            throw new Image.BadFormat("Error with image writer");
         ImageWriter writer = (ImageWriter) writers.next();
         ImageOutputStream ios = ImageIO.createImageOutputStream(new FileOutputStream(file));
         writer.setOutput(ios);
