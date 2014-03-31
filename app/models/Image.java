@@ -26,6 +26,10 @@ public class Image extends Model {
 
     public static class BadFormat extends IOException {
         private static final long serialVersionUID = 2619200964548042413L;
+        
+        public BadFormat(String message) {
+            super(message);
+        }
     }
     
     /**
@@ -59,14 +63,14 @@ public class Image extends Model {
         try {
             BufferedImage original = ImageIO.read(file);
             if (original == null)
-                throw new BadFormat();
+                throw new BadFormat("Error with original image");
             for (ImageFormat format : ImageFormats.get().formats) {
                 BufferedImage resized = resizeImage(original, format.width, format.height, format.crop);
                 this.files.add(ImageFileRelation.create(this, models.File.create(Storage.storeImage(resized)), format.width, format.height, format.name));
             }
             this.save();
         } catch (IOException e) {
-            throw new BadFormat();
+            throw new BadFormat(e.getMessage());
         }
     }
     

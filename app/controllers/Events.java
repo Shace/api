@@ -16,6 +16,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+/**
+ * Controller that handles the different API action applied to an Event
+ * @author Leandre Deguerville
+ * @category controllers
+ */
 @CORS
 public class Events extends Controller {
 

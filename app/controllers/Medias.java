@@ -243,7 +243,7 @@ public class Medias extends Controller {
               try {
                 currentMedia.image.addFile(file);
               } catch (Image.BadFormat b) {
-                  return badRequest("Bad format image");
+                  return badRequest("Bad format image " + b.getMessage());
               }
             }
         } else {

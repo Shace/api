@@ -14,6 +14,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+/**
+ * Controller that handles the different API action applied to a User
+ * @author Hajar Fares
+ * @category controllers
+ */
 @CORS
 public class Users extends Controller {
 
