@@ -1,4 +1,4 @@
-set mediaPath="%~dp0\..\public\media\"
+set mediaPath="%~dp0\..\public\medias\"
 set mediaPath=%mediaPath:\=/%
 setx MEDIA_PATH "%mediaPath%"
 setx MEDIA_ROOT_URL "127.0.0.1:9000"
