@@ -1,6 +1,7 @@
 *.class
 
 conf/env.sh
+conf/env.bat
 
 # Package Files #
 *.jar
