@@ -9,3 +9,4 @@ before_script:
 script:
   - play-${PLAY_VERSION}/play test
   - play-${PLAY_VERSION}/play compile
+  - sbt coveralls

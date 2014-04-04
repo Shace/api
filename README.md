@@ -1,6 +1,7 @@
 Shace Event API
 =====================================
 [![Build Status](https://travis-ci.org/Shace/api.png)](https://travis-ci.org/Shace/api)
+[![Coverage Status](https://coveralls.io/repos/ShaceEvent/api/badge.png)](https://coveralls.io/r/ShaceEvent/api)
 
 Installation
 -----------------------------------
