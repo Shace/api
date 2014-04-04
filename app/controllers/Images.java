@@ -8,8 +8,20 @@ import Utils.Storage;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+/**
+ * Controller that handles the different API action applied to an Image
+ * @author Loick Michard
+ * @category controllers
+ */
 @CORS
 public class Images extends Controller {
+    
+    /**
+     * Convert an Image to a JSON object.
+     * 
+     * @param image A Image object to convert
+     * @return The JSON object containing the user information
+     */
     public static ObjectNode getImageObjectNode(Image image) {
         ObjectNode result = Json.newObject();
 

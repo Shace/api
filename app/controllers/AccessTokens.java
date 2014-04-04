@@ -15,6 +15,11 @@ import com.avaje.ebean.SqlUpdate;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+/**
+ * Controller that handles the different API action applied to the AccessToken
+ * @author Loick Michard
+ * @category controllers
+ */
 @CORS
 public class AccessTokens extends Controller {
 

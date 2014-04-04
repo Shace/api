@@ -26,44 +26,44 @@ public class Image extends Model {
 
     public static class BadFormat extends IOException {
         private static final long serialVersionUID = 2619200964548042413L;
-
-         public BadFormat(String message) {
+        
+        public BadFormat(String message) {
             super(message);
         }
     }
-
+    
     /**
-     *
+     * 
      */
     private static final long serialVersionUID = 6727022222330879650L;
 
     public Image() {
         this.creation = new Date();
     }
-
+    
     @GeneratedValue
     @Column(unique=true)
     @Id
     public Integer      id;
-
+    
     public Date         creation;
-
+    
     @OneToMany(mappedBy="image", cascade=CascadeType.ALL)
     public List<ImageFileRelation>   files;
-
+    
     public static Image create() {
         Image image = new Image();
         image.save();
-
+        
         image.files = new ArrayList<>();
         return image;
     }
-
+    
     public void addFile(File file) throws BadFormat {
         try {
             BufferedImage original = ImageIO.read(file);
             if (original == null)
-                throw new BadFormat("BufferedImage fail");
+                throw new BadFormat("Error with original image");
             for (ImageFormat format : ImageFormats.get().formats) {
                 BufferedImage resized = resizeImage(original, format.width, format.height, format.crop);
                 this.files.add(ImageFileRelation.create(this, models.File.create(Storage.storeImage(resized)), format.width, format.height, format.name));
@@ -73,7 +73,7 @@ public class Image extends Model {
             throw new BadFormat(e.getMessage());
         }
     }
-
+    
     private BufferedImage resizeImage(BufferedImage original, int width, int height, boolean crop) {
         if (!crop) {
             if (original.getWidth() > width || original.getHeight() > height) {

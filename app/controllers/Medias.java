@@ -62,7 +62,7 @@ public class Medias extends Controller {
     	Event		ownerEvent = Event.find.byId(ownerEventToken);
     	if (ownerEvent == null)
     		return notFound("Event not found");
-
+  
     	// TODO : Check User rights for this Event (can he add a media?) like this
     	// else if (!Events.hasWriteAccess(ownerUser))
     	// 	return unauthorized("No write access");
@@ -90,7 +90,7 @@ public class Medias extends Controller {
 		result.put("medias", mediasNode);
 		return created(result);
     }
-
+    
     /**
      * Delete the media identified by the id parameter.
      * @param id : the media identifier
@@ -102,7 +102,7 @@ public class Medias extends Controller {
     		return unauthorized("Not a valid token");
     	else if (!access.isConnectedUser())
     		return unauthorized("No user connected");
-
+    	
     	Media	currentMedia = Media.find.byId(id);
     	if (currentMedia == null)
     		return notFound("Media not found");
@@ -117,7 +117,7 @@ public class Medias extends Controller {
        	currentMedia.delete();
 		return noContent();
 	}
-
+    
     /**
      * Update the media identified by the id parameter.
      * The new media properties are contained into the HTTP Request body as Json format.
@@ -153,7 +153,7 @@ public class Medias extends Controller {
 		result.put("medias", mediaToJson(currentMedia, params));
 		return ok(result);
     }
-
+    
     /**
      * Get the properties of the media identified by the id parameter.
      * @param id : the media identifier
@@ -173,11 +173,11 @@ public class Medias extends Controller {
     	// TODO : Check User rights for this Event (can he edit a media?) like this
     	// else if (!Events.hasWriteAccess(ownerUser))
     	// 	return unauthorized("No write access");
-
+    	
     	RequestParameters	params = RequestParameters.create(request());
    		return ok(mediaToJson(currentMedia, params));
     }
-
+    
     /**
      * Update the media properties from a Json object.
      * @param currentMedia : The media to update
@@ -195,8 +195,8 @@ public class Medias extends Controller {
 	/**
 	 * Convert a Media to a Json object.
 	 * @param media : A Media object to convert
-	 * @param fields
-	 * @param depth
+	 * @param fields 
+	 * @param depth 
 	 * @return The Json object containing the media information
 	 */
 	public static ObjectNode mediaToJson(Media media, RequestParameters params) {
@@ -212,10 +212,10 @@ public class Medias extends Controller {
 		result.put("event", media.event.token);
 		result.put("creation", media.creation.getTime());
 		result.put("image", Images.getImageObjectNode(media.image));
-
+		
 		return result;
 	}
-
+	
 	/**
      * Add a file to the media identified by the id parameter.
      * @param id : the media identifier
@@ -227,7 +227,7 @@ public class Medias extends Controller {
             return unauthorized("Not a valid token");
         else if (!access.isConnectedUser())
             return unauthorized("No user connected");
-
+        
         Media   currentMedia = Media.find.byId(id);
         if (currentMedia == null)
             return notFound("Media not found");
@@ -243,7 +243,7 @@ public class Medias extends Controller {
               try {
                 currentMedia.image.addFile(file);
               } catch (Image.BadFormat b) {
-                  return badRequest("Bad format image" + b.getMessage());
+                  return badRequest("Bad format image " + b.getMessage());
               }
             }
         } else {

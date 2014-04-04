@@ -7,6 +7,11 @@ import play.Play;
 import play.mvc.Controller;
 import play.mvc.Result;
 
+/**
+ * Main class that represent the application
+ * @author Loick Michard
+ * @category controllers
+ */
 @CORS
 public class Application extends Controller {
 
