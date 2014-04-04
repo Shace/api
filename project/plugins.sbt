@@ -10,3 +10,6 @@ addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.2.1")
 addSbtPlugin("com.sksamuel.scoverage" % "sbt-scoverage" % "0.95.1")
 
 addSbtPlugin("com.sksamuel.scoverage" %% "sbt-coveralls" % "0.0.5")
+
+// Add Jacoco plugin for code coverage
+addSbtPlugin("de.johoop" % "jacoco4sbt" % "2.1.4")

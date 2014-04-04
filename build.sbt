@@ -13,6 +13,5 @@ libraryDependencies ++= Seq(
 
 play.Project.playJavaSettings
 
-ScoverageSbtPlugin.instrumentSettings
 
-CoverallsPlugin.coverallsSettings
+
