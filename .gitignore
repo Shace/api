@@ -5,6 +5,7 @@ conf/env.bat
 
 # Package Files #
 *.jar
+!lib/*.jar
 *.war
 *.ear
 
