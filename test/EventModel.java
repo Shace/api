@@ -22,7 +22,9 @@ public class EventModel extends WithApplication {
 	
     @Test
     public void createRetrieveDeleteEvent() {
-    	Event test = Event.create("event test token", Event.Privacy.PUBLIC, ownerUser);
+    	Event test = new Event(Event.Privacy.PUBLIC, ownerUser);
+    	test.token = "event test token";
+    	test.save();
     	assertNotNull(test);
 
     	Event createdEvent = Event.find.byId("event test token");

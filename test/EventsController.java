@@ -79,8 +79,8 @@ public class EventsController extends WithApplication {
     	 */
     	standardAddEvent(
     			"{\"token\":\"test token1\",\"privacy\":\"public\",\"name\":\"Test Event\",\"description\":\"Here is the test event description\"}",
-    			UNAUTHORIZED, 3, null);
-    	
+    			FORBIDDEN, 3, null);
+
     	
     	/**
     	 * Unvalid request with a bad privacy name
@@ -106,7 +106,8 @@ public class EventsController extends WithApplication {
     	/**
     	 * Initialization
     	 */
-    	Event newEvent = new Event("event token", Event.Privacy.PUBLIC, ownerUser);
+    	Event newEvent = new Event(Event.Privacy.PUBLIC, ownerUser);
+    	newEvent.token = "event token";
     	newEvent.name = "Test Name";
     	newEvent.description = "Test Description";
     	newEvent.save();
@@ -143,7 +144,7 @@ public class EventsController extends WithApplication {
     	 */
     	standardUpdateEvent(
     			"{\"name\":\"New Test Name1\",\"description\":\"New Test Description1\"}",
-    			newEvent.token, UNAUTHORIZED, false, "", "", null);
+    			newEvent.token, FORBIDDEN, false, "", "", null);
     	
     	
     	/**
@@ -224,7 +225,6 @@ public class EventsController extends WithApplication {
 	private void	standardAddEvent(String jsonBody, int expectedStatus, int expectedNewEventNumber, String token) {
     	FakeRequest fakeRequest = new FakeRequest(POST, "/events/").withJsonBody(Json.parse(jsonBody));
     	Result result = callAction(controllers.routes.ref.Events.add(token), fakeRequest);
-
     	assertEquals(expectedStatus, status(result));
     	assertEquals(expectedNewEventNumber, Event.find.all().size());
 	}

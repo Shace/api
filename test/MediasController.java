@@ -6,6 +6,7 @@ import static play.mvc.Http.Status.NOT_FOUND;
 import static play.mvc.Http.Status.NO_CONTENT;
 import static play.mvc.Http.Status.OK;
 import static play.mvc.Http.Status.UNAUTHORIZED;
+import static play.mvc.Http.Status.FORBIDDEN;
 import static play.test.Helpers.POST;
 import static play.test.Helpers.PUT;
 import static play.test.Helpers.callAction;
@@ -33,8 +34,10 @@ public class MediasController extends WithApplication {
     public void setUp() {
         start(fakeApplication(inMemoryDatabase()));
         ownerUser = User.create("toto@gmail.com", "secret");
-        ownerEvent = Event.create("Valid Event", Privacy.PUBLIC, ownerUser);
-
+        ownerEvent = new Event(Privacy.PUBLIC, ownerUser);
+        ownerEvent.token = "Valid Event";
+        ownerEvent.save();
+        	
     	token = AccessTokens.authenticate(ownerUser.email, "secret", true);
     }
 
@@ -72,7 +75,7 @@ public class MediasController extends WithApplication {
     	 */
     	standardAddMedia(
     			"{\"medias\":[{\"name\":\"Test Image\",\"description\":\"Here is the test image description\"}]}",
-    			ownerEvent.token, UNAUTHORIZED, 1, null);
+    			ownerEvent.token, FORBIDDEN, 1, null);
 
     	
     	// TODO : Make a test with a connected user that has no write rights on the event
@@ -132,7 +135,7 @@ public class MediasController extends WithApplication {
     	 */
     	standardUpdateMedia(
     			"{\"name\":\"New Test Name1\",\"description\":\"New Test Description1\"}",
-    			newMedia.id, UNAUTHORIZED, false, "", "", null);
+    			newMedia.id, FORBIDDEN, false, "", "", null);
 
 
     	// TODO : Make a test a connected user that has no write rights on the media event
@@ -144,7 +147,7 @@ public class MediasController extends WithApplication {
     @Test
     public void deleteMedias() {
     	/**
-    	 * Initialization
+    	    	 * Initialization
     	 */
     	Media newMedia = new Media(ownerUser, ownerEvent);
     	newMedia.name = "Test Name";
@@ -183,7 +186,7 @@ public class MediasController extends WithApplication {
     	/**
     	 * Valid request with a not connected user
     	 */
-    	standardDeleteMedia(newMedia2.id, UNAUTHORIZED, 2, null);
+    	standardDeleteMedia(newMedia2.id, FORBIDDEN, 2, null);
 
 
     	

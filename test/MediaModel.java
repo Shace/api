@@ -18,7 +18,9 @@ public class MediaModel extends WithApplication {
     public void setUp() {
         start(fakeApplication(inMemoryDatabase()));
         ownerUser = User.create("toto@gmail.com", "secret");
-        ownerEvent = Event.create("First Event", Privacy.PUBLIC, ownerUser);
+        ownerEvent = new Event(Privacy.PUBLIC, ownerUser);
+        ownerEvent.token = "First Event";
+        ownerEvent.save();
     }
 	
     @Test
