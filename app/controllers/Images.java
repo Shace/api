@@ -29,7 +29,7 @@ public class Images extends Controller {
         if (image.files != null) {
             for (ImageFileRelation ifr : image.files) {
                 if (ifr.file != null && ifr != null)
-                    result.put(ifr.format, Storage.getUrl(ifr.file.uid));
+                    result.put(ifr.format, Storage.getUrl(ifr.file.baseURL, ifr.file.uid));
             }
         }
 

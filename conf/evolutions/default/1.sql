@@ -30,6 +30,7 @@ create table se_file (
   id                        integer not null,
   creation                  timestamp,
   uid                       varchar(255),
+  base_url                  varchar(255),
   constraint pk_se_file primary key (id))
 ;
 

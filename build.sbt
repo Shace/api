@@ -8,6 +8,7 @@ libraryDependencies ++= Seq(
   cache,
   "postgresql" % "postgresql" % "9.1-901-1.jdbc4",
   "mysql" % "mysql-connector-java" % "5.1.18",
+  "com.amazonaws" % "aws-java-sdk" % "1.7.5",
   jdbc
 )
 

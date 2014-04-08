@@ -31,10 +31,13 @@ public class File extends Model {
     public Date         creation;
     
     public String       uid;
+    
+    public String       baseURL;
 
-    public static File create(String uid) {
+    public static File create(String uid, String baseURL) {
         models.File file = new models.File();
         file.uid = uid;
+        file.baseURL = baseURL;
         file.save();
         return file;
     }

@@ -1,9 +1,12 @@
 package Utils;
 
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Iterator;
 import java.util.UUID;
 
@@ -14,21 +17,63 @@ import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageOutputStream;
 
 import models.Image;
+import models.ImageFormat;
 import play.Play;
+import plugins.S3Plugin;
+
+import com.amazonaws.services.s3.model.CannedAccessControlList;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 
 public class Storage {
-    public static String storeImage(BufferedImage image) throws IOException {
+    /**
+     * Store image on Shace depending on LOCAL_STORAGE value
+     * @param image Image to store
+     * @param format Format of the image to store
+     * @return The name of the created image
+     * @throws IOException
+     */
+    public static String storeImage(BufferedImage image, ImageFormat format) throws IOException {
         String extension = UUID.randomUUID() + ".jpg";
-        File file = new File(Play.application().configuration().getString("storage.path"), extension);        
         /* If you think it could generate two times the same UUID, you will be hit by a meteorite soon */
-                
+
+        if (S3Plugin.amazonS3 == null) {
+            storeLocal(image, extension);
+        } else {
+            extension = format.name + "/" + extension;
+            storeAmazonS3(image, extension);
+        }
+        
+        return extension;
+    }
+    
+    private static void storeLocal(BufferedImage image, String extension) throws IOException {
+        File file = new File(Play.application().configuration().getString("storage.path"), extension);
+        
         Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpg");
         if (!writers.hasNext())
             throw new Image.BadFormat("Error with image writer");
         ImageWriter writer = (ImageWriter) writers.next();
         ImageOutputStream ios = ImageIO.createImageOutputStream(new FileOutputStream(file));
         writer.setOutput(ios);
-        
+
+        ImageWriteParam param = writer.getDefaultWriteParam();
+        param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+        param.setCompressionQuality(1.0f);
+
+        writer.write(null, new IIOImage(image, null, null), param);
+        writer.dispose();
+    }
+    
+    private static void storeAmazonS3(BufferedImage image, String extension) throws IOException {
+        Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpg");
+        if (!writers.hasNext())
+            throw new Image.BadFormat("Error with image writer");
+        ImageWriter writer = (ImageWriter) writers.next();
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        ImageOutputStream ios = ImageIO.createImageOutputStream(os);
+        writer.setOutput(ios);
+
         ImageWriteParam param = writer.getDefaultWriteParam();
         param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
         param.setCompressionQuality(1.0f);
@@ -36,10 +81,28 @@ public class Storage {
         writer.write(null, new IIOImage(image, null, null), param);
         writer.dispose();
         
-        return extension;
+        byte[] buffer = os.toByteArray();
+        InputStream is = new ByteArrayInputStream(buffer);
+        ObjectMetadata meta = new ObjectMetadata();
+        meta.setContentLength(buffer.length);
+        meta.setContentType("image/jpeg");
+
+        /*
+         * Send image to Amazon E3
+         */
+        PutObjectRequest putObjectRequest = new PutObjectRequest(S3Plugin.s3Bucket, extension, is, meta);
+        putObjectRequest.withCannedAcl(CannedAccessControlList.PublicRead);
+        S3Plugin.amazonS3.putObject(putObjectRequest);
     }
 
-    public static String getUrl(String uid) {
-        return Play.application().configuration().getString("storage.baseurl") + uid;
+    public static String getUrl(String baseURL, String uid) {
+        return baseURL + uid;
+    }
+    
+    public static String getBaseUrl() {
+        if (S3Plugin.amazonS3 == null)
+            return Play.application().configuration().getString("storage.baseurl");
+        else
+            return "https://s3.amazonaws.com/" + S3Plugin.s3Bucket + "/";
     }
 }

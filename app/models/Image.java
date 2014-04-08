@@ -88,11 +88,10 @@ public class Image extends Model {
             try {
                 Metadata metadata = ImageMetadataReader.readMetadata(file);
                 Directory directory = metadata.getDirectory(ExifIFD0Directory.class);
-                orientation = directory.getInt(ExifIFD0Directory.TAG_ORIENTATION);
+                if (directory != null)
+                    orientation = directory.getInt(ExifIFD0Directory.TAG_ORIENTATION);
             } catch (ImageProcessingException e) {
-                e.printStackTrace();
             } catch (MetadataException e) {
-                e.printStackTrace();
             }
 
             /* 
@@ -107,7 +106,7 @@ public class Image extends Model {
              */
             for (ImageFormat format : ImageFormats.get().formats) {
                 BufferedImage resized = resizeImage(original, format.width, format.height, format.crop);
-                this.files.add(ImageFileRelation.create(this, models.File.create(Storage.storeImage(resized)), format.width, format.height, format.name));
+                this.files.add(ImageFileRelation.create(this, models.File.create(Storage.storeImage(resized, format), Storage.getBaseUrl()), format.width, format.height, format.name));
             }
             this.save();
         } catch (IOException e) {
