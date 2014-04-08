@@ -1,9 +1,5 @@
 package controllers;
 
-import models.Event;
-import models.Media;
-import models.User;
-import play.Play;
 import play.mvc.Controller;
 import play.mvc.Result;
 
@@ -26,33 +22,4 @@ public class Application extends Controller {
 
         return ok();
     }
-    
-    public static Result initDevEnv() {
-    	if (Play.application().isProd() == true) {
-    		return notFound();
-    	}
-    	User tmpUser = User.find.where().eq("email", "dev@shace.com").findUnique();
-    	if (tmpUser == null) {
-    		tmpUser = new User("dev@shace.com", "password");
-    	}
-    	// ...
-    	tmpUser.save();
-
-    	Event tmpEvent = Event.find.byId("dev event");
-    	if (tmpEvent == null) {
-	    	tmpEvent = new Event("dev event", Event.Privacy.PUBLIC, tmpUser);
-    	}
-    	tmpEvent.description = "Development Description";
-    	tmpEvent.name = "Development Event Example";
-    	tmpEvent.save();
-
-    	Media tmpMedia = Media.find.where().eq("name", "dev media").findUnique();
-    	if (tmpMedia == null)
-    		tmpMedia = new Media(tmpUser, tmpEvent);
-    	tmpMedia.name = "dev media";
-    	tmpMedia.description = "Development Description";
-    	tmpMedia.save();
-    	return ok("Development Environment Init");
-    }
-  
 }

@@ -16,13 +16,17 @@ create table se_access_token (
 
 create table se_event (
   token                     varchar(255) not null,
+  id                        varchar(36),
   password                  varchar(40),
   name                      varchar(255),
   description               varchar(255),
-  privacy                   integer,
+  reading_privacy           integer,
+  writing_privacy           integer,
   creation                  timestamp,
   owner_id                  integer,
-  constraint ck_se_event_privacy check (privacy in (0,1,2)),
+  constraint ck_se_event_reading_privacy check (reading_privacy in (0,1,2)),
+  constraint ck_se_event_writing_privacy check (writing_privacy in (0,1,2)),
+  constraint uq_se_event_id unique (id),
   constraint pk_se_event primary key (token))
 ;
 

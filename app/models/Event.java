@@ -2,12 +2,14 @@ package models;
 
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -31,6 +33,9 @@ public class Event extends Model {
 	 */
 	private static final long serialVersionUID = 3754144269823907391L;
 	
+	@Column(length=36, unique=true)
+	public String		id;
+	
 	@Id
 	@Column(length=255, unique=true)
 	public String 		token;
@@ -44,7 +49,10 @@ public class Event extends Model {
 	public String		description;
 	
 	@Enumerated(EnumType.ORDINAL)
-	public Privacy 		privacy;
+	public Privacy 		readingPrivacy;
+	
+	@Enumerated(EnumType.ORDINAL)
+	public Privacy 		writingPrivacy;
 	
 	public Date			creation;
 	
@@ -55,10 +63,12 @@ public class Event extends Model {
     @JoinColumn(name="owner_id")
     public User         owner;
 
-	public Event(String token, Privacy privacy, User ownerUser) {
-		this.token = token;
+	public Event(Privacy privacy, User ownerUser) {
+		this.id = UUID.randomUUID().toString();
+		this.token = this.id;
 		this.creation = new Date();
-		this.privacy = privacy;
+		this.readingPrivacy = privacy;
+		this.writingPrivacy = privacy;
 		this.owner = ownerUser;
 	}
 	
@@ -66,8 +76,8 @@ public class Event extends Model {
 			String.class, Event.class
 	);
 	
-	public static Event create(String token, Privacy privacy, User ownerUser) {
-		Event newEvent = new Event(token, privacy, ownerUser);
+	public static Event create(Privacy privacy, User ownerUser) {
+		Event newEvent = new Event(privacy, ownerUser);
 		newEvent.save();
 
 		return newEvent;
