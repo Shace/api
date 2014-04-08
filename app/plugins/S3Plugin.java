@@ -17,7 +17,7 @@ public class S3Plugin extends Plugin {
     public static final String LOCAL_STORAGE = "storage.local";
     private final Application application;
 
-    public static AmazonS3 amazonS3;
+    public static AmazonS3 amazonS3 = null;
     public static String s3Bucket;
     public static boolean localStorage = true;
 
