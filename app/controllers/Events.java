@@ -10,6 +10,7 @@ import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
+import Utils.Access;
 
 import com.avaje.ebean.Ebean;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -37,7 +38,7 @@ public class Events extends Controller {
         result.put("name", event.name);
         result.put("description", event.description);
         result.put("creation", event.creation.getTime());
-        result.put("privacy", event.privacy.toString().toLowerCase());
+        result.put("privacy", event.readingPrivacy.toString().toLowerCase());
         
         ArrayNode medias = result.putArray("medias");
         for (Media media : event.medias) {
@@ -55,8 +56,10 @@ public class Events extends Controller {
      */
     public static Result events(String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
-        if (access == null)
-            return unauthorized("Not a valid token");
+        Result error = Access.checkAuthentication(access, Access.AuthenticationType.ANONYMOUS_USER);
+        if (error != null) {
+        	return error;
+        }
 
         List<Event> events = Event.find.where().eq("privacy", Event.Privacy.PUBLIC).findList();
 
@@ -79,44 +82,54 @@ public class Events extends Controller {
     @BodyParser.Of(BodyParser.Json.class)
     public static Result add(String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
-
-        if (access == null)
-            return unauthorized("Not a valid token");
-        if (!access.isConnectedUser())
-            return badRequest("No user connected");
+        Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
+        if (error != null) {
+        	return error;
+        }
         
         JsonNode json = request().body().asJson();
         if (json == null)
             return badRequest("Unexpected format, JSON required");
         
-        String token = json.path("token").textValue();
         String privacy = json.path("privacy").textValue();
-        if (token == null) {
-            return badRequest("Missing parameter [token]");
-        } else if (privacy == null) {
+        Event event = null;
+
+        if (privacy == null) {
             return badRequest("Missing parameter [privacy]");
-        } else if (!privacy.equals("public") && !privacy.equals("protected") && !privacy.equals("private")) {
-            return badRequest("[privacy] have to be in ('public', 'protected', 'private')");
-        } else {
-            if (Event.find.byId(token) != null) {
-                return badRequest("token already exists");
-            }
-            
-            Privacy privacyEnum = (privacy.equals("public")) ? Privacy.PUBLIC : ((privacy.equals("protected")) ? Privacy.PROTECTED : Privacy.PRIVATE);
-            Event event = new Event(token, privacyEnum, access.user);
-            
-            String password = json.path("password").textValue();
-            if (event.privacy == Privacy.PROTECTED && password == null) {
-                return badRequest("Missing parameter [password] for privacy protected");
-            } else if (event.privacy == Privacy.PROTECTED) {
-                event.password = Utils.Hasher.hash(password);
-            }
-            
-            updateOneEvent(event, json);
-            
-            event.save();
-            return created(getEventObjectNode(event));
         }
+        if (privacy.equals("public")) {
+            String token = json.path("token").textValue();
+
+            if (token == null) {
+                return badRequest("Missing parameter [token]");
+            } else if (Event.find.byId(token) != null) {
+                return badRequest("Token already exists");
+            }
+            
+            event = new Event(Privacy.PUBLIC, access.user);
+            event.token = token;
+        } else if (privacy.equals("protected")) {
+            String token = json.path("token").textValue();
+            String password = json.path("password").textValue();
+
+            if (token == null) {
+                return badRequest("Missing parameter [token]");
+            } else if (Event.find.byId(token) != null) {
+                return badRequest("Token already exists");
+            } else if (password == null) {
+                return badRequest("Missing parameter [password]");
+            }
+            event = new Event(Privacy.PROTECTED, access.user);
+            event.token = token;
+            event.password = Utils.Hasher.hash(password);
+        } else if (privacy.equals("private")) {
+            event = new Event(Privacy.PRIVATE, access.user);
+        } else {
+            return badRequest("[privacy] have to be in ('public', 'protected', 'private')");
+        }
+        updateOneEvent(event, json);
+        event.save();
+        return created(getEventObjectNode(event));
     }
 
     /**
@@ -127,18 +140,25 @@ public class Events extends Controller {
      */
     public static Result delete(String token, String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
+        Result error = Access.checkAuthentication(access, Access.AuthenticationType.ANONYMOUS_USER);
+        if (error != null) {
+        	return error;
+        }
 
-        if (access == null)
-            return unauthorized("Not a valid token");
-        if (!access.isConnectedUser())
-            return badRequest("No user connected");
-        else if (access.user.isAdmin == false)
-            return forbidden("You need to be admin");
+        Event event = Event.find.byId(token);
+        if (event == null) {
+            return notFound("Event with token " + token + " not found");
+        }
         
-        // TODO This is a really tricky operation. All the medias, events, tokens, ... need to be delete !
+        error = Access.hasEventAccess(access, event, Access.EventAccessType.ROOT);
+        if (error != null) {
+        	return error;
+        }
+
+        // TODO This is a really tricky operation. All the medias, events, tokens, files ... need to be delete !
         // For now, deletion is not yet possible
         // Maybe only set a valid flag
-        
+
         return TODO;
     }
 
@@ -152,24 +172,24 @@ public class Events extends Controller {
     @BodyParser.Of(BodyParser.Json.class)
     public static Result update(String token, String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
+        Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
+        if (error != null) {
+        	return error;
+        }
 
-        if (access == null)
-            return unauthorized("Not a valid token");
-        if (!access.isConnectedUser())
-            return badRequest("No user connected");
-        
         Event event = Event.find.byId(token);
         if (event == null) {
             return notFound("Event with token " + token + " not found");
         }
         
-        if (access.user.id != event.owner.id && access.user.isAdmin == false)
-            return forbidden("No edit rights on this event");
+        error = Access.hasEventAccess(access, event, Access.EventAccessType.ADMINISTRATE);
+        if (error != null) {
+        	return error;
+        }
         
         JsonNode root = request().body().asJson();
         if (root == null)
             return badRequest("Unexpected format, JSON required");
-        
         updateOneEvent(event, root);
         event.update();
         
@@ -184,18 +204,22 @@ public class Events extends Controller {
      */
     public static Result event(String token, String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
-
-        if (access == null)
-            return unauthorized("Not a valid token");
+        Result error = Access.checkAuthentication(access, Access.AuthenticationType.ANONYMOUS_USER);
+        if (error != null) {
+        	return error;
+        }
         
         //Event event = Event.find.byId(token);
         Event event = Ebean.find(Event.class).fetch("medias").fetch("medias.owner").fetch("owner").fetch("medias.image").fetch("medias.image.files").fetch("medias.image.files.file").where().eq("token", token).findUnique();
         if (event == null) {
             return notFound("Event with token " + token + " not found");
         }
-        
-        if (event.privacy != Privacy.PUBLIC && (!access.isConnectedUser() || (access.user.id != event.owner.id && access.user.isAdmin == false)))
-            return forbidden("Can't view other user's events");
+
+//      if (event.readingPrivacy != Privacy.PUBLIC && (!access.isConnectedUser() || (access.user.id != event.owner.id && access.user.isAdmin == false)))
+        error = Access.hasEventAccess(access, event, Access.EventAccessType.READ);
+        if (error != null) {
+        	return error;
+        }
         
         return ok(getEventObjectNode(event));
     }

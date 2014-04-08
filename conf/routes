@@ -20,7 +20,6 @@ PUT		/events/:token				controllers.Events.update(token : String, access_token)
 GET		/events/:token				controllers.Events.event(token : String, access_token)
 
 # Medias
-GET		/medias						controllers.Medias.medias(access_token)
 POST	/events/:token/medias		controllers.Medias.add(token : String, access_token)
 DELETE	/events/:token/medias/:id	controllers.Medias.delete(token : String, id : Integer, access_token)
 PUT		/events/:token/medias/:id	controllers.Medias.update(token : String, id : Integer, access_token)
@@ -39,6 +38,3 @@ GET		/users/:id					controllers.Users.user(id : Integer, access_token)
 
 # Map static resources from the /public folder to the /assets URL path
 GET		/assets/*file				controllers.Assets.at(path="/public", file)
-
-# Initialize Dev Env (database...) only in development mode
-GET     /initDevEnv                 controllers.Application.initDevEnv()

@@ -1,7 +1,6 @@
 package controllers;
 
 import java.io.File;
-import java.util.List;
 
 import models.AccessToken;
 import models.Event;
@@ -13,6 +12,7 @@ import play.mvc.Controller;
 import play.mvc.Http.MultipartFormData;
 import play.mvc.Http.MultipartFormData.FilePart;
 import play.mvc.Result;
+import Utils.Access;
 import Utils.RequestParameters;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -26,25 +26,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  */
 @CORS
 public class Medias extends Controller {
-
-	/**
-	 * List all the available media.
-	 * @return An HTTP Json response containing the properties of all the media
-	 */
-	public static Result medias(String accessToken) {
-		List<Media> medias = Media.find.findList();
-
-    	ArrayNode mediasNode = Json.newObject().arrayNode();
-
-    	for (Media media : medias) {
-    		mediasNode.add(mediaToJson(media, new RequestParameters(request())));
-    	}
-    	ObjectNode result = Json.newObject();
-    	result.put("medias", mediasNode);
-    	return ok(result);
-//		return ok(CustomSerializer.serialize(medias, request().getQueryString("fields")));
-	}
-
     /**
      * Add one or several medias into an event.
      * The medias properties are contained into the HTTP Request body as Json format.
@@ -54,26 +35,30 @@ public class Medias extends Controller {
     @BodyParser.Of(BodyParser.Json.class)
     public static Result add(String ownerEventToken, String accessToken) {
     	AccessToken	access = AccessTokens.access(accessToken);
-    	if (access == null)
-    		return unauthorized("Not a valid token");
-    	else if (!access.isConnectedUser())
-    		return unauthorized("No user connected");
+        Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
+        if (error != null) {
+        	return error;
+        }
 
-    	Event		ownerEvent = Event.find.byId(ownerEventToken);
-    	if (ownerEvent == null)
+        Event		ownerEvent = Event.find.byId(ownerEventToken);
+    	if (ownerEvent == null) {
     		return notFound("Event not found");
-  
-    	// TODO : Check User rights for this Event (can he add a media?) like this
-    	// else if (!Events.hasWriteAccess(ownerUser))
-    	// 	return unauthorized("No write access");
+    	}
+
+        error = Access.hasEventAccess(access, ownerEvent, Access.EventAccessType.WRITE);
+        if (error != null) {
+        	return error;
+        }        
 
     	JsonNode root = request().body().asJson();
-    	if (root == null)
+    	if (root == null) {
     		return badRequest("Unexpected format, JSon required");
+    	}
     	JsonNode mediaList = root.get("medias");
 
-    	if (mediaList == null)
+    	if (mediaList == null) {
     		return badRequest("Missing parameter [medias]");
+    	}
 		ArrayNode mediasNode = Json.newObject().arrayNode();
     	for (JsonNode mediaNode : mediaList) {
 
@@ -84,8 +69,9 @@ public class Medias extends Controller {
         	RequestParameters	params = RequestParameters.create(request());
         	mediasNode.add(mediaToJson(newMedia, params));
 		}
-    	if (mediasNode.size() == 0)
+    	if (mediasNode.size() == 0) {
     		return badRequest("Empty/Invalid media list");
+    	}
   		ObjectNode result = Json.newObject();
 		result.put("medias", mediasNode);
 		return created(result);
@@ -98,21 +84,22 @@ public class Medias extends Controller {
      */
     public static Result delete(String token, Integer id, String accessToken) {
     	AccessToken	access = AccessTokens.access(accessToken);
-    	if (access == null)
-    		return unauthorized("Not a valid token");
-    	else if (!access.isConnectedUser())
-    		return unauthorized("No user connected");
+        Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
+        if (error != null) {
+        	return error;
+        }
     	
     	Media	currentMedia = Media.find.byId(id);
-    	if (currentMedia == null)
+    	if (currentMedia == null) {
     		return notFound("Media not found");
+    	}
+    	
     	Event	currentEvent = currentMedia.event;
-    	if (currentEvent == null)
+    	if (currentEvent == null) {
     		return notFound("Media not found");
-
-    	// TODO : Check User rights for this Event (can he edit a media?) like this
-    	// else if (!Events.hasWriteAccess(ownerUser))
-    	// 	return unauthorized("No write access");
+    	} else if (currentMedia.owner.id != access.user.id) {
+    		return forbidden("Permission Denied");
+    	}
 
        	currentMedia.delete();
 		return noContent();
@@ -127,26 +114,29 @@ public class Medias extends Controller {
     @BodyParser.Of(BodyParser.Json.class)
     public static Result update(String token, Integer id, String accessToken) {
     	AccessToken	access = AccessTokens.access(accessToken);
-    	if (access == null)
-    		return unauthorized("Not a valid token");
-    	else if (!access.isConnectedUser())
-    		return unauthorized("No user connected");
+        Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
+        if (error != null) {
+        	return error;
+        }
 
     	Media	currentMedia = Media.find.byId(id);
-    	if (currentMedia == null)
+    	if (currentMedia == null) {
     		return notFound("Media not found");
+    	}
+    	
     	Event	currentEvent = currentMedia.event;
-    	if (currentEvent == null)
+    	if (currentEvent == null) {
     		return notFound("Media not found");
-
-    	// TODO : Check User rights for this Event (can he edit a media?) like this
-    	// else if (!Events.hasWriteAccess(ownerUser))
-    	// 	return unauthorized("No write access");
+    	} else if (currentMedia.owner.id != access.user.id) {
+    		return forbidden("Permission Denied");
+    	}
 
     	JsonNode root = request().body().asJson();
-    	if (root == null)
+    	if (root == null) {
     		return badRequest("Unexpected format, JSon required");
-       	updateOneMedia(currentMedia, root);
+    	}
+
+    	updateOneMedia(currentMedia, root);
        	currentMedia.save();
   		ObjectNode result = Json.newObject();
     	RequestParameters	params = RequestParameters.create(request());
@@ -161,19 +151,26 @@ public class Medias extends Controller {
      */
     public static Result media(String token, Integer id, String accessToken) {
        	AccessToken	access = AccessTokens.access(accessToken);
-    	if (access == null)
-    		return unauthorized("Not a valid token");
-    	Media	currentMedia = Media.find.byId(id);
+        Result error = Access.checkAuthentication(access, Access.AuthenticationType.ANONYMOUS_USER);
+        if (error != null) {
+        	return error;
+        }
 
-    	if (currentMedia == null)
+    	Media	currentMedia = Media.find.byId(id);
+    	if (currentMedia == null) {
     		return notFound("Media not found");
-    	Event	currentEvent = currentMedia.event;
-    	if (currentEvent == null)
-    		return notFound("Media not found");
-    	// TODO : Check User rights for this Event (can he edit a media?) like this
-    	// else if (!Events.hasWriteAccess(ownerUser))
-    	// 	return unauthorized("No write access");
+    	}
     	
+    	Event	currentEvent = currentMedia.event;
+    	if (currentEvent == null) {
+    		return notFound("Media not found");
+    	}
+
+    	error = Access.hasEventAccess(access, currentEvent, Access.EventAccessType.READ);
+        if (error != null) {
+        	return error;
+        }
+
     	RequestParameters	params = RequestParameters.create(request());
    		return ok(mediaToJson(currentMedia, params));
     }
@@ -196,7 +193,7 @@ public class Medias extends Controller {
 	 * Convert a Media to a Json object.
 	 * @param media : A Media object to convert
 	 * @param fields 
-	 * @param depth 
+	 * @param depth
 	 * @return The Json object containing the media information
 	 */
 	public static ObjectNode mediaToJson(Media media, RequestParameters params) {
@@ -223,17 +220,20 @@ public class Medias extends Controller {
      */
     public static Result addFile(String token, Integer id, String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
-        if (access == null)
-            return unauthorized("Not a valid token");
-        else if (!access.isConnectedUser())
-            return unauthorized("No user connected");
+        Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
+        if (error != null) {
+        	return error;
+        }
         
-        Media   currentMedia = Media.find.byId(id);
-        if (currentMedia == null)
-            return notFound("Media not found");
-        Event   currentEvent = currentMedia.event;
-        if (currentEvent == null)
-            return notFound("Media not found");
+    	Media	currentMedia = Media.find.byId(id);
+    	if (currentMedia == null) {
+    		return notFound("Media not found");
+    	}
+    	
+    	Event	currentEvent = currentMedia.event;
+    	if (currentEvent == null) {
+    		return notFound("Media not found");
+    	}
 
         if (access.user.id == currentMedia.owner.id) {
             MultipartFormData body = request().body().asMultipartFormData();
@@ -249,6 +249,7 @@ public class Medias extends Controller {
         } else {
             return forbidden("Only the owner can edit a media");
         }
+
         currentMedia.update();
         return noContent();
     }
