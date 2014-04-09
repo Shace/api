@@ -107,6 +107,7 @@ public class EventsController extends WithApplication {
     	newEvent.name = "Test Name";
     	newEvent.description = "Test Description";
     	newEvent.save();
+    	newEvent.saveOwnerPermission();
     	
     	
     	/**

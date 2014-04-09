@@ -9,12 +9,6 @@ import play.mvc.Controller;
 
 
 public class Access {
-	public enum EventAccessType {
-		READ,
-		WRITE,
-		ADMINISTRATE,
-		ROOT
-	}
 	
 	public enum UserAccessType {
 		READ,
@@ -63,10 +57,31 @@ public class Access {
 		return null;
 	}
 	
-	static public Result	hasPermissionOnEvent(AccessToken access, Event event, EventAccessType accessType) {
+	static public Event.AccessType	getPermissionOnEvent(AccessToken access, Event event) {
+		if (access.isConnectedUser() && access.user.isAdmin == true) {
+			return Event.AccessType.ROOT;
+		}
+		Event.AccessType res = Event.AccessType.NONE;
+
+		if (access.isConnectedUser()) {
+			res = event.getPermission(access.user);
+		}
+		if (event.writingPrivacy == Event.Privacy.PUBLIC) {
+			return max(Event.AccessType.WRITE, res);
+		} else if (event.writingPrivacy == Event.Privacy.PROTECTED) {
+			// TODO : Handle to check through the cookies or something else
+		} else if (event.readingPrivacy == Event.Privacy.PUBLIC) {
+			return max(Event.AccessType.READ, res);
+		} else if (event.readingPrivacy == Event.Privacy.PROTECTED) {
+			// TODO : Handle to check through the cookies or something else
+		}
+		return res;
+	}
+	
+	static public Result	hasPermissionOnEvent(AccessToken access, Event event, Event.AccessType accessType) {
 		if (access.isConnectedUser() && access.user.isAdmin == true) {
 			return null;
-		} else if (accessType == EventAccessType.READ) {
+		} else if (accessType == Event.AccessType.READ) {
 			if (event.readingPrivacy == Event.Privacy.PUBLIC) {
 				return null;
 			} else if (event.readingPrivacy == Privacy.PROTECTED) {
@@ -74,12 +89,11 @@ public class Access {
 			} else if (event.readingPrivacy == Privacy.PRIVATE) {
 				if (access.isConnectedUser() == false) {
 					return Controller.unauthorized("You need to be authenticated");
-				} else if (access.user.id == event.owner.id) {
+				} else if (event.hasPermission(access.user, accessType)) {
 					return null;
 				}
-				// TODO : Check if the user is in the list of authorized readers
 			}
-		} else if (accessType == EventAccessType.WRITE) {
+		} else if (accessType == Event.AccessType.WRITE) {
 			if (access.isConnectedUser() == false) {
 				return Controller.unauthorized("You need to be authenticated");
 			} else if (event.writingPrivacy == Event.Privacy.PUBLIC) {
@@ -87,22 +101,20 @@ public class Access {
 			} else if (event.writingPrivacy == Privacy.PROTECTED) {
 				// TODO : Handle to check through the cookies or something else
 			} else if (event.writingPrivacy == Privacy.PRIVATE) {
-				if (access.user.id == event.owner.id) {
+				if (event.hasPermission(access.user, accessType)) {
 					return null;
 				}
-				// TODO : Check if the user is in the list of authorized writers
 			}
-		} else if (accessType == EventAccessType.ADMINISTRATE) {
+		} else if (accessType == Event.AccessType.ADMINISTRATE) {
 			if (access.isConnectedUser() == false) {
 				return Controller.unauthorized("You need to be authenticated");
-			} else if (access.user.id == event.owner.id) {
+			} else if (event.hasPermission(access.user, accessType)) {
 				return null;
 			}
-			// TODO : Check if the user is in the list of authorized administrators
-		} else if (accessType == EventAccessType.ROOT) {
+		} else if (accessType == Event.AccessType.ROOT) {
 			if (access.isConnectedUser() == false) {
 				return Controller.unauthorized("You need to be authenticated");
-			} else if (access.user.id == event.owner.id) {
+			} else if (event.hasPermission(access.user, accessType)) {
 				return null;
 			}
 		}
@@ -130,5 +142,13 @@ public class Access {
 			}
 		} 
 		return Controller.forbidden("You don't have the required permission on this user");
+	}
+	
+	static private	Event.AccessType	max(Event.AccessType l, Event.AccessType r) {
+		if (l.compareTo(r) >= 0) {
+			return l;
+		} else {
+			return r;
+		}
 	}
 }

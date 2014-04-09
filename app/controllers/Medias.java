@@ -45,7 +45,7 @@ public class Medias extends Controller {
     		return notFound("Event not found");
     	}
 
-        error = Access.hasPermissionOnEvent(access, ownerEvent, Access.EventAccessType.WRITE);
+        error = Access.hasPermissionOnEvent(access, ownerEvent, Event.AccessType.WRITE);
         if (error != null) {
         	return error;
         }        
@@ -166,7 +166,7 @@ public class Medias extends Controller {
     		return notFound("Media not found");
     	}
 
-    	error = Access.hasPermissionOnEvent(access, currentEvent, Access.EventAccessType.READ);
+    	error = Access.hasPermissionOnEvent(access, currentEvent, Event.AccessType.READ);
         if (error != null) {
         	return error;
         }

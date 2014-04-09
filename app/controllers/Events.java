@@ -127,8 +127,10 @@ public class Events extends Controller {
         } else {
             return badRequest("[privacy] have to be in ('public', 'protected', 'private')");
         }
+
         updateOneEvent(event, json);
         event.save();
+        event.saveOwnerPermission();
         return created(getEventObjectNode(event));
     }
 
@@ -150,7 +152,7 @@ public class Events extends Controller {
             return notFound("Event with token " + token + " not found");
         }
         
-        error = Access.hasPermissionOnEvent(access, event, Access.EventAccessType.ROOT);
+        error = Access.hasPermissionOnEvent(access, event, Event.AccessType.ROOT);
         if (error != null) {
         	return error;
         }
@@ -182,7 +184,7 @@ public class Events extends Controller {
             return notFound("Event with token " + token + " not found");
         }
         
-        error = Access.hasPermissionOnEvent(access, event, Access.EventAccessType.ADMINISTRATE);
+        error = Access.hasPermissionOnEvent(access, event, Event.AccessType.ADMINISTRATE);
         if (error != null) {
         	return error;
         }
@@ -209,14 +211,12 @@ public class Events extends Controller {
         	return error;
         }
         
-        //Event event = Event.find.byId(token);
-        Event event = Ebean.find(Event.class).fetch("medias").fetch("medias.owner").fetch("owner").fetch("medias.image").fetch("medias.image.files").fetch("medias.image.files.file").where().eq("token", token).findUnique();
+        Event event = Ebean.find(Event.class).fetch("medias").fetch("medias.owner").fetch("medias.image").fetch("medias.image.files").fetch("medias.image.files.file").where().eq("token", token).findUnique();
         if (event == null) {
             return notFound("Event with token " + token + " not found");
         }
 
-//      if (event.readingPrivacy != Privacy.PUBLIC && (!access.isConnectedUser() || (access.user.id != event.owner.id && access.user.isAdmin == false)))
-        error = Access.hasPermissionOnEvent(access, event, Access.EventAccessType.READ);
+        error = Access.hasPermissionOnEvent(access, event, Event.AccessType.READ);
         if (error != null) {
         	return error;
         }
