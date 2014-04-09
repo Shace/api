@@ -33,7 +33,7 @@ create table se_event_user_relation (
   event_token               varchar(255),
   user_id                   integer,
   permission                integer,
-  constraint ck_se_event_user_relation_permission check (permission in (0,1,2,3)))
+  constraint ck_se_event_user_relation_permission check (permission in (0,1,2,3,4)))
 ;
 
 create table se_file (
