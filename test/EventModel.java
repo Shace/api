@@ -3,8 +3,6 @@ import static org.junit.Assert.assertNotNull;
 import static play.test.Helpers.fakeApplication;
 import static play.test.Helpers.inMemoryDatabase;
 import models.Event;
-import models.Event.Privacy;
-import models.Media;
 import models.User;
 
 import org.junit.Before;

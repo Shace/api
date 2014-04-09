@@ -150,7 +150,7 @@ public class Events extends Controller {
             return notFound("Event with token " + token + " not found");
         }
         
-        error = Access.hasEventAccess(access, event, Access.EventAccessType.ROOT);
+        error = Access.hasPermissionOnEvent(access, event, Access.EventAccessType.ROOT);
         if (error != null) {
         	return error;
         }
@@ -182,7 +182,7 @@ public class Events extends Controller {
             return notFound("Event with token " + token + " not found");
         }
         
-        error = Access.hasEventAccess(access, event, Access.EventAccessType.ADMINISTRATE);
+        error = Access.hasPermissionOnEvent(access, event, Access.EventAccessType.ADMINISTRATE);
         if (error != null) {
         	return error;
         }
@@ -216,7 +216,7 @@ public class Events extends Controller {
         }
 
 //      if (event.readingPrivacy != Privacy.PUBLIC && (!access.isConnectedUser() || (access.user.id != event.owner.id && access.user.isAdmin == false)))
-        error = Access.hasEventAccess(access, event, Access.EventAccessType.READ);
+        error = Access.hasPermissionOnEvent(access, event, Access.EventAccessType.READ);
         if (error != null) {
         	return error;
         }

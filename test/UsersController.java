@@ -3,8 +3,8 @@ import static org.junit.Assert.assertNotNull;
 import static play.mvc.Http.Status.BAD_REQUEST;
 import static play.mvc.Http.Status.CREATED;
 import static play.mvc.Http.Status.FORBIDDEN;
+import static play.mvc.Http.Status.NOT_FOUND;
 import static play.mvc.Http.Status.OK;
-import static play.mvc.Http.Status.UNAUTHORIZED;
 import static play.test.Helpers.POST;
 import static play.test.Helpers.PUT;
 import static play.test.Helpers.callAction;
@@ -66,7 +66,7 @@ public class UsersController extends WithApplication {
     	 */
     	standardAddUser(
                 "{\"email\":\"test3@gmail.com\",\"password\":\"test\",\"first_name\":\"Test\",\"last_name\":\"test\"}",
-                UNAUTHORIZED, 2, null);
+                FORBIDDEN, 2, null);
     
     }
 	
@@ -108,7 +108,7 @@ public class UsersController extends WithApplication {
     	 */
     	standardUpdateUser(
                 "{\"first_name\":\"Chuck\",\"last_name\":\"Norris\", \"password\":\"42\"}",
-               4242, FORBIDDEN, false, "", "", "", token.token);
+               4242, NOT_FOUND, false, "", "", "", token.token);
     	
     	
     	/**
@@ -116,7 +116,7 @@ public class UsersController extends WithApplication {
     	 */
     	standardUpdateUser(
                 "{\"first_name\":\"Chuck\",\"last_name\":\"Norris\", \"password\":\"42\"}",
-               newUser.id, UNAUTHORIZED, false, "", "", "", null);
+               newUser.id, FORBIDDEN, false, "", "", "", null);
     	
     	
     	/**
