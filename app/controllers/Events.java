@@ -39,12 +39,15 @@ public class Events extends Controller {
         result.put("description", event.description);
         result.put("creation", event.creation.getTime());
         result.put("privacy", event.readingPrivacy.toString().toLowerCase());
+
         
         ArrayNode medias = result.putArray("medias");
         for (Media media : event.medias) {
             if (media.image.files.size() > 0)
                 medias.add(Medias.mediaToJson(media, null));
         }
+        
+        result.put("bucket", Buckets.getBucketObjectNode(event.root));
 
         return result;
     }
@@ -129,6 +132,8 @@ public class Events extends Controller {
         }
         updateOneEvent(event, json);
         event.save();
+        event.root.event = event;
+        event.root.save();
         return created(getEventObjectNode(event));
     }
 
@@ -203,11 +208,11 @@ public class Events extends Controller {
      * @return An HTTP JSON response containing the properties of the specified event
      */
     public static Result event(String token, String accessToken) {
-        AccessToken access = AccessTokens.access(accessToken);
+        /*AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.ANONYMOUS_USER);
         if (error != null) {
         	return error;
-        }
+        }*/
         
         //Event event = Event.find.byId(token);
         Event event = Ebean.find(Event.class).fetch("medias").fetch("medias.owner").fetch("owner").fetch("medias.image").fetch("medias.image.files").fetch("medias.image.files.file").where().eq("token", token).findUnique();
@@ -216,10 +221,10 @@ public class Events extends Controller {
         }
 
 //      if (event.readingPrivacy != Privacy.PUBLIC && (!access.isConnectedUser() || (access.user.id != event.owner.id && access.user.isAdmin == false)))
-        error = Access.hasEventAccess(access, event, Access.EventAccessType.READ);
+        /*error = Access.hasEventAccess(access, event, Access.EventAccessType.READ);
         if (error != null) {
         	return error;
-        }
+        }*/
         
         return ok(getEventObjectNode(event));
     }

@@ -9,11 +9,11 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import play.db.ebean.Model;
@@ -62,6 +62,9 @@ public class Event extends Model {
 	@ManyToOne
     @JoinColumn(name="owner_id")
     public User         owner;
+	
+    @OneToOne(cascade=CascadeType.ALL)
+	public Bucket       root;
 
 	public Event(Privacy privacy, User ownerUser) {
 		this.id = UUID.randomUUID().toString();
@@ -70,6 +73,8 @@ public class Event extends Model {
 		this.readingPrivacy = privacy;
 		this.writingPrivacy = privacy;
 		this.owner = ownerUser;
+		this.root = new Bucket(0, null);
+		this.root.save();
 	}
 	
 	public static Finder<String, Event> find = new Finder<String, Event>(
@@ -79,7 +84,9 @@ public class Event extends Model {
 	public static Event create(Privacy privacy, User ownerUser) {
 		Event newEvent = new Event(privacy, ownerUser);
 		newEvent.save();
-
+		
+		newEvent.root.event = newEvent;
+		newEvent.root.save();
 		return newEvent;
 	}
 }
