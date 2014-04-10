@@ -15,7 +15,7 @@ public class MediaTagRelation extends Model {
 	 * Unique version uid for serialization
 	 */
 	private static final long serialVersionUID = 2432905791500607570L;
-	
+
 	@ManyToOne
 	@JoinColumn(name="media_id")
 	public Media		media;

@@ -10,8 +10,6 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -26,6 +24,14 @@ public class Event extends Model {
 		PUBLIC,
 		PROTECTED,
 		PRIVATE
+	}
+	
+	public enum AccessType {
+		NONE,
+		READ,
+		WRITE,
+		ADMINISTRATE,
+		ROOT
 	}
 	
 	/**
@@ -53,18 +59,19 @@ public class Event extends Model {
 	
 	@Enumerated(EnumType.ORDINAL)
 	public Privacy 		writingPrivacy;
-	
+
+	@OneToMany(mappedBy="event")
+	public List<EventUserRelation> permissions;
+		
 	public Date			creation;
 	
 	@OneToMany(mappedBy="event", cascade=CascadeType.ALL)
 	public List<Media>	medias;
 	
-	@ManyToOne
-    @JoinColumn(name="owner_id")
-    public User         owner;
-	
     @OneToOne(cascade=CascadeType.ALL)
 	public Bucket       root;
+    
+    private User         owner;
 
 	public Event(Privacy privacy, User ownerUser) {
 		this.id = UUID.randomUUID().toString();
@@ -75,6 +82,47 @@ public class Event extends Model {
 		this.owner = ownerUser;
 		this.root = new Bucket(0, null);
 		this.root.save();
+	}
+	
+	public void	saveOwnerPermission() {
+		if (this.owner != null) {
+			setPermission(this.owner, AccessType.ROOT).save();
+		}
+	}
+	
+	public boolean	hasPermission(User user, AccessType permission) {
+		if (user != null) {
+			for (EventUserRelation relation : permissions) {
+				if (user.equals(relation.user) &&
+						this.equals(relation.event) &&
+						permission.compareTo(relation.permission) <= 0) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	public EventUserRelation	setPermission(User user, AccessType permission) {
+		for (EventUserRelation relation : permissions) {
+			if (user.equals(relation.user) && relation.permission == permission) {
+				return relation;
+			}
+		}
+		
+		EventUserRelation res = new EventUserRelation(this, user, permission);
+		permissions.add(res);
+		return res;
+	}
+	
+	public AccessType	getPermission(User user) {
+		AccessType res = AccessType.NONE;
+		for (EventUserRelation relation : permissions) {
+			if (relation.user.equals(user) && relation.permission.compareTo(res) > 0) {
+				res = relation.permission;
+			}
+		}
+		return res;
 	}
 	
 	public static Finder<String, Event> find = new Finder<String, Event>(

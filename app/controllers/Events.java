@@ -130,10 +130,14 @@ public class Events extends Controller {
         } else {
             return badRequest("[privacy] have to be in ('public', 'protected', 'private')");
         }
+
         updateOneEvent(event, json);
         event.save();
+
         event.root.event = event;
         event.root.save();
+        
+        event.saveOwnerPermission();
         return created(getEventObjectNode(event));
     }
 
@@ -155,7 +159,7 @@ public class Events extends Controller {
             return notFound("Event with token " + token + " not found");
         }
         
-        error = Access.hasEventAccess(access, event, Access.EventAccessType.ROOT);
+        error = Access.hasPermissionOnEvent(access, event, Event.AccessType.ROOT);
         if (error != null) {
         	return error;
         }
@@ -187,7 +191,7 @@ public class Events extends Controller {
             return notFound("Event with token " + token + " not found");
         }
         
-        error = Access.hasEventAccess(access, event, Access.EventAccessType.ADMINISTRATE);
+        error = Access.hasPermissionOnEvent(access, event, Event.AccessType.ADMINISTRATE);
         if (error != null) {
         	return error;
         }
@@ -208,24 +212,23 @@ public class Events extends Controller {
      * @return An HTTP JSON response containing the properties of the specified event
      */
     public static Result event(String token, String accessToken) {
-        /*AccessToken access = AccessTokens.access(accessToken);
+        AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.ANONYMOUS_USER);
         if (error != null) {
-        	return error;
-        }*/
-        
-        //Event event = Event.find.byId(token);
-        Event event = Ebean.find(Event.class).fetch("medias").fetch("medias.owner").fetch("owner").fetch("medias.image").fetch("medias.image.files").fetch("medias.image.files.file").where().eq("token", token).findUnique();
+            return error;
+        }
+
+        Event event = Ebean.find(Event.class).fetch("medias").fetch("medias.owner").fetch("medias.image")
+                .fetch("medias.image.files").fetch("medias.image.files.file").where().eq("token", token).findUnique();
         if (event == null) {
             return notFound("Event with token " + token + " not found");
         }
 
-//      if (event.readingPrivacy != Privacy.PUBLIC && (!access.isConnectedUser() || (access.user.id != event.owner.id && access.user.isAdmin == false)))
-        /*error = Access.hasEventAccess(access, event, Access.EventAccessType.READ);
+        error = Access.hasPermissionOnEvent(access, event, Event.AccessType.READ);
         if (error != null) {
-        	return error;
-        }*/
-        
+            return error;
+        }
+
         return ok(getEventObjectNode(event));
     }
     

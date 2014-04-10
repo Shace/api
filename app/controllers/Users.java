@@ -9,6 +9,7 @@ import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
+import Utils.Access;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -53,13 +54,10 @@ public class Users extends Controller {
      */
     public static Result users(String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
-
-        if (access == null)
-            return unauthorized("Not a valid token");
-        else if (!access.isConnectedUser())
-            return unauthorized("No user connected");
-        else if (access.user.isAdmin == false)
-            return forbidden("You need to be admin");
+        Result error = Access.checkAuthentication(access, Access.AuthenticationType.ADMIN_USER);
+        if (error != null) {
+        	return error;
+        }
         List<User> users = User.find.findList();
 
         ArrayNode usersNode = Json.newObject().arrayNode();
@@ -82,22 +80,25 @@ public class Users extends Controller {
     @BodyParser.Of(BodyParser.Json.class)
     public static Result add(String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
-
-        if (access == null)
-            return unauthorized("Not a valid token");
-        if (access.isConnectedUser())
-            return badRequest("Already a connected user");
+        Result error = Access.checkAuthentication(access, Access.AuthenticationType.NOT_CONNECTED_USER);
+        if (error != null) {
+        	return error;
+        }
 
         JsonNode root = request().body().asJson();
-        if (root == null)
+        if (root == null) {
             return badRequest("Unexpected format, JSON required");
+        }
+
         String email = root.path("email").textValue();
-        if (email == null)
+        if (email == null) {
             return badRequest("Missing parameter [email]");
+        }
 
         String password = root.path("password").textValue();
-        if (password == null)
+        if (password == null) {
             return badRequest("Missing parameter [password]");
+        }
 
         if (User.find.where().eq("email", email).findUnique() != null) {
             return badRequest("Email already exists");
@@ -117,14 +118,21 @@ public class Users extends Controller {
      */
     public static Result delete(Integer id, String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
+        Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
+        if (error != null) {
+        	return error;
+        }
 
-        if (access == null)
-            return unauthorized("Not a valid token");
-        if (!access.isConnectedUser())
-            return badRequest("No user connected");
-        else if (access.user.isAdmin == false)
-            return forbidden("You need to be admin");
-        
+        User user = User.find.byId(id);
+        if (user == null) {
+            return notFound("User with id " + id + " not found");
+        }
+
+        error = Access.hasPermissionOnUser(access, user, Access.UserAccessType.WRITE);
+        if (error != null) {
+        	return error;
+        }
+
         // TODO This is a really tricky operation. All the medias, events, tokens, ... need to be delete !
         // For now, deletion is not yet possible
         // Maybe only set a valid flag
@@ -142,25 +150,29 @@ public class Users extends Controller {
     @BodyParser.Of(BodyParser.Json.class)
     public static Result update(Integer id, String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
-
-        if (access == null)
-            return unauthorized("Not a valid token");
-        if (!access.isConnectedUser())
-            return badRequest("No user connected");
-        if (access.user.id != id && access.user.isAdmin == false)
-            return forbidden("Can't update other users");
+        Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
+        if (error != null) {
+        	return error;
+        }
         
         JsonNode root = request().body().asJson();
-        if (root == null)
+        if (root == null) {
             return badRequest("Unexpected format, JSON required");
+        }
         
         User user = User.find.byId(id);
         if (user == null) {
             return notFound("User with id " + id + " not found");
         }
+
+        error = Access.hasPermissionOnUser(access, user, Access.UserAccessType.WRITE);
+        if (error != null) {
+        	return error;
+        }
+
         updateOneUser(user, root);
         user.update();
-        
+
         return ok(getUserObjectNode(user));
     }
 
@@ -172,21 +184,22 @@ public class Users extends Controller {
      */
     public static Result user(Integer id, String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
-
-        if (access == null)
-            return unauthorized("Not a valid token");
-        if (!access.isConnectedUser())
-            return badRequest("No user connected");
-        if (access.user.id != id && access.user.isAdmin == false)
-            return forbidden("Can't view other users");
+        Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
+        if (error != null) {
+        	return error;
+        }
         
         User user = User.find.byId(id);
-
-        if (user != null) {
-            return ok(getUserObjectNode(user));
-        } else {
+        if (user == null) {
             return notFound("User with id " + id + " not found");
         }
+
+        error = Access.hasPermissionOnUser(access, user, Access.UserAccessType.READ);
+        if (error != null) {
+        	return error;
+        }
+ 
+        return ok(getUserObjectNode(user));
     }
 
     /**
@@ -235,10 +248,15 @@ public class Users extends Controller {
      */
     public static Result me(String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
-        if (access == null)
-            return unauthorized("Not a valid token");
-        else if (!access.isConnectedUser())
-            return unauthorized("No user connected");
+        Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
+        if (error != null) {
+        	return error;
+        }
+
+        error = Access.hasPermissionOnUser(access, access.user, Access.UserAccessType.READ);
+        if (error != null) {
+        	return error;
+        }
 
         return ok(getUserObjectNode(access.user));
     }

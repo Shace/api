@@ -2,11 +2,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static play.mvc.Http.Status.BAD_REQUEST;
 import static play.mvc.Http.Status.CREATED;
-import static play.mvc.Http.Status.NOT_FOUND;
-import static play.mvc.Http.Status.NO_CONTENT;
-import static play.mvc.Http.Status.OK;
-import static play.mvc.Http.Status.UNAUTHORIZED;
 import static play.mvc.Http.Status.FORBIDDEN;
+import static play.mvc.Http.Status.NOT_FOUND;
+import static play.mvc.Http.Status.OK;
 import static play.test.Helpers.POST;
 import static play.test.Helpers.PUT;
 import static play.test.Helpers.callAction;
@@ -15,8 +13,6 @@ import static play.test.Helpers.inMemoryDatabase;
 import static play.test.Helpers.status;
 import models.AccessToken;
 import models.Event;
-import models.Event.Privacy;
-import models.Media;
 import models.User;
 
 import org.junit.Before;
@@ -111,6 +107,7 @@ public class EventsController extends WithApplication {
     	newEvent.name = "Test Name";
     	newEvent.description = "Test Description";
     	newEvent.save();
+    	newEvent.saveOwnerPermission();
     	
     	
     	/**
