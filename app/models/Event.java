@@ -11,6 +11,7 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import play.db.ebean.Model;
@@ -67,6 +68,9 @@ public class Event extends Model {
 	@OneToMany(mappedBy="event", cascade=CascadeType.ALL)
 	public List<Media>	medias;
 	
+    @OneToOne(cascade=CascadeType.ALL)
+	public Bucket       root;
+    
     private User         owner;
 
 	public Event(Privacy privacy, User ownerUser) {
@@ -76,6 +80,8 @@ public class Event extends Model {
 		this.readingPrivacy = privacy;
 		this.writingPrivacy = privacy;
 		this.owner = ownerUser;
+		this.root = new Bucket(0, null);
+		this.root.save();
 	}
 	
 	public void	saveOwnerPermission() {
@@ -126,7 +132,9 @@ public class Event extends Model {
 	public static Event create(Privacy privacy, User ownerUser) {
 		Event newEvent = new Event(privacy, ownerUser);
 		newEvent.save();
-
+		
+		newEvent.root.event = newEvent;
+		newEvent.root.save();
 		return newEvent;
 	}
 }

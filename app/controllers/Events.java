@@ -46,6 +46,8 @@ public class Events extends Controller {
             if (media.image.files.size() > 0)
                 medias.add(Medias.mediaToJson(media, null));
         }
+        
+        result.put("bucket", Buckets.getBucketObjectNode(event.root));
 
         return result;
     }
@@ -131,6 +133,10 @@ public class Events extends Controller {
 
         updateOneEvent(event, json);
         event.save();
+
+        event.root.event = event;
+        event.root.save();
+        
         event.saveOwnerPermission();
         return created(getEventObjectNode(event, access));
     }
@@ -211,19 +217,19 @@ public class Events extends Controller {
         AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.ANONYMOUS_USER);
         if (error != null) {
-        	return error;
+            return error;
         }
-        
-        Event event = Ebean.find(Event.class).fetch("medias").fetch("medias.owner").fetch("medias.image").fetch("medias.image.files").fetch("medias.image.files.file").where().eq("token", token).findUnique();
+
+        Event event = Ebean.find(Event.class).fetch("medias").fetch("medias.owner").fetch("medias.image")
+                .fetch("medias.image.files").fetch("medias.image.files.file").where().eq("token", token).findUnique();
         if (event == null) {
             return notFound("Event with token " + token + " not found");
         }
 
         error = Access.hasPermissionOnEvent(access, event, Event.AccessType.READ);
         if (error != null) {
-        	return error;
+            return error;
         }
-        
         return ok(getEventObjectNode(event, access));
     }
     

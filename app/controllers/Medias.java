@@ -1,6 +1,8 @@
 package controllers;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Date;
 
 import models.AccessToken;
 import models.Event;
@@ -15,6 +17,12 @@ import play.mvc.Result;
 import Utils.Access;
 import Utils.RequestParameters;
 
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.imaging.ImageProcessingException;
+import com.drew.metadata.Directory;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.exif.ExifIFD0Directory;
+import com.drew.metadata.exif.ExifSubIFDDirectory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -248,12 +256,34 @@ public class Medias extends Controller {
               } catch (Image.BadFormat b) {
                   return badRequest("Bad format image " + b.getMessage());
               }
+              
+              /*
+               * Get all EXIF information
+               */
+              try {
+                  Metadata metadata = ImageMetadataReader.readMetadata(file);
+                  Directory directory = metadata.getDirectory(ExifSubIFDDirectory.class);
+                  if (directory == null) {
+                      directory = metadata.getDirectory(ExifIFD0Directory.class);
+                  }
+                  if (directory != null) {
+                      currentMedia.original = directory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL);
+                  }
+              } catch (ImageProcessingException e) {
+              } catch (IOException e) {
+              }
+              if (currentMedia.original == null) {
+                  currentMedia.original = new Date();
+              }
             }
+            
         } else {
             return forbidden("Only the owner can edit a media");
         }
 
         currentMedia.update();
+        
+        Buckets.addNewMediaToEvent(currentEvent, currentMedia);
         return noContent();
     }
 }

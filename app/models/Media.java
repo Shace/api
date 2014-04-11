@@ -89,6 +89,8 @@ public class Media extends Model {
     @JoinColumn(name="image_id")
 	public Image       image;
 	
+	public Date        original;
+	
 	public static Finder<Integer, Media> find = new Finder<Integer, Media>(
 			Integer.class, Media.class
 	);
