@@ -15,6 +15,7 @@ import play.mvc.Http.MultipartFormData;
 import play.mvc.Http.MultipartFormData.FilePart;
 import play.mvc.Result;
 import Utils.Access;
+import Utils.BucketsUpdater;
 import Utils.RequestParameters;
 
 import com.drew.imaging.ImageMetadataReader;
@@ -283,7 +284,8 @@ public class Medias extends Controller {
 
         currentMedia.update();
 
-        Buckets.addNewMediaToEvent(currentEvent, currentMedia);
+        //Buckets.addNewMediaToEvent(currentEvent, currentMedia);
+        BucketsUpdater.get().updateBucket(currentEvent, currentMedia);
         return noContent();
     }
 }
