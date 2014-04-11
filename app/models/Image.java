@@ -121,7 +121,7 @@ public class Image extends Model {
      * @return resized image
      */
     private BufferedImage resizeImage(BufferedImage original, int width, int height, boolean crop) {
-        return Scalr.resize(original, Scalr.Method.SPEED, Scalr.Mode.AUTOMATIC, width, height);
+        return Scalr.resize(original, Scalr.Method.QUALITY, Scalr.Mode.AUTOMATIC, width, height);
     }
     
     /**
