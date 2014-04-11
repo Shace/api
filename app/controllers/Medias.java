@@ -282,7 +282,7 @@ public class Medias extends Controller {
         }
 
         currentMedia.update();
-        
+
         Buckets.addNewMediaToEvent(currentEvent, currentMedia);
         return noContent();
     }

@@ -12,6 +12,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
 import javax.persistence.Table;
 
 import play.db.ebean.Model;
@@ -43,10 +44,11 @@ public class Bucket extends Model implements Comparable<Bucket> {
     public Bucket       parent;
 
     @OneToMany(mappedBy="parent", cascade=CascadeType.ALL)
+    @OrderBy("first")
     public List<Bucket> children;
     
     public Integer      level;
-    
+
     public Date         first;
 
     public Date         last;

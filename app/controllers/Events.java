@@ -130,6 +130,11 @@ public class Events extends Controller {
         } else {
             return badRequest("[privacy] have to be in ('public', 'protected', 'private')");
         }
+        
+        String name = json.path("name").textValue();
+        if (name == null)
+            return badRequest("Missing parameter [name]");
+        event.name = name;
 
         updateOneEvent(event, json);
         event.save();
@@ -221,7 +226,7 @@ public class Events extends Controller {
         }
 
         Event event = Ebean.find(Event.class).fetch("medias").fetch("medias.owner").fetch("medias.image")
-                .fetch("medias.image.files").fetch("medias.image.files.file").where().eq("token", token).findUnique();
+                .fetch("medias.image.files").fetch("medias.image.files.file").fetch("root").where().eq("token", token).findUnique();
         if (event == null) {
             return notFound("Event with token " + token + " not found");
         }
