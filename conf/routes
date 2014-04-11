@@ -25,6 +25,11 @@ DELETE	/events/:token/medias/:id	controllers.Medias.delete(token : String, id : 
 PUT		/events/:token/medias/:id	controllers.Medias.update(token : String, id : Integer, access_token)
 GET		/events/:token/medias/:id	controllers.Medias.media(token : String, id : Integer, access_token)
 
+# EventUserRelation
+GET		/events/:token/users		controllers.EventPermissions.permissions(token : String, access_token)
+PUT		/events/:token/users		controllers.EventPermissions.setPermissions(token : String, access_token)
+DELETE 	/events/:token/users		controllers.EventPermissions.deletePermissions(token : String, access_token)
+
 # File
 POST	/events/:token/medias/:id	controllers.Medias.addFile(token : String, id : Integer, access_token)
 

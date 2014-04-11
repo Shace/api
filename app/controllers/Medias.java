@@ -54,11 +54,12 @@ public class Medias extends Controller {
     	if (root == null) {
     		return badRequest("Unexpected format, JSon required");
     	}
+    	
     	JsonNode mediaList = root.get("medias");
-
     	if (mediaList == null) {
     		return badRequest("Missing parameter [medias]");
     	}
+    	
 		ArrayNode mediasNode = Json.newObject().arrayNode();
     	for (JsonNode mediaNode : mediaList) {
 
@@ -69,10 +70,12 @@ public class Medias extends Controller {
         	RequestParameters	params = RequestParameters.create(request());
         	mediasNode.add(mediaToJson(newMedia, params));
 		}
+
     	if (mediasNode.size() == 0) {
     		return badRequest("Empty/Invalid media list");
     	}
-  		ObjectNode result = Json.newObject();
+
+    	ObjectNode result = Json.newObject();
 		result.put("medias", mediasNode);
 		return created(result);
     }

@@ -31,7 +31,7 @@ public class Events extends Controller {
      * @param media An Event object to convert
      * @return The JSON object containing the event information
      */
-    public static ObjectNode getEventObjectNode(Event event) {
+    public static ObjectNode getEventObjectNode(Event event, AccessToken accessToken) {
         ObjectNode result = Json.newObject();
 
         result.put("token", event.token);
@@ -39,6 +39,7 @@ public class Events extends Controller {
         result.put("description", event.description);
         result.put("creation", event.creation.getTime());
         result.put("privacy", event.readingPrivacy.toString().toLowerCase());
+        result.put("permission", Access.getPermissionOnEvent(accessToken, event).toString());
         
         ArrayNode medias = result.putArray("medias");
         for (Media media : event.medias) {
@@ -66,7 +67,7 @@ public class Events extends Controller {
         ArrayNode eventsNode = Json.newObject().arrayNode();
 
         for (Event event : events) {
-            eventsNode.add(getEventObjectNode(event));
+            eventsNode.add(getEventObjectNode(event, access));
         }
         ObjectNode result = Json.newObject();
         result.put("events", eventsNode);
@@ -131,7 +132,7 @@ public class Events extends Controller {
         updateOneEvent(event, json);
         event.save();
         event.saveOwnerPermission();
-        return created(getEventObjectNode(event));
+        return created(getEventObjectNode(event, access));
     }
 
     /**
@@ -190,12 +191,14 @@ public class Events extends Controller {
         }
         
         JsonNode root = request().body().asJson();
-        if (root == null)
+        if (root == null) {
             return badRequest("Unexpected format, JSON required");
+        }
+        
         updateOneEvent(event, root);
         event.update();
         
-        return ok(getEventObjectNode(event));
+        return ok(getEventObjectNode(event, access));
     }
 
     /**
@@ -221,7 +224,7 @@ public class Events extends Controller {
         	return error;
         }
         
-        return ok(getEventObjectNode(event));
+        return ok(getEventObjectNode(event, access));
     }
     
     /**

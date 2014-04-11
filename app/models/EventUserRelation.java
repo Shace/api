@@ -1,8 +1,11 @@
 package models;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
@@ -18,6 +21,11 @@ public class EventUserRelation extends Model {
 	 */
 	private static final long serialVersionUID = -7487557111657046789L;
 
+	@GeneratedValue
+	@Column(unique=true)
+	@Id
+	public Integer	id; 
+	
 	@ManyToOne
 	@JoinColumn(name="event_token")
 	public Event	event;
@@ -34,4 +42,9 @@ public class EventUserRelation extends Model {
 		this.user = user;
 		this.permission = permission;
 	}
+	
+	public static Finder<Event, EventUserRelation> find = new Finder<Event, EventUserRelation>(
+			Event.class, EventUserRelation.class
+	);
+	
 }

@@ -30,10 +30,12 @@ create table se_event (
 ;
 
 create table se_event_user_relation (
+  id                        integer not null,
   event_token               varchar(255),
   user_id                   integer,
   permission                integer,
-  constraint ck_se_event_user_relation_permission check (permission in (0,1,2,3,4)))
+  constraint ck_se_event_user_relation_permission check (permission in (0,1,2,3,4)),
+  constraint pk_se_event_user_relation primary key (id))
 ;
 
 create table se_file (
@@ -112,6 +114,8 @@ create sequence se_access_token_seq;
 
 create sequence se_event_seq;
 
+create sequence se_event_user_relation_seq;
+
 create sequence se_file_seq;
 
 create sequence se_image_seq;
@@ -182,6 +186,8 @@ SET REFERENTIAL_INTEGRITY TRUE;
 drop sequence if exists se_access_token_seq;
 
 drop sequence if exists se_event_seq;
+
+drop sequence if exists se_event_user_relation_seq;
 
 drop sequence if exists se_file_seq;
 
