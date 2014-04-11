@@ -109,7 +109,7 @@ public class Medias extends Controller {
     	Event	currentEvent = currentMedia.event;
     	if (currentEvent == null) {
     		return notFound("Media not found");
-    	} else if (currentMedia.owner.id != access.user.id) {
+    	} else if (!currentMedia.owner.equals(access.user)) {
     		return forbidden("Permission Denied");
     	}
 
@@ -139,7 +139,7 @@ public class Medias extends Controller {
     	Event	currentEvent = currentMedia.event;
     	if (currentEvent == null) {
     		return notFound("Media not found");
-    	} else if (currentMedia.owner.id != access.user.id) {
+    	} else if (!currentMedia.owner.equals(access.user.id)) {
     		return forbidden("Permission Denied");
     	}
 
@@ -247,7 +247,7 @@ public class Medias extends Controller {
     		return notFound("Media not found");
     	}
 
-        if (access.user.id == currentMedia.owner.id) {
+        if (access.user.equals(currentMedia.owner)) {
             MultipartFormData body = request().body().asMultipartFormData();
             FilePart filePart = body.getFile("file");
             if (filePart != null) {

@@ -58,7 +58,7 @@ public class Buckets extends Controller {
          */
         Bucket added = null;
         for (Bucket bucket : buckets) {
-            if (bucket.size == 0 || 
+            if (bucket.size.equals(0) || 
                (bucket.first.getTime() / 1000 - maximumDelays[0] <= media.original.getTime() / 1000 &&
                bucket.last.getTime() / 1000 + maximumDelays[0] >= media.original.getTime() / 1000)) {
                 added = bucket;
@@ -77,16 +77,16 @@ public class Buckets extends Controller {
         List<Bucket> buckets = Ebean.find(Bucket.class).fetch("parent").where().eq("event", event).where().eq("level", level).orderBy("first asc").findList();
 
         for (Bucket bucket : buckets) {
-            if (bucket.id == parentId) {
+            if (bucket.id.equals(parentId)) {
                 if (bucket.parent != null) {
                     parentId = bucket.parent.id;
                 }
                 bucket.medias.add(media);
-                if (bucket.size == 0 || media.original.getTime() < bucket.first.getTime())
+                if (bucket.size.equals(0) || media.original.getTime() < bucket.first.getTime())
                     bucket.first = media.original;
-                if (bucket.size == 0 || media.original.getTime() > bucket.last.getTime())
+                if (bucket.size.equals(0) || media.original.getTime() > bucket.last.getTime())
                     bucket.last = media.original;
-                bucket.size += 1;
+                bucket.size = bucket.size + 1;
                 bucket.save();
             }
         }
@@ -107,7 +107,7 @@ public class Buckets extends Controller {
                         next.parent.save();                        
                     }
                     
-                    if (next.id == parentId) {
+                    if (next.id.equals(parentId)) {
                         parentId = current.id;
                     }
                     
@@ -127,7 +127,7 @@ public class Buckets extends Controller {
                     current.last = next.last;
                     
                     current.save();
-                    if (event.root.id == next.id) {
+                    if (event.root.id.equals(next.id)) {
                         event.root = current;
                         event.save();
                     }
@@ -146,7 +146,7 @@ public class Buckets extends Controller {
                     bucket.parent.first = bucket.first;
                     bucket.parent.last = bucket.last;
                     for (Media mediaChild : bucket.medias) {
-                        if (mediaChild.id == media.id) {
+                        if (mediaChild.equals(media)) {
                             bucket.parent.size -= 1;
                         } else {
                             bucket.parent.medias.add(mediaChild);
@@ -155,7 +155,7 @@ public class Buckets extends Controller {
                     bucket.parent.save();
                 }
                 
-                if (bucket.id == parentId) {
+                if (bucket.id.equals(parentId)) {
                     parentId = bucket.parent.id;
                 }
             }

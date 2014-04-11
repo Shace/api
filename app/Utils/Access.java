@@ -1,11 +1,11 @@
 package Utils;
 
-import play.mvc.Result;
 import models.AccessToken;
 import models.Event;
 import models.Event.Privacy;
 import models.User;
 import play.mvc.Controller;
+import play.mvc.Result;
 
 
 public class Access {
@@ -125,13 +125,13 @@ public class Access {
 		if (accessType == UserAccessType.READ) {
 			if (access.isConnectedUser() == false) {
 				return Controller.unauthorized("You need to be authenticated");
-			} else if (access.user.id == user.id) {
+			} else if (access.user.equals(user)) {
 				return null;
 			}
 		} else if (accessType == UserAccessType.WRITE) {
 			if (access.isConnectedUser() == false) {
 				return Controller.unauthorized("You need to be authenticated");
-			} else if (access.user.id == user.id) {
+			} else if (access.user.equals(user)) {
 				return null;
 			}
 		} else if (accessType == UserAccessType.ROOT) {
