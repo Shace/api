@@ -50,9 +50,6 @@ public class User extends Model {
 	@Formats.DateTime(pattern="dd/MM/yyyy")
 	public Date		inscriptionDate;
 	
-	@OneToMany(mappedBy="owner", cascade=CascadeType.ALL)
-	public List<Media>	medias;
-	
 	public boolean	isAdmin;
 	
 	@OneToMany(mappedBy="creator", cascade=CascadeType.ALL)

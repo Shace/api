@@ -35,7 +35,7 @@ public class Buckets extends Controller {
 
         ArrayNode medias = result.putArray("medias");
         for (Media media : bucket.medias) {
-            medias.add(Medias.mediaToJson(media, null));
+            medias.add(Medias.mediaToJson(media, null, false));
         }
         
         if (bucket.children != null && bucket.children.size() > 0) {

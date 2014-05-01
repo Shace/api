@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.Date;
 
 import models.AccessToken;
+import models.Comment;
 import models.Event;
 import models.Image;
 import models.Media;
@@ -77,7 +78,7 @@ public class Medias extends Controller {
 
         	newMedia.save();
         	RequestParameters	params = RequestParameters.create(request());
-        	mediasNode.add(mediaToJson(newMedia, params));
+        	mediasNode.add(mediaToJson(newMedia, params, false));
 		}
 
     	if (mediasNode.size() == 0) {
@@ -152,7 +153,7 @@ public class Medias extends Controller {
        	currentMedia.save();
   		ObjectNode result = Json.newObject();
     	RequestParameters	params = RequestParameters.create(request());
-		result.put("medias", mediaToJson(currentMedia, params));
+		result.put("medias", mediaToJson(currentMedia, params, false));
 		return ok(result);
     }
     
@@ -184,7 +185,7 @@ public class Medias extends Controller {
         }
 
     	RequestParameters	params = RequestParameters.create(request());
-   		return ok(mediaToJson(currentMedia, params));
+   		return ok(mediaToJson(currentMedia, params, true));
     }
     
     /**
@@ -204,11 +205,10 @@ public class Medias extends Controller {
 	/**
 	 * Convert a Media to a Json object.
 	 * @param media : A Media object to convert
-	 * @param fields 
-	 * @param depth
+	 * @param full : True will display all information about the media
 	 * @return The Json object containing the media information
 	 */
-	public static ObjectNode mediaToJson(Media media, RequestParameters params) {
+	public static ObjectNode mediaToJson(Media media, RequestParameters params, boolean full) {
 //		JSONSerializer tmp = new JSONSerializer();
 		ObjectNode result = Json.newObject();
 
@@ -221,6 +221,13 @@ public class Medias extends Controller {
 		result.put("event", media.event.token);
 		result.put("creation", media.creation.getTime());
 		result.put("image", Images.getImageObjectNode(media.image));
+		
+		if (full) {
+		    ArrayNode comments = result.putArray("comments");
+	        for (Comment comment : media.comments) {
+                comments.add(Comments.commentToJson(comment, null));
+	        }
+		}
 		
 		return result;
 	}
@@ -249,7 +256,9 @@ public class Medias extends Controller {
 
         if (access.user.equals(currentMedia.owner)) {
             MultipartFormData body = request().body().asMultipartFormData();
-            FilePart filePart = body.getFile("file");
+            FilePart filePart = null; 
+            if (body != null)
+                filePart = body.getFile("file");
             if (filePart != null) {
               File file = filePart.getFile();
               try {

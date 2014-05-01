@@ -26,6 +26,15 @@ create table se_bucket (
   constraint pk_se_bucket primary key (id))
 ;
 
+create table se_comment (
+  id                        integer not null,
+  creation                  timestamp,
+  message                   varchar(255),
+  owner_id                  integer,
+  media_id                  integer,
+  constraint pk_se_comment primary key (id))
+;
+
 create table se_event (
   token                     varchar(255) not null,
   id                        varchar(36),
@@ -134,6 +143,8 @@ create sequence se_access_token_seq;
 
 create sequence se_bucket_seq;
 
+create sequence se_comment_seq;
+
 create sequence se_event_seq;
 
 create sequence se_event_user_relation_seq;
@@ -158,28 +169,32 @@ alter table se_bucket add constraint fk_se_bucket_parent_2 foreign key (parent_i
 create index ix_se_bucket_parent_2 on se_bucket (parent_id);
 alter table se_bucket add constraint fk_se_bucket_event_3 foreign key (event_id) references se_event (token);
 create index ix_se_bucket_event_3 on se_bucket (event_id);
-alter table se_event add constraint fk_se_event_root_4 foreign key (root_id) references se_bucket (id);
-create index ix_se_event_root_4 on se_event (root_id);
-alter table se_event_user_relation add constraint fk_se_event_user_relation_even_5 foreign key (event_token) references se_event (token);
-create index ix_se_event_user_relation_even_5 on se_event_user_relation (event_token);
-alter table se_event_user_relation add constraint fk_se_event_user_relation_user_6 foreign key (user_id) references se_user (id);
-create index ix_se_event_user_relation_user_6 on se_event_user_relation (user_id);
-alter table se_image_file_relation add constraint fk_se_image_file_relation_imag_7 foreign key (image_id) references se_image (id);
-create index ix_se_image_file_relation_imag_7 on se_image_file_relation (image_id);
-alter table se_image_file_relation add constraint fk_se_image_file_relation_file_8 foreign key (file_id) references se_file (id);
-create index ix_se_image_file_relation_file_8 on se_image_file_relation (file_id);
-alter table se_media add constraint fk_se_media_owner_9 foreign key (owner_id) references se_user (id);
-create index ix_se_media_owner_9 on se_media (owner_id);
-alter table se_media add constraint fk_se_media_event_10 foreign key (event_id) references se_event (token);
-create index ix_se_media_event_10 on se_media (event_id);
-alter table se_media add constraint fk_se_media_image_11 foreign key (image_id) references se_image (id);
-create index ix_se_media_image_11 on se_media (image_id);
-alter table se_media_tag_relation add constraint fk_se_media_tag_relation_medi_12 foreign key (media_id) references se_media (id);
-create index ix_se_media_tag_relation_medi_12 on se_media_tag_relation (media_id);
-alter table se_media_tag_relation add constraint fk_se_media_tag_relation_tag_13 foreign key (tag_id) references se_tag (id);
-create index ix_se_media_tag_relation_tag_13 on se_media_tag_relation (tag_id);
-alter table se_media_tag_relation add constraint fk_se_media_tag_relation_crea_14 foreign key (user_id) references se_user (id);
-create index ix_se_media_tag_relation_crea_14 on se_media_tag_relation (user_id);
+alter table se_comment add constraint fk_se_comment_owner_4 foreign key (owner_id) references se_user (id);
+create index ix_se_comment_owner_4 on se_comment (owner_id);
+alter table se_comment add constraint fk_se_comment_media_5 foreign key (media_id) references se_media (id);
+create index ix_se_comment_media_5 on se_comment (media_id);
+alter table se_event add constraint fk_se_event_root_6 foreign key (root_id) references se_bucket (id);
+create index ix_se_event_root_6 on se_event (root_id);
+alter table se_event_user_relation add constraint fk_se_event_user_relation_even_7 foreign key (event_token) references se_event (token);
+create index ix_se_event_user_relation_even_7 on se_event_user_relation (event_token);
+alter table se_event_user_relation add constraint fk_se_event_user_relation_user_8 foreign key (user_id) references se_user (id);
+create index ix_se_event_user_relation_user_8 on se_event_user_relation (user_id);
+alter table se_image_file_relation add constraint fk_se_image_file_relation_imag_9 foreign key (image_id) references se_image (id);
+create index ix_se_image_file_relation_imag_9 on se_image_file_relation (image_id);
+alter table se_image_file_relation add constraint fk_se_image_file_relation_fil_10 foreign key (file_id) references se_file (id);
+create index ix_se_image_file_relation_fil_10 on se_image_file_relation (file_id);
+alter table se_media add constraint fk_se_media_owner_11 foreign key (owner_id) references se_user (id);
+create index ix_se_media_owner_11 on se_media (owner_id);
+alter table se_media add constraint fk_se_media_event_12 foreign key (event_id) references se_event (token);
+create index ix_se_media_event_12 on se_media (event_id);
+alter table se_media add constraint fk_se_media_image_13 foreign key (image_id) references se_image (id);
+create index ix_se_media_image_13 on se_media (image_id);
+alter table se_media_tag_relation add constraint fk_se_media_tag_relation_medi_14 foreign key (media_id) references se_media (id);
+create index ix_se_media_tag_relation_medi_14 on se_media_tag_relation (media_id);
+alter table se_media_tag_relation add constraint fk_se_media_tag_relation_tag_15 foreign key (tag_id) references se_tag (id);
+create index ix_se_media_tag_relation_tag_15 on se_media_tag_relation (tag_id);
+alter table se_media_tag_relation add constraint fk_se_media_tag_relation_crea_16 foreign key (user_id) references se_user (id);
+create index ix_se_media_tag_relation_crea_16 on se_media_tag_relation (user_id);
 
 
 
@@ -194,6 +209,8 @@ drop table if exists se_access_token cascade;
 drop table if exists se_bucket cascade;
 
 drop table if exists se_bucket_media cascade;
+
+drop table if exists se_comment cascade;
 
 drop table if exists se_event cascade;
 
@@ -218,6 +235,8 @@ drop table if exists se_user cascade;
 drop sequence if exists se_access_token_seq;
 
 drop sequence if exists se_bucket_seq;
+
+drop sequence if exists se_comment_seq;
 
 drop sequence if exists se_event_seq;
 

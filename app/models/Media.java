@@ -14,6 +14,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.OrderBy;
 import javax.persistence.Table;
 
 import play.db.ebean.Model;
@@ -90,6 +91,10 @@ public class Media extends Model {
 	public Image       image;
 	
 	public Date        original;
+	
+    @OneToMany(mappedBy="media", cascade=CascadeType.ALL)
+    @OrderBy("creation")
+    public List<Comment> comments;
 	
 	public static Finder<Integer, Media> find = new Finder<Integer, Media>(
 			Integer.class, Media.class
