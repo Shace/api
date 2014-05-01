@@ -26,7 +26,7 @@ public class EventModel extends WithApplication {
     	test.saveOwnerPermission();
     	assertNotNull(test);
 
-    	Event createdEvent = Event.find.byId("event test token");
+    	Event createdEvent = Event.find.where().eq("token", "event test token").findUnique();
     	assertNotNull(createdEvent);
 
     	// TODO : Handle deletion

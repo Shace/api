@@ -23,7 +23,8 @@ public class Event extends Model {
 	public enum Privacy {
 		PUBLIC,
 		PROTECTED,
-		PRIVATE
+		PRIVATE,
+		NOT_SET
 	}
 	
 	public enum AccessType {
@@ -39,15 +40,12 @@ public class Event extends Model {
 	 */
 	private static final long serialVersionUID = 3754144269823907391L;
 	
+	@Id
 	@Column(length=36, unique=true)
 	public String		id;
-	
-	@Id
+
 	@Column(length=255, unique=true)
 	public String 		token;
-
-	@Column(length=40)
-	public String		password;
 	
 	@Column(length=255)
 	public String		name;
@@ -59,6 +57,12 @@ public class Event extends Model {
 	
 	@Enumerated(EnumType.ORDINAL)
 	public Privacy 		writingPrivacy;
+
+	@Column(length=40)
+	public String		readingPassword;
+
+	@Column(length=40)
+	public String		writingPassword;
 
 	@OneToMany(mappedBy="event")
 	public List<EventUserRelation> permissions;
@@ -73,12 +77,12 @@ public class Event extends Model {
     
     private User         owner;
 
-	public Event(Privacy privacy, User ownerUser) {
+	public Event(Privacy readingPrivacy, User ownerUser) {
 		this.id = UUID.randomUUID().toString();
 		this.token = this.id;
 		this.creation = new Date();
-		this.readingPrivacy = privacy;
-		this.writingPrivacy = privacy;
+		this.readingPrivacy = readingPrivacy;
+		this.writingPrivacy = Privacy.NOT_SET;
 		this.owner = ownerUser;
 		this.root = new Bucket(0, null);
 		this.root.save();
@@ -118,7 +122,9 @@ public class Event extends Model {
 	public AccessType	getPermission(User user) {
 		AccessType res = AccessType.NONE;
 		for (EventUserRelation relation : permissions) {
-			if (relation.user.equals(user) && relation.permission.compareTo(res) > 0) {
+			if (relation.user.equals(user) && relation.permission.compareTo(res) > 0 &&
+					!(relation.permission.compareTo(Event.AccessType.READ) <= 0 && readingPrivacy != Privacy.PRIVATE) &&
+					!(relation.permission.compareTo(Event.AccessType.WRITE) <= 0 && writingPrivacy != Privacy.PRIVATE)) {
 				res = relation.permission;
 			}
 		}
@@ -129,8 +135,8 @@ public class Event extends Model {
 			String.class, Event.class
 	);
 	
-	public static Event create(Privacy privacy, User ownerUser) {
-		Event newEvent = new Event(privacy, ownerUser);
+	public static Event create(Privacy readingPrivacy, User ownerUser) {
+		Event newEvent = new Event(readingPrivacy, ownerUser);
 		newEvent.save();
 		
 		newEvent.root.event = newEvent;

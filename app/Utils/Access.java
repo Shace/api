@@ -66,9 +66,15 @@ public class Access {
 		if (access.isConnectedUser()) {
 			res = event.getPermission(access.user);
 		}
-		if (event.writingPrivacy == Event.Privacy.PUBLIC) {
+
+		Privacy writingPrivacy = event.writingPrivacy;
+		if (writingPrivacy == Privacy.NOT_SET) {
+			writingPrivacy = event.readingPrivacy;
+		}
+		
+		if (writingPrivacy == Event.Privacy.PUBLIC) {
 			return max(Event.AccessType.WRITE, res);
-		} else if (event.writingPrivacy == Event.Privacy.PROTECTED) {
+		} else if (writingPrivacy == Event.Privacy.PROTECTED) {
 			// TODO : Handle to check through the cookies or something else
 		} else if (event.readingPrivacy == Event.Privacy.PUBLIC) {
 			return max(Event.AccessType.READ, res);
@@ -85,6 +91,9 @@ public class Access {
 			if (event.readingPrivacy == Event.Privacy.PUBLIC) {
 				return null;
 			} else if (event.readingPrivacy == Privacy.PROTECTED) {
+				if (access.isConnectedUser() && event.hasPermission(access.user, max(Event.AccessType.ADMINISTRATE, accessType))) {
+					return null;
+				}
 				// TODO : Handle to check through the cookies or something else
 			} else if (event.readingPrivacy == Privacy.PRIVATE) {
 				if (access.isConnectedUser() == false) {
@@ -94,13 +103,21 @@ public class Access {
 				}
 			}
 		} else if (accessType == Event.AccessType.WRITE) {
+			Privacy writingPrivacy = event.writingPrivacy;
+			if (writingPrivacy == Privacy.NOT_SET) {
+				writingPrivacy = event.readingPrivacy;
+			}
+
 			if (access.isConnectedUser() == false) {
 				return Controller.unauthorized("You need to be authenticated");
-			} else if (event.writingPrivacy == Event.Privacy.PUBLIC) {
+			} else if (writingPrivacy == Event.Privacy.PUBLIC) {
 				return null;
-			} else if (event.writingPrivacy == Privacy.PROTECTED) {
+			} else if (writingPrivacy == Privacy.PROTECTED) {
+				if (access.isConnectedUser() && event.hasPermission(access.user, max(Event.AccessType.ADMINISTRATE, accessType))) {
+					return null;
+				}
 				// TODO : Handle to check through the cookies or something else
-			} else if (event.writingPrivacy == Privacy.PRIVATE) {
+			} else if (writingPrivacy == Privacy.PRIVATE) {
 				if (event.hasPermission(access.user, accessType)) {
 					return null;
 				}

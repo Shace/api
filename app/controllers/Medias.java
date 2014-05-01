@@ -49,7 +49,7 @@ public class Medias extends Controller {
         	return error;
         }
 
-        Event		ownerEvent = Event.find.byId(ownerEventToken);
+        Event		ownerEvent = Event.find.where().eq("token", ownerEventToken).findUnique();
     	if (ownerEvent == null) {
     		return notFound("Event not found");
     	}
@@ -139,7 +139,7 @@ public class Medias extends Controller {
     	Event	currentEvent = currentMedia.event;
     	if (currentEvent == null) {
     		return notFound("Media not found");
-    	} else if (!currentMedia.owner.equals(access.user.id)) {
+    	} else if (!currentMedia.owner.equals(access.user)) {
     		return forbidden("Permission Denied");
     	}
 
