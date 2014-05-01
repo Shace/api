@@ -116,7 +116,7 @@ public class EventsController extends WithApplication {
     	standardUpdateEvent(
     			"{\"name\":\"New Test Name\",\"description\":\"New Test Description\"}",
     			newEvent.token, OK, true, "New Test Name", "New Test Description", token.token);
-    	newEvent = Event.find.byId(newEvent.token);
+    	newEvent = Event.find.where().eq("token", newEvent.token).findUnique();
 
     	
     	/**
@@ -125,7 +125,7 @@ public class EventsController extends WithApplication {
     	standardUpdateEvent(
     			"{}",
     			newEvent.token, OK, true, newEvent.name, newEvent.description, token.token);
-    	newEvent = Event.find.byId(newEvent.token);
+    	newEvent = Event.find.where().eq("token", newEvent.token).findUnique();
     	
     	
     	/**

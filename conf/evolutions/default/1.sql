@@ -22,7 +22,7 @@ create table se_bucket (
   first                     timestamp,
   last                      timestamp,
   size                      integer,
-  event_id                  varchar(255),
+  event_id                  varchar(36),
   constraint pk_se_bucket primary key (id))
 ;
 
@@ -36,24 +36,25 @@ create table se_comment (
 ;
 
 create table se_event (
-  token                     varchar(255) not null,
-  id                        varchar(36),
-  password                  varchar(40),
+  id                        varchar(36) not null,
+  token                     varchar(255),
   name                      varchar(255),
   description               varchar(255),
   reading_privacy           integer,
   writing_privacy           integer,
+  reading_password          varchar(40),
+  writing_password          varchar(40),
   creation                  timestamp,
   root_id                   integer,
-  constraint ck_se_event_reading_privacy check (reading_privacy in (0,1,2)),
-  constraint ck_se_event_writing_privacy check (writing_privacy in (0,1,2)),
-  constraint uq_se_event_id unique (id),
-  constraint pk_se_event primary key (token))
+  constraint ck_se_event_reading_privacy check (reading_privacy in (0,1,2,3)),
+  constraint ck_se_event_writing_privacy check (writing_privacy in (0,1,2,3)),
+  constraint uq_se_event_token unique (token),
+  constraint pk_se_event primary key (id))
 ;
 
 create table se_event_user_relation (
   id                        integer not null,
-  event_token               varchar(255),
+  event_token               varchar(36),
   user_id                   integer,
   permission                integer,
   constraint ck_se_event_user_relation_permission check (permission in (0,1,2,3,4)),
@@ -100,7 +101,7 @@ create table se_media (
   rank                      integer,
   creation                  timestamp,
   owner_id                  integer,
-  event_id                  varchar(255),
+  event_id                  varchar(36),
   image_id                  integer,
   original                  timestamp,
   constraint ck_se_media_type check (type in (0,1,2)),
@@ -167,7 +168,7 @@ alter table se_access_token add constraint fk_se_access_token_user_1 foreign key
 create index ix_se_access_token_user_1 on se_access_token (user_id);
 alter table se_bucket add constraint fk_se_bucket_parent_2 foreign key (parent_id) references se_bucket (id);
 create index ix_se_bucket_parent_2 on se_bucket (parent_id);
-alter table se_bucket add constraint fk_se_bucket_event_3 foreign key (event_id) references se_event (token);
+alter table se_bucket add constraint fk_se_bucket_event_3 foreign key (event_id) references se_event (id);
 create index ix_se_bucket_event_3 on se_bucket (event_id);
 alter table se_comment add constraint fk_se_comment_owner_4 foreign key (owner_id) references se_user (id);
 create index ix_se_comment_owner_4 on se_comment (owner_id);
@@ -175,7 +176,7 @@ alter table se_comment add constraint fk_se_comment_media_5 foreign key (media_i
 create index ix_se_comment_media_5 on se_comment (media_id);
 alter table se_event add constraint fk_se_event_root_6 foreign key (root_id) references se_bucket (id);
 create index ix_se_event_root_6 on se_event (root_id);
-alter table se_event_user_relation add constraint fk_se_event_user_relation_even_7 foreign key (event_token) references se_event (token);
+alter table se_event_user_relation add constraint fk_se_event_user_relation_even_7 foreign key (event_token) references se_event (id);
 create index ix_se_event_user_relation_even_7 on se_event_user_relation (event_token);
 alter table se_event_user_relation add constraint fk_se_event_user_relation_user_8 foreign key (user_id) references se_user (id);
 create index ix_se_event_user_relation_user_8 on se_event_user_relation (user_id);
@@ -185,7 +186,7 @@ alter table se_image_file_relation add constraint fk_se_image_file_relation_fil_
 create index ix_se_image_file_relation_fil_10 on se_image_file_relation (file_id);
 alter table se_media add constraint fk_se_media_owner_11 foreign key (owner_id) references se_user (id);
 create index ix_se_media_owner_11 on se_media (owner_id);
-alter table se_media add constraint fk_se_media_event_12 foreign key (event_id) references se_event (token);
+alter table se_media add constraint fk_se_media_event_12 foreign key (event_id) references se_event (id);
 create index ix_se_media_event_12 on se_media (event_id);
 alter table se_media add constraint fk_se_media_image_13 foreign key (image_id) references se_image (id);
 create index ix_se_media_image_13 on se_media (image_id);

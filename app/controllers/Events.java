@@ -94,49 +94,59 @@ public class Events extends Controller {
         if (json == null)
             return badRequest("Unexpected format, JSON required");
         
-        String privacy = json.path("privacy").textValue();
+        Privacy readingPrivacy = Privacy.NOT_SET;
+        String 	token = null;
+        String	readingPassword = null;
+        
+        String readingPrivacyStr = json.path("privacy").textValue();
         Event event = null;
 
-        if (privacy == null) {
-            return badRequest("Missing parameter [privacy]");
+        if (readingPrivacyStr == null) {
+            return badRequest("Missing parameter [readingPrivacy]");
         }
-        if (privacy.equals("public")) {
-            String token = json.path("token").textValue();
+        if (readingPrivacyStr.equals("public")) {
+            token = json.path("token").textValue();
 
             if (token == null) {
                 return badRequest("Missing parameter [token]");
-            } else if (Event.find.byId(token) != null) {
-                return badRequest("Token already exists");
+            } else if (Event.find.where().eq("token", token).findUnique() != null) {
+                return badRequest("Token already used");
             }
-            
-            event = new Event(Privacy.PUBLIC, access.user);
-            event.token = token;
-        } else if (privacy.equals("protected")) {
-            String token = json.path("token").textValue();
-            String password = json.path("password").textValue();
+            readingPrivacy = Privacy.PUBLIC;
+        } else if (readingPrivacyStr.equals("protected")) {
+            token = json.path("token").textValue();
+            readingPassword = json.path("password").textValue();
 
             if (token == null) {
                 return badRequest("Missing parameter [token]");
-            } else if (Event.find.byId(token) != null) {
-                return badRequest("Token already exists");
-            } else if (password == null) {
+            } else if (Event.find.where().eq("token", token).findUnique() != null) {
+                return badRequest("Token already used");
+            } else if (readingPassword == null) {
                 return badRequest("Missing parameter [password]");
             }
-            event = new Event(Privacy.PROTECTED, access.user);
-            event.token = token;
-            event.password = Utils.Hasher.hash(password);
-        } else if (privacy.equals("private")) {
-            event = new Event(Privacy.PRIVATE, access.user);
+            readingPrivacy = Privacy.PROTECTED;
+            readingPassword = Utils.Hasher.hash(readingPassword);
+        } else if (readingPrivacyStr.equals("private")) {
+        	readingPrivacy = Privacy.PRIVATE;
         } else {
-            return badRequest("[privacy] have to be in ('public', 'protected', 'private')");
+            return badRequest("[readingPrivacy] has to be in ('public', 'protected', 'private')");
+        }
+        
+        event = new Event(readingPrivacy, access.user);
+        if (token != null) {
+        	event.token = token;
+        }
+        if (readingPassword != null) {
+        	event.readingPassword = readingPassword;
         }
         
         String name = json.path("name").textValue();
-        if (name == null)
+        if (name == null) {
             return badRequest("Missing parameter [name]");
+        }
         event.name = name;
 
-        updateOneEvent(event, json);
+        fillEventFromJSON(event, json);
         event.save();
 
         event.root.event = event;
@@ -159,7 +169,7 @@ public class Events extends Controller {
         	return error;
         }
 
-        Event event = Event.find.byId(token);
+        Event event = Event.find.where().eq("token", token).findUnique();
         if (event == null) {
             return notFound("Event with token " + token + " not found");
         }
@@ -191,7 +201,7 @@ public class Events extends Controller {
         	return error;
         }
 
-        Event event = Event.find.byId(token);
+        Event event = Event.find.where().eq("token", token).findUnique();
         if (event == null) {
             return notFound("Event with token " + token + " not found");
         }
@@ -206,7 +216,84 @@ public class Events extends Controller {
             return badRequest("Unexpected format, JSON required");
         }
         
-        updateOneEvent(event, root);
+        fillEventFromJSON(event, root);
+        
+        String readingPrivacyStr = root.path("privacy").textValue();
+        if (readingPrivacyStr != null) {
+        	if (readingPrivacyStr.equals("public")) {
+        		token = root.path("token").textValue();
+
+        		if (event.readingPrivacy == Privacy.PRIVATE && token == null) {
+        			return badRequest("A token is required for a public event");
+        		} else if (token != null && !token.equals(event.token) && Event.find.where().eq("token", token).findUnique() != null) {
+        			return badRequest("Token already used");
+        		} else {
+        			event.readingPrivacy = Privacy.PUBLIC;
+        			if (token != null) {
+        				event.token = token;
+        			}
+        		}
+        	} else if (readingPrivacyStr.equals("protected")) {
+        		token = root.path("token").textValue();
+
+        		if (event.readingPrivacy == Privacy.PRIVATE && token == null) {
+        			return badRequest("A token is required for a protected event");
+        		} else if (token != null && !token.equals(event.token) && Event.find.where().eq("token", token).findUnique() != null) {
+        			return badRequest("Token already used");
+        		} else {
+        			String readingPassword = root.path("readingPassword").textValue();
+        			if (readingPassword == null) {
+        				return badRequest("Missing parameter [readingPassword]");
+        			}
+        			event.readingPrivacy = Privacy.PROTECTED;
+        			if (token != null) {
+        				event.token = token;
+        			}
+        			event.readingPassword = Utils.Hasher.hash(readingPassword);
+        		}
+        	} else if (readingPrivacyStr.equals("private")) {
+        		event.readingPrivacy = Privacy.PRIVATE;
+        		event.token = event.id;
+        	} else {
+        		return badRequest("[readingPrivacy] has to be in ('public', 'protected', 'private')");
+        	}
+        }
+        String writingPrivacyStr = root.path("writingPrivacy").textValue();
+        if (writingPrivacyStr != null) {
+            boolean writingValid = true;
+
+            if (writingPrivacyStr.equals("public")) {
+        		if (event.readingPrivacy.compareTo(Privacy.PUBLIC) <= 0) {
+        			event.writingPrivacy = Privacy.PUBLIC;
+        		} else {
+        			writingValid = false;
+        		}
+        	} else if (writingPrivacyStr.equals("protected")) {
+        		if (event.readingPrivacy.compareTo(Privacy.PROTECTED) <= 0) {
+        			String writingPassword = root.path("writingPassword").textValue();
+        			if (writingPassword == null) {
+        				return badRequest("Missing parameter [writingPassword]");
+        			}
+        			event.writingPrivacy = Privacy.PROTECTED;
+        			event.writingPassword = Utils.Hasher.hash(writingPassword);
+        		} else {
+        			writingValid = false;
+        		}
+        	} else if (writingPrivacyStr.equals("private")) {
+        		if (event.readingPrivacy.compareTo(Privacy.PRIVATE) <= 0) {
+        			event.writingPrivacy = Privacy.PRIVATE;
+        		} else {
+        			writingValid = false;
+        		}
+        	} else {
+        		return badRequest("[readingPrivacy] has to be in ('public', 'protected', 'private')");
+        	}
+            
+            if (writingValid == false) {
+				return badRequest("The writing privacy cannot match the reading privacy");
+            }
+        }
+
         event.update();
         
         return ok(getEventObjectNode(event, access));
@@ -244,7 +331,7 @@ public class Events extends Controller {
      * @param currentEvent : The event to update
      * @param currentNode : The new properties to set
      */
-    private static void updateOneEvent(Event currentEvent, JsonNode currentNode) {
+    private static void fillEventFromJSON(Event currentEvent, JsonNode currentNode) {
         String name = currentNode.path("name").textValue();
         if (name != null)
             currentEvent.name = name;
