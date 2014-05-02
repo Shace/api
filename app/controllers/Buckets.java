@@ -38,8 +38,11 @@ public class Buckets extends Controller {
             medias.add(Medias.mediaToJson(media, null, false));
         }
 
+        bucket.refresh();
         ArrayNode children = result.putArray("children");
-        if (bucket.children != null && bucket.children.size() > 0) {
+        if (bucket.children != null) {
+            if (bucket.children.size() == 0)
+                bucket.refresh();
             for (Bucket child : bucket.children) {
                 children.add(Buckets.getBucketObjectNode(child));
             }
@@ -124,7 +127,8 @@ public class Buckets extends Controller {
                     Ebean.execute(update);
                     
                     current.size += next.size;
-                    current.last = next.last;
+                    if (next.last.getTime() > current.last.getTime())
+                        current.last = next.last;
                     
                     current.save();
                     if (event.root.id.equals(next.id)) {
@@ -140,7 +144,7 @@ public class Buckets extends Controller {
         if (buckets.size() > 1) {
             for (Bucket bucket : buckets) {
                 if (bucket.parent == null) {                    
-                    bucket.parent = new Bucket(bucket.level, event);
+                    bucket.parent = new Bucket(bucket.level + 1, event);
                     bucket.parent.children.add(bucket);
                     bucket.parent.size = bucket.size;
                     bucket.parent.first = bucket.first;
