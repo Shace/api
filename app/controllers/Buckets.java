@@ -37,9 +37,9 @@ public class Buckets extends Controller {
         for (Media media : bucket.medias) {
             medias.add(Medias.mediaToJson(media, null, false));
         }
-        
+
+        ArrayNode children = result.putArray("children");
         if (bucket.children != null && bucket.children.size() > 0) {
-            ArrayNode children = result.putArray("children");
             for (Bucket child : bucket.children) {
                 children.add(Buckets.getBucketObjectNode(child));
             }
@@ -140,7 +140,7 @@ public class Buckets extends Controller {
         if (buckets.size() > 1) {
             for (Bucket bucket : buckets) {
                 if (bucket.parent == null) {                    
-                    bucket.parent = new Bucket(bucket.level + 1, event);
+                    bucket.parent = new Bucket(bucket.level, event);
                     bucket.parent.children.add(bucket);
                     bucket.parent.size = bucket.size;
                     bucket.parent.first = bucket.first;
