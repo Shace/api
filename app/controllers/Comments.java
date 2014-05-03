@@ -36,12 +36,12 @@ public class Comments extends Controller {
             return error;
         }
 
-        Event       ownerEvent = Event.find.byId(ownerEventToken);
+        Event ownerEvent = Event.find.where().eq("token", ownerEventToken).findUnique();
         if (ownerEvent == null) {
             return notFound("Event not found");
         }
 
-        error = Access.hasPermissionOnEvent(access, ownerEvent, Event.AccessType.WRITE);
+        error = Access.hasPermissionOnEvent(access, ownerEvent, Event.AccessType.READ);
         if (error != null) {
             return error;
         }
@@ -79,11 +79,16 @@ public class Comments extends Controller {
             return error;
         }
         
+        Event ownerEvent = Event.find.where().eq("token", token).findUnique();
+        if (ownerEvent == null) {
+            return notFound("Event not found");
+        }
+        
         Comment   comment = Comment.find.byId(id);
         
         if (comment == null) {
             return notFound("Comment not found");
-        } else if (!comment.owner.equals(access.user)) {
+        } else if ((!comment.owner.equals(access.user)) && Access.hasPermissionOnEvent(access, ownerEvent, Event.AccessType.ADMINISTRATE) != null) {
             return forbidden("Permission Denied");
         }
 
