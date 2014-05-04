@@ -42,5 +42,9 @@ DELETE	/users/:id					controllers.Users.delete(id : Integer, access_token)
 PUT		/users/:id					controllers.Users.update(id : Integer, access_token)
 GET		/users/:id					controllers.Users.user(id : Integer, access_token)
 
+# Comments
+POST	/events/:token/medias/:media/comments		controllers.Comments.add(token : String, media : Integer, access_token)
+DELETE	/events/:token/medias/:media/comments/:id	controllers.Comments.delete(token : String, media : Integer, id : Integer, access_token)
+
 # Map static resources from the /public folder to the /assets URL path
 GET		/assets/*file				controllers.Assets.at(path="/public", file)
