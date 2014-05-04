@@ -1,8 +1,10 @@
 package controllers;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import models.AccessToken;
+import models.AccessTokenEventRelation;
 import models.Event;
 import models.Event.Privacy;
 import models.Media;
@@ -13,6 +15,8 @@ import play.mvc.Result;
 import Utils.Access;
 
 import com.avaje.ebean.Ebean;
+import com.avaje.ebean.Expression;
+import com.avaje.ebean.Expr;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -194,6 +198,65 @@ public class Events extends Controller {
      * @return An HTTP JSON response containing the new properties of edited user
      */
     @BodyParser.Of(BodyParser.Json.class)
+    public static Result access(String token, String accessToken) {
+        AccessToken access = AccessTokens.access(accessToken);
+        Result error = Access.checkAuthentication(access, Access.AuthenticationType.ANONYMOUS_USER);
+        if (error != null) {
+        	return error;
+        }
+
+        Event event = Event.find.where().eq("token", token).findUnique();
+        if (event == null) {
+            return notFound("Event with token " + token + " not found");
+        }
+
+        JsonNode root = request().body().asJson();
+        if (root == null) {
+            return badRequest("Unexpected format, JSON required");
+        }
+
+        if (event.writingPrivacy != Event.Privacy.PROTECTED && event.readingPrivacy != Event.Privacy.PROTECTED) {
+        	return badRequest("You cannot request an access with a password on this event");
+        }
+        
+        String password = root.path("password").textValue();
+        if (password == null) {
+        	return badRequest("We need a password to grant you the access");
+        }
+        
+        password = Utils.Hasher.hash(password);
+        Event.AccessType grantedAccess = Event.AccessType.NONE;
+        if (event.writingPrivacy == Event.Privacy.PROTECTED && password.equals(event.writingPassword)) {
+        	grantedAccess = Event.AccessType.WRITE;        		
+        } else if (event.readingPrivacy == Event.Privacy.PROTECTED && password.equals(event.readingPassword)) {
+        	if (event.writingPrivacy == Event.Privacy.NOT_SET) {
+            	grantedAccess = Event.AccessType.WRITE;
+        	} else {
+            	grantedAccess = Event.AccessType.READ;
+        	}
+        } else {
+        	return forbidden("Wrong password");
+        }
+        
+		AccessTokenEventRelation newAccess = AccessTokenEventRelation.find.where().eq("accessToken", access).eq("event", event).findUnique();
+
+		if (newAccess == null) {
+			newAccess = new AccessTokenEventRelation(event, access, grantedAccess);
+		} else {
+			newAccess.permission = grantedAccess;
+		}
+        newAccess.save();
+        return ok();
+    }
+    
+    /**
+     * Update the event identified by the token parameter.
+     * The new event properties are contained into the HTTP Request body as JSON format.
+     * 
+     * @param token : the event identifier
+     * @return An HTTP JSON response containing the new properties of edited user
+     */
+    @BodyParser.Of(BodyParser.Json.class)
     public static Result update(String token, String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
@@ -240,62 +303,61 @@ public class Events extends Controller {
         			return badRequest("A token is required for a protected event");
         		} else if (token != null && !token.equals(event.token) && Event.find.where().eq("token", token).findUnique() != null) {
         			return badRequest("Token already used");
-        		} else {
-        			String readingPassword = root.path("readingPassword").textValue();
-        			if (readingPassword == null) {
-        				return badRequest("Missing parameter [readingPassword]");
-        			}
-        			event.readingPrivacy = Privacy.PROTECTED;
-        			if (token != null) {
-        				event.token = token;
-        			}
-        			event.readingPassword = Utils.Hasher.hash(readingPassword);
         		}
+   
+        		String readingPassword = root.path("password").textValue();
+        		if (readingPassword == null) {
+        			return badRequest("Missing parameter [password]");
+        		}
+        		
+        		event.readingPrivacy = Privacy.PROTECTED;
+        		if (token != null) {
+        			event.token = token;
+        		}
+        		event.readingPassword = Utils.Hasher.hash(readingPassword);
+
+        		Event.AccessType toDelete = (event.writingPrivacy == Event.Privacy.NOT_SET) ? Event.AccessType.WRITE : Event.AccessType.READ;
+            	Ebean.delete(AccessTokenEventRelation.find.where().eq("event", event).eq("permission", toDelete).findList());
+
         	} else if (readingPrivacyStr.equals("private")) {
         		event.readingPrivacy = Privacy.PRIVATE;
         		event.token = event.id;
         	} else {
-        		return badRequest("[readingPrivacy] has to be in ('public', 'protected', 'private')");
+        		return badRequest("[privacy] has to be in ('public', 'protected', 'private')");
         	}
         }
         String writingPrivacyStr = root.path("writingPrivacy").textValue();
         if (writingPrivacyStr != null) {
-            boolean writingValid = true;
-
-            if (writingPrivacyStr.equals("public")) {
-        		if (event.readingPrivacy.compareTo(Privacy.PUBLIC) <= 0) {
-        			event.writingPrivacy = Privacy.PUBLIC;
-        		} else {
-        			writingValid = false;
-        		}
+        	if (writingPrivacyStr.equals("public")) {
+        		event.writingPrivacy = Privacy.PUBLIC;
         	} else if (writingPrivacyStr.equals("protected")) {
-        		if (event.readingPrivacy.compareTo(Privacy.PROTECTED) <= 0) {
-        			String writingPassword = root.path("writingPassword").textValue();
-        			if (writingPassword == null) {
-        				return badRequest("Missing parameter [writingPassword]");
+        		String writingPassword = root.path("writingPassword").textValue();
+        		if (writingPassword == null) {
+        			return badRequest("Missing parameter [writingPassword]");
+        		}
+        		if (event.writingPrivacy == Event.Privacy.NOT_SET && event.readingPrivacy == Event.Privacy.PROTECTED) {
+        			List<AccessTokenEventRelation> permissions = AccessTokenEventRelation.find.where().eq("event", event).eq("permission", Event.AccessType.WRITE).findList();
+        			for (AccessTokenEventRelation permission : permissions) {
+        				permission.permission = Event.AccessType.READ;
+        				permission.update();
         			}
-        			event.writingPrivacy = Privacy.PROTECTED;
-        			event.writingPassword = Utils.Hasher.hash(writingPassword);
         		} else {
-        			writingValid = false;
+                	Ebean.delete(AccessTokenEventRelation.find.where().eq("event", event).eq("permission", Event.AccessType.WRITE).findList());
         		}
+        		event.writingPrivacy = Privacy.PROTECTED;
+        		event.writingPassword = Utils.Hasher.hash(writingPassword);
         	} else if (writingPrivacyStr.equals("private")) {
-        		if (event.readingPrivacy.compareTo(Privacy.PRIVATE) <= 0) {
-        			event.writingPrivacy = Privacy.PRIVATE;
-        		} else {
-        			writingValid = false;
-        		}
+        		event.writingPrivacy = Privacy.PRIVATE;
         	} else {
         		return badRequest("[readingPrivacy] has to be in ('public', 'protected', 'private')");
         	}
-            
-            if (writingValid == false) {
+
+        	if (event.readingPrivacy.compareTo(event.writingPrivacy) > 0) {
 				return badRequest("The writing privacy cannot match the reading privacy");
             }
         }
 
         event.update();
-        
         return ok(getEventObjectNode(event, access));
     }
 

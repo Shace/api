@@ -1,6 +1,7 @@
 package Utils;
 
 import models.AccessToken;
+import models.AccessTokenEventRelation;
 import models.Event;
 import models.Event.Privacy;
 import models.User;
@@ -91,10 +92,16 @@ public class Access {
 			if (event.readingPrivacy == Event.Privacy.PUBLIC) {
 				return null;
 			} else if (event.readingPrivacy == Privacy.PROTECTED) {
+				
 				if (access.isConnectedUser() && event.hasPermission(access.user, max(Event.AccessType.ADMINISTRATE, accessType))) {
 					return null;
 				}
-				// TODO : Handle to check through the cookies or something else
+
+				AccessTokenEventRelation relation = AccessTokenEventRelation.find.where().eq("accessToken", access).eq("event", event).findUnique();
+				if (relation != null && relation.permission.compareTo(accessType) >= 0) {
+					return null;
+				}
+				return Controller.forbidden("You need a password to access this event");
 			} else if (event.readingPrivacy == Privacy.PRIVATE) {
 				if (access.isConnectedUser() == false) {
 					return Controller.unauthorized("You need to be authenticated");
@@ -113,10 +120,17 @@ public class Access {
 			} else if (writingPrivacy == Event.Privacy.PUBLIC) {
 				return null;
 			} else if (writingPrivacy == Privacy.PROTECTED) {
+
 				if (access.isConnectedUser() && event.hasPermission(access.user, max(Event.AccessType.ADMINISTRATE, accessType))) {
 					return null;
 				}
-				// TODO : Handle to check through the cookies or something else
+								
+				AccessTokenEventRelation relation = AccessTokenEventRelation.find.where().eq("accessToken", access).eq("event", event).findUnique();
+				if (relation != null && relation.permission.compareTo(accessType) >= 0) {
+					return null;
+				}
+
+				return Controller.forbidden("You need a password to write on this event");
 			} else if (writingPrivacy == Privacy.PRIVATE) {
 				if (event.hasPermission(access.user, accessType)) {
 					return null;

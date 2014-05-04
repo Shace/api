@@ -1,6 +1,7 @@
 package models;
 
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import javax.persistence.CascadeType;
@@ -8,6 +9,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import play.db.ebean.Model;
@@ -53,6 +55,7 @@ public class AccessToken extends Model {
 	public User		user;
 	
 	public Type		type;
+
 	
 	public AccessToken(String token, boolean autoRenew, User user, Type type) {
 		this.token = token;

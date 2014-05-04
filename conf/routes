@@ -17,6 +17,7 @@ GET		/events						controllers.Events.events(access_token)
 POST	/events						controllers.Events.add(access_token)
 DELETE	/events/:token				controllers.Events.delete(token : String, access_token)
 PUT		/events/:token				controllers.Events.update(token : String, access_token)
+PUT		/events/:token/access		controllers.Events.access(token : String, access_token)
 GET		/events/:token				controllers.Events.event(token : String, access_token)
 
 # Medias
