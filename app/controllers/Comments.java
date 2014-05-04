@@ -108,6 +108,7 @@ public class Comments extends Controller {
         result.put("id", comment.id);
         result.put("message", comment.message);
         result.put("owner", comment.owner.id);
+        result.put("username", (comment.owner.firstName == null) ? "Anonymous" : comment.owner.firstName);
         result.put("media", comment.media.id);
         result.put("creation", comment.creation.getTime());
         

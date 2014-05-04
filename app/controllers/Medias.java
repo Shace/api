@@ -220,6 +220,7 @@ public class Medias extends Controller {
 		result.put("owner", media.owner.id);
 		result.put("event", media.event.token);
 		result.put("creation", media.creation.getTime());
+	    result.put("original", media.original.getTime());
 		result.put("image", Images.getImageObjectNode(media.image));
 		
 		if (full) {
