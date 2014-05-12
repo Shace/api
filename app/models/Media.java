@@ -82,7 +82,7 @@ public class Media extends Model {
 	
 	@JSONable(defaultField=false)
 	@OneToMany(mappedBy="media", cascade=CascadeType.ALL)
-	public List<MediaTagRelation>	tags;
+	public List<Tag>	tags;
 
 	
 	@JSONable(defaultField=false)

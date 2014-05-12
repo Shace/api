@@ -9,6 +9,7 @@ import models.Comment;
 import models.Event;
 import models.Image;
 import models.Media;
+import models.Tag;
 import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
@@ -230,6 +231,11 @@ public class Medias extends Controller {
 	        for (Comment comment : media.comments) {
                 comments.add(Comments.commentToJson(comment, null));
 	        }
+	        
+	        ArrayNode tags = result.putArray("tags");
+            for (Tag tag : media.tags) {
+                tags.add(Tags.tagToJson(tag, null));
+            }
 		}
 		
 		return result;
