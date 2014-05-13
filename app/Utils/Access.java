@@ -1,5 +1,7 @@
 package Utils;
 
+import com.amazonaws.services.ec2.model.EventCode;
+
 import models.AccessToken;
 import models.AccessTokenEventRelation;
 import models.Event;
@@ -62,94 +64,59 @@ public class Access {
 		if (access.isConnectedUser() && access.user.isAdmin == true) {
 			return Event.AccessType.ROOT;
 		}
+
 		Event.AccessType res = Event.AccessType.NONE;
+		AccessTokenEventRelation relation = AccessTokenEventRelation.find.where().eq("accessToken", access).eq("event", event).findUnique();
 
 		if (access.isConnectedUser()) {
 			res = event.getPermission(access.user);
+			Privacy writingPrivacy = event.writingPrivacy;
+			if (writingPrivacy == Privacy.NOT_SET) {
+				writingPrivacy = event.readingPrivacy;
+			}
+			
+			if (writingPrivacy == Event.Privacy.PROTECTED) {
+				if (relation != null && relation.permission == Event.AccessType.WRITE) {
+					res = max(res, Event.AccessType.WRITE);
+				}
+			} else if (writingPrivacy == Event.Privacy.PUBLIC) {
+				res = max(res, Event.AccessType.WRITE);
+			}
 		}
 
-		Privacy writingPrivacy = event.writingPrivacy;
-		if (writingPrivacy == Privacy.NOT_SET) {
-			writingPrivacy = event.readingPrivacy;
-		}
-		
-		if (writingPrivacy == Event.Privacy.PUBLIC) {
-			return max(Event.AccessType.WRITE, res);
-		} else if (writingPrivacy == Event.Privacy.PROTECTED) {
-			// TODO : Handle to check through the cookies or something else
-		} else if (event.readingPrivacy == Event.Privacy.PUBLIC) {
-			return max(Event.AccessType.READ, res);
-		} else if (event.readingPrivacy == Event.Privacy.PROTECTED) {
-			// TODO : Handle to check through the cookies or something else
+		if (res.compareTo(Event.AccessType.READ) < 0) {
+			if (event.readingPrivacy == Event.Privacy.PROTECTED) {
+				if (relation != null && relation.permission == Event.AccessType.READ) {
+					res = Event.AccessType.READ;
+				}
+			} else if (event.readingPrivacy == Event.Privacy.PUBLIC) {
+				res = Event.AccessType.READ;
+			}
 		}
 		return res;
 	}
 	
 	static public Result	hasPermissionOnEvent(AccessToken access, Event event, Event.AccessType accessType) {
-		if (access.isConnectedUser() && access.user.isAdmin == true) {
+		Event.AccessType max = getPermissionOnEvent(access, event);
+		
+		if (max.compareTo(accessType) >= 0) {
 			return null;
-		} else if (accessType == Event.AccessType.READ) {
-			if (event.readingPrivacy == Event.Privacy.PUBLIC) {
-				return null;
-			} else if (event.readingPrivacy == Privacy.PROTECTED) {
-				
-				if (access.isConnectedUser() && event.hasPermission(access.user, max(Event.AccessType.ADMINISTRATE, accessType))) {
-					return null;
-				}
-
-				AccessTokenEventRelation relation = AccessTokenEventRelation.find.where().eq("accessToken", access).eq("event", event).findUnique();
-				if (relation != null && relation.permission.compareTo(accessType) >= 0) {
-					return null;
-				}
-				return Controller.forbidden("You need a password to access this event");
-			} else if (event.readingPrivacy == Privacy.PRIVATE) {
-				if (access.isConnectedUser() == false) {
-					return Controller.unauthorized("You need to be authenticated");
-				} else if (event.hasPermission(access.user, accessType)) {
-					return null;
-				}
-			}
-		} else if (accessType == Event.AccessType.WRITE) {
+		} else {
 			Privacy writingPrivacy = event.writingPrivacy;
 			if (writingPrivacy == Privacy.NOT_SET) {
 				writingPrivacy = event.readingPrivacy;
 			}
 
-			if (access.isConnectedUser() == false) {
+			if ((accessType.compareTo(Event.AccessType.WRITE) >= 0 && access.isConnectedUser() == false) ||
+					(event.readingPrivacy == Privacy.PRIVATE && access.isConnectedUser() == false)) {
 				return Controller.unauthorized("You need to be authenticated");
-			} else if (writingPrivacy == Event.Privacy.PUBLIC) {
-				return null;
-			} else if (writingPrivacy == Privacy.PROTECTED) {
-
-				if (access.isConnectedUser() && event.hasPermission(access.user, max(Event.AccessType.ADMINISTRATE, accessType))) {
-					return null;
-				}
-								
-				AccessTokenEventRelation relation = AccessTokenEventRelation.find.where().eq("accessToken", access).eq("event", event).findUnique();
-				if (relation != null && relation.permission.compareTo(accessType) >= 0) {
-					return null;
-				}
-
-				return Controller.forbidden("You need a password to write on this event");
-			} else if (writingPrivacy == Privacy.PRIVATE) {
-				if (event.hasPermission(access.user, accessType)) {
-					return null;
-				}
-			}
-		} else if (accessType == Event.AccessType.ADMINISTRATE) {
-			if (access.isConnectedUser() == false) {
-				return Controller.unauthorized("You need to be authenticated");
-			} else if (event.hasPermission(access.user, accessType)) {
-				return null;
-			}
-		} else if (accessType == Event.AccessType.ROOT) {
-			if (access.isConnectedUser() == false) {
-				return Controller.unauthorized("You need to be authenticated");
-			} else if (event.hasPermission(access.user, accessType)) {
-				return null;
+			} else if ((accessType == Event.AccessType.READ && event.readingPrivacy == Privacy.PROTECTED) ||
+					((accessType == Event.AccessType.WRITE && writingPrivacy == Privacy.PROTECTED))) {
+				return Controller.forbidden("You need a password for this event");
+			} else {
+				return Controller.forbidden("You don't have the required permission on this event");
 			}
 		}
-		return Controller.forbidden("You don't have the required permission on this event");
 	}
 	
 	static public Result	hasPermissionOnUser(AccessToken access, User user, UserAccessType accessType) {

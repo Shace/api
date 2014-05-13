@@ -122,10 +122,15 @@ public class Event extends Model {
 	public AccessType	getPermission(User user) {
 		AccessType res = AccessType.NONE;
 		for (EventUserRelation relation : permissions) {
-			if (relation.user.equals(user) && relation.permission.compareTo(res) > 0 &&
-					!(relation.permission.compareTo(Event.AccessType.READ) <= 0 && readingPrivacy != Privacy.PRIVATE) &&
-					!(relation.permission.compareTo(Event.AccessType.WRITE) <= 0 && writingPrivacy != Privacy.PRIVATE)) {
-				res = relation.permission;
+			if (relation.user.equals(user) && relation.permission.compareTo(res) > 0) {
+				if (relation.permission.compareTo(Event.AccessType.ADMINISTRATE) >= 0) {
+					res = relation.permission;
+				} else if (relation.permission.compareTo(Event.AccessType.READ) <= 0 && readingPrivacy == Privacy.PRIVATE) {
+					res = relation.permission;
+				} else if (relation.permission.compareTo(Event.AccessType.WRITE) <= 0 && 
+							(writingPrivacy == Privacy.PRIVATE || (writingPrivacy == Privacy.NOT_SET && readingPrivacy == Privacy.PRIVATE))) {
+					res = relation.permission;
+				}
 			}
 		}
 		return res;

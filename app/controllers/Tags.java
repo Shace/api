@@ -1,32 +1,27 @@
 package controllers;
 
 import models.AccessToken;
-import models.Comment;
 import models.Event;
 import models.Media;
+import models.Tag;
 import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
 import Utils.Access;
 import Utils.RequestParameters;
+import Utils.Slugs;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-/**
- * Controller that handles the different API action applied to the comments
- * @author Loick Michard
- * @category controllers
- */
-@CORS
-public class Comments extends Controller {
+public class Tags extends Controller {
     /**
-     * Add a comment to a media.
-     * The comment information is contained into the HTTP Request body as JSON format.
+     * Add a tag to a media.
+     * The tag information is contained into the HTTP Request body as JSON format.
      * @param ownerEventToken : The id of the event containing the media
-     * @param mediaId : The id of the media to comment
-     * @return An HTTP Json response containing the properties of the new comment
+     * @param mediaId : The id of the media to tag
+     * @return An HTTP Json response containing the properties of the new tag
      */
     @BodyParser.Of(BodyParser.Json.class)
     public static Result add(String ownerEventToken, Integer mediaId, String accessToken) {
@@ -56,20 +51,25 @@ public class Comments extends Controller {
             return badRequest("Unexpected format, JSon required");
         }
         
-        JsonNode message = root.get("message");
-        if (message == null) {
-            return badRequest("Missing parameter [message]");
+        JsonNode name = root.get("name");
+        if (name == null) {
+            return badRequest("Missing parameter [name]");
         }
+ 
+        Tag tag = Tag.find.where().eq("slug", Slugs.toSlug(name.asText())).findUnique();
+
+        if (tag != null)
+            return badRequest("Tag already exists");
+        //Comment comment = Comment.create(access.user, media, message.asText());
+        tag = Tag.create(name.asText(), access.user, media);
         
-        Comment comment = Comment.create(access.user, media, message.asText());
-        
-        return created(commentToJson(comment, null));
+        return created(tagToJson(tag, null));
     }
     
     /**
-     * Delete the comment identified by the id parameter.
+     * Delete the tag identified by the id parameter.
      * @param mediaId : the media identifier
-     * @param id : the comment identifier
+     * @param id : the tag identifier
      * @return An HTTP response that specifies if the deletion succeeded or not
      */
     public static Result delete(String token, Integer mediaId, Integer id, String accessToken) {
@@ -84,33 +84,32 @@ public class Comments extends Controller {
             return notFound("Event not found");
         }
         
-        Comment   comment = Comment.find.byId(id);
+        Tag   tag = Tag.find.byId(id);
         
-        if (comment == null) {
-            return notFound("Comment not found");
-        } else if ((!comment.owner.equals(access.user)) && Access.hasPermissionOnEvent(access, ownerEvent, Event.AccessType.ADMINISTRATE) != null) {
+        if (tag == null) {
+            return notFound("Tag not found");
+        } else if ((!tag.creator.equals(access.user)) && Access.hasPermissionOnEvent(access, ownerEvent, Event.AccessType.ADMINISTRATE) != null) {
             return forbidden("Permission Denied");
         }
 
-        comment.delete();
+        tag.delete();
         return noContent();
     }
- 
+    
     /**
-     * Convert a comment to a Json object.
-     * @param comment : A Comment object to convert
-     * @return The Json object containing the comment information
+     * Convert a tag to a Json object.
+     * @param tag : A Tag object to convert
+     * @return The Json object containing the tag information
      */
-    public static ObjectNode commentToJson(Comment comment, RequestParameters params) {
-//      JSONSerializer tmp = new JSONSerializer();
+    public static ObjectNode tagToJson(Tag tag, RequestParameters params) {
         ObjectNode result = Json.newObject();
 
-        result.put("id", comment.id);
-        result.put("message", comment.message);
-        result.put("owner", comment.owner.id);
-        result.put("username", (comment.owner.firstName == null) ? "Anonymous" : comment.owner.firstName);
-        result.put("media", comment.media.id);
-        result.put("creation", comment.creation.getTime());
+        result.put("id", tag.id);
+        result.put("message", tag.name);
+        result.put("slug", tag.slug);
+        result.put("owner", tag.creator.id);
+        result.put("media", tag.media.id);
+        result.put("creation", tag.creation.getTime());
         
         return result;
     }

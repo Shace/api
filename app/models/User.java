@@ -53,7 +53,7 @@ public class User extends Model {
 	public boolean	isAdmin;
 	
 	@OneToMany(mappedBy="creator", cascade=CascadeType.ALL)
-	public List<MediaTagRelation>	tags;
+	public List<Tag>   tags;
 	
 	public User(String email, String password) {
 		this.email = email;
