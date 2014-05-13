@@ -3,6 +3,7 @@ package controllers;
 import java.util.Collections;
 import java.util.List;
 
+import models.AccessToken;
 import models.Bucket;
 import models.Event;
 import models.Media;
@@ -23,7 +24,7 @@ public class Buckets extends Controller {
      * @param bucket A bucket object to convert
      * @return The JSON object containing the bucket information
      */
-    public static ObjectNode getBucketObjectNode(Bucket bucket) {
+    public static ObjectNode getBucketObjectNode(AccessToken access, Event ownerEvent, Bucket bucket) {
         ObjectNode result = Json.newObject();
 
         result.put("id", bucket.id);
@@ -35,7 +36,7 @@ public class Buckets extends Controller {
 
         ArrayNode medias = result.putArray("medias");
         for (Media media : bucket.medias) {
-            medias.add(Medias.mediaToJson(media, null, false));
+            medias.add(Medias.mediaToJson(access, ownerEvent, media, null, false));
         }
 
         bucket.refresh();
@@ -44,7 +45,7 @@ public class Buckets extends Controller {
             if (bucket.children.size() == 0)
                 bucket.refresh();
             for (Bucket child : bucket.children) {
-                children.add(Buckets.getBucketObjectNode(child));
+                children.add(Buckets.getBucketObjectNode(access, ownerEvent, child));
             }
         }
 

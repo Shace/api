@@ -11,6 +11,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import play.db.ebean.Model;
+import Utils.Access;
 
 @Entity
 @Table(name="se_access_token_event_relation")
@@ -35,9 +36,9 @@ public class AccessTokenEventRelation extends Model {
 	public AccessToken		accessToken;
 	
 	@Enumerated(EnumType.ORDINAL)
-	public Event.AccessType	permission;
+	public Access.AccessType	permission;
 
-	public AccessTokenEventRelation(Event event, AccessToken accessToken, Event.AccessType permission) {
+	public AccessTokenEventRelation(Event event, AccessToken accessToken, Access.AccessType permission) {
 		this.event = event;
 		this.accessToken = accessToken;
 		this.permission = permission;

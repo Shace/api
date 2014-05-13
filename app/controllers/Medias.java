@@ -56,7 +56,7 @@ public class Medias extends Controller {
     		return notFound("Event not found");
     	}
 
-        error = Access.hasPermissionOnEvent(access, ownerEvent, Event.AccessType.WRITE);
+        error = Access.hasPermissionOnEvent(access, ownerEvent, Access.AccessType.WRITE);
         if (error != null) {
         	return error;
         }        
@@ -79,7 +79,7 @@ public class Medias extends Controller {
 
         	newMedia.save();
         	RequestParameters	params = RequestParameters.create(request());
-        	mediasNode.add(mediaToJson(newMedia, params, false));
+        	mediasNode.add(mediaToJson(access, ownerEvent, newMedia, params, false));
 		}
 
     	if (mediasNode.size() == 0) {
@@ -154,7 +154,7 @@ public class Medias extends Controller {
        	currentMedia.save();
   		ObjectNode result = Json.newObject();
     	RequestParameters	params = RequestParameters.create(request());
-		result.put("medias", mediaToJson(currentMedia, params, false));
+		result.put("medias", mediaToJson(access, currentEvent, currentMedia, params, false));
 		return ok(result);
     }
     
@@ -180,13 +180,13 @@ public class Medias extends Controller {
     		return notFound("Media not found");
     	}
 
-    	error = Access.hasPermissionOnEvent(access, currentEvent, Event.AccessType.READ);
+    	error = Access.hasPermissionOnEvent(access, currentEvent, Access.AccessType.READ);
         if (error != null) {
         	return error;
         }
 
     	RequestParameters	params = RequestParameters.create(request());
-   		return ok(mediaToJson(currentMedia, params, true));
+   		return ok(mediaToJson(access, currentEvent, currentMedia, params, true));
     }
     
     /**
@@ -209,7 +209,7 @@ public class Medias extends Controller {
 	 * @param full : True will display all information about the media
 	 * @return The Json object containing the media information
 	 */
-	public static ObjectNode mediaToJson(Media media, RequestParameters params, boolean full) {
+	public static ObjectNode mediaToJson(AccessToken access, Event ownerEvent, Media media, RequestParameters params, boolean full) {
 //		JSONSerializer tmp = new JSONSerializer();
 		ObjectNode result = Json.newObject();
 
@@ -229,12 +229,12 @@ public class Medias extends Controller {
 		if (full) {
 		    ArrayNode comments = result.putArray("comments");
 	        for (Comment comment : media.comments) {
-                comments.add(Comments.commentToJson(comment, null));
+                comments.add(Comments.commentToJson(access, ownerEvent, comment, null));
 	        }
 	        
 	        ArrayNode tags = result.putArray("tags");
             for (Tag tag : media.tags) {
-                tags.add(Tags.tagToJson(tag, null));
+                tags.add(Tags.tagToJson(access, ownerEvent, tag, null));
             }
 		}
 		

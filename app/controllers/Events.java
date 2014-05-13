@@ -45,10 +45,10 @@ public class Events extends Controller {
         ArrayNode medias = result.putArray("medias");
         for (Media media : event.medias) {
             if (media.image.files.size() > 0)
-                medias.add(Medias.mediaToJson(media, null, false));
+                medias.add(Medias.mediaToJson(accessToken, event, media, null, false));
         }
         
-        result.put("bucket", Buckets.getBucketObjectNode(event.root));
+        result.put("bucket", Buckets.getBucketObjectNode(accessToken, event, event.root));
 
         return result;
     }
@@ -175,7 +175,7 @@ public class Events extends Controller {
             return notFound("Event with token " + token + " not found");
         }
         
-        error = Access.hasPermissionOnEvent(access, event, Event.AccessType.ROOT);
+        error = Access.hasPermissionOnEvent(access, event, Access.AccessType.ROOT);
         if (error != null) {
         	return error;
         }
@@ -222,14 +222,14 @@ public class Events extends Controller {
         }
         
         password = Utils.Hasher.hash(password);
-        Event.AccessType grantedAccess = Event.AccessType.NONE;
+        Access.AccessType grantedAccess = Access.AccessType.NONE;
         if (event.writingPrivacy == Event.Privacy.PROTECTED && password.equals(event.writingPassword)) {
-        	grantedAccess = Event.AccessType.WRITE;        		
+        	grantedAccess = Access.AccessType.WRITE;        		
         } else if (event.readingPrivacy == Event.Privacy.PROTECTED && password.equals(event.readingPassword)) {
         	if (event.writingPrivacy == Event.Privacy.NOT_SET) {
-            	grantedAccess = Event.AccessType.WRITE;
+            	grantedAccess = Access.AccessType.WRITE;
         	} else {
-            	grantedAccess = Event.AccessType.READ;
+            	grantedAccess = Access.AccessType.READ;
         	}
         } else {
         	return forbidden("Wrong password");
@@ -266,7 +266,7 @@ public class Events extends Controller {
             return notFound("Event with token " + token + " not found");
         }
         
-        error = Access.hasPermissionOnEvent(access, event, Event.AccessType.ADMINISTRATE);
+        error = Access.hasPermissionOnEvent(access, event, Access.AccessType.ADMINISTRATE);
         if (error != null) {
         	return error;
         }
@@ -313,7 +313,7 @@ public class Events extends Controller {
         		}
         		event.readingPassword = Utils.Hasher.hash(readingPassword);
 
-        		Event.AccessType toDelete = (event.writingPrivacy == Event.Privacy.NOT_SET) ? Event.AccessType.WRITE : Event.AccessType.READ;
+        		Access.AccessType toDelete = (event.writingPrivacy == Event.Privacy.NOT_SET) ? Access.AccessType.WRITE : Access.AccessType.READ;
             	Ebean.delete(AccessTokenEventRelation.find.where().eq("event", event).eq("permission", toDelete).findList());
 
         	} else if (readingPrivacyStr.equals("private")) {
@@ -333,13 +333,13 @@ public class Events extends Controller {
         			return badRequest("Missing parameter [writingPassword]");
         		}
         		if (event.writingPrivacy == Event.Privacy.NOT_SET && event.readingPrivacy == Event.Privacy.PROTECTED) {
-        			List<AccessTokenEventRelation> permissions = AccessTokenEventRelation.find.where().eq("event", event).eq("permission", Event.AccessType.WRITE).findList();
+        			List<AccessTokenEventRelation> permissions = AccessTokenEventRelation.find.where().eq("event", event).eq("permission", Access.AccessType.WRITE).findList();
         			for (AccessTokenEventRelation permission : permissions) {
-        				permission.permission = Event.AccessType.READ;
+        				permission.permission = Access.AccessType.READ;
         				permission.update();
         			}
         		} else {
-                	Ebean.delete(AccessTokenEventRelation.find.where().eq("event", event).eq("permission", Event.AccessType.WRITE).findList());
+                	Ebean.delete(AccessTokenEventRelation.find.where().eq("event", event).eq("permission", Access.AccessType.WRITE).findList());
         		}
         		event.writingPrivacy = Privacy.PROTECTED;
         		event.writingPassword = Utils.Hasher.hash(writingPassword);
@@ -377,7 +377,7 @@ public class Events extends Controller {
             return notFound("Event with token " + token + " not found");
         }
 
-        error = Access.hasPermissionOnEvent(access, event, Event.AccessType.READ);
+        error = Access.hasPermissionOnEvent(access, event, Access.AccessType.READ);
         if (error != null) {
             return error;
         }

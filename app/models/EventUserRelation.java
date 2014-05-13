@@ -11,6 +11,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import play.db.ebean.Model;
+import Utils.Access;
 
 @Entity
 @Table(name="se_event_user_relation")
@@ -35,9 +36,9 @@ public class EventUserRelation extends Model {
 	public User		user;
 	
 	@Enumerated(EnumType.ORDINAL)
-	public Event.AccessType	permission;
+	public Access.AccessType	permission;
 	
-	public EventUserRelation(Event event, User user, Event.AccessType permission) {
+	public EventUserRelation(Event event, User user, Access.AccessType permission) {
 		this.event = event;
 		this.user = user;
 		this.permission = permission;

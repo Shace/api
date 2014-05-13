@@ -8,7 +8,6 @@ import models.AccessToken;
 import models.AccessToken.Type;
 import models.Comment;
 import models.Event;
-import models.Event.AccessType;
 import models.Event.Privacy;
 import models.EventUserRelation;
 import models.Media;
@@ -21,6 +20,7 @@ import play.api.libs.json.Json;
 import play.mvc.Result;
 import play.test.FakeRequest;
 import play.test.WithApplication;
+import Utils.Access;
 import controllers.AccessTokens;
 
 
@@ -71,7 +71,7 @@ public class CommentsController extends WithApplication {
         privateEvent.save();
         privateEvent.saveOwnerPermission();
 
-        EventUserRelation relation = new EventUserRelation(privateEvent, friendUser, AccessType.READ);
+        EventUserRelation relation = new EventUserRelation(privateEvent, friendUser, Access.AccessType.READ);
         relation.save();
 
         privateMedia = Media.create("First Photo2", ownerUser, privateEvent);
@@ -139,7 +139,7 @@ public class CommentsController extends WithApplication {
 
     @Test
     public void administrativeDeletions() {      
-        EventUserRelation relation = new EventUserRelation(publicEvent, otherUser, AccessType.ADMINISTRATE);
+        EventUserRelation relation = new EventUserRelation(publicEvent, otherUser, Access.AccessType.ADMINISTRATE);
         relation.save();
 
         Integer c1 = standardAddComment("{\"message\":\"test\"}", 201, 1, ownerUserToken.token, publicEvent.token, publicMedia.id);
@@ -198,7 +198,7 @@ public class CommentsController extends WithApplication {
      * @param token : the string corresponding to the current connected user (or null if there is not)
      */
     private void    standardDeleteComment(String jsonBody, int expectedStatus, int expectedNewCommentNumber, String token, String eventId, Integer mediaId, Integer commentId) {
-        FakeRequest fakeRequest = new FakeRequest(POST, "/events/" + eventId + "/medias/" + mediaId + "/comments/" + commentId).withJsonBody(Json.parse(jsonBody));
+        FakeRequest fakeRequest = new FakeRequest(play.test.Helpers.DELETE, "/events/" + eventId + "/medias/" + mediaId + "/comments/" + commentId).withJsonBody(Json.parse(jsonBody));
         Result result = callAction(controllers.routes.ref.Comments.delete(eventId, mediaId, commentId, token), fakeRequest);
         assertEquals(expectedStatus, status(result));
         assertEquals(expectedNewCommentNumber, Comment.find.all().size());

@@ -41,11 +41,11 @@ public class Comments extends Controller {
             return notFound("Event not found");
         }
 
-        error = Access.hasPermissionOnEvent(access, ownerEvent, Event.AccessType.READ);
+        error = Access.hasPermissionOnEvent(access, ownerEvent, Access.AccessType.READ);
         if (error != null) {
             return error;
         }
-        
+
         Media       media = Media.find.byId(mediaId);
         if (media == null) {
             return notFound("Media not found");
@@ -55,17 +55,17 @@ public class Comments extends Controller {
         if (root == null) {
             return badRequest("Unexpected format, JSon required");
         }
-        
+
         JsonNode message = root.get("message");
         if (message == null) {
             return badRequest("Missing parameter [message]");
         }
-        
+
         Comment comment = Comment.create(access.user, media, message.asText());
-        
-        return created(commentToJson(comment, null));
+
+        return created(commentToJson(access, ownerEvent, comment, null));
     }
-    
+
     /**
      * Delete the comment identified by the id parameter.
      * @param mediaId : the media identifier
@@ -78,31 +78,31 @@ public class Comments extends Controller {
         if (error != null) {
             return error;
         }
-        
+
         Event ownerEvent = Event.find.where().eq("token", token).findUnique();
         if (ownerEvent == null) {
             return notFound("Event not found");
         }
-        
+
         Comment   comment = Comment.find.byId(id);
-        
+
         if (comment == null) {
             return notFound("Comment not found");
-        } else if ((!comment.owner.equals(access.user)) && Access.hasPermissionOnEvent(access, ownerEvent, Event.AccessType.ADMINISTRATE) != null) {
+        } else if ((!comment.owner.equals(access.user)) && Access.hasPermissionOnEvent(access, ownerEvent, Access.AccessType.ADMINISTRATE) != null) {
             return forbidden("Permission Denied");
         }
 
         comment.delete();
         return noContent();
     }
- 
+
     /**
      * Convert a comment to a Json object.
      * @param comment : A Comment object to convert
      * @return The Json object containing the comment information
      */
-    public static ObjectNode commentToJson(Comment comment, RequestParameters params) {
-//      JSONSerializer tmp = new JSONSerializer();
+    public static ObjectNode commentToJson(AccessToken access, Event ownerEvent, Comment comment, RequestParameters params) {
+        //      JSONSerializer tmp = new JSONSerializer();
         ObjectNode result = Json.newObject();
 
         result.put("id", comment.id);
@@ -111,7 +111,13 @@ public class Comments extends Controller {
         result.put("username", (comment.owner.firstName == null) ? "Anonymous" : comment.owner.firstName);
         result.put("media", comment.media.id);
         result.put("creation", comment.creation.getTime());
-        
+        if (access.user == null || ((!comment.owner.equals(access.user)) && 
+                Access.hasPermissionOnEvent(access, ownerEvent, Access.AccessType.ADMINISTRATE) != null)) {
+            result.put("permission", Access.AccessType.READ.toString());
+        } else {
+            result.put("permission", Access.AccessType.ROOT.toString());
+        }
+
         return result;
     }
 }

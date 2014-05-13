@@ -1,7 +1,4 @@
 import static org.junit.Assert.assertEquals;
-import static play.test.Helpers.GET;
-import static play.test.Helpers.PUT;
-import static play.test.Helpers.callAction;
 import static play.test.Helpers.fakeApplication;
 import static play.test.Helpers.inMemoryDatabase;
 import static play.test.Helpers.status;
@@ -13,7 +10,6 @@ import models.AccessToken;
 import models.AccessToken.Type;
 import models.AccessTokenEventRelation;
 import models.Event;
-import models.Event.AccessType;
 import models.Event.Privacy;
 import models.EventUserRelation;
 import models.User;
@@ -21,21 +17,19 @@ import models.User;
 import org.junit.Before;
 import org.junit.Test;
 
-import Utils.Access;
-import play.api.libs.json.Json;
 import play.mvc.Result;
-import play.test.FakeRequest;
 import play.test.WithApplication;
+import Utils.Access;
 import controllers.AccessTokens;
 
 
 public class Permissions extends WithApplication {
 	
 	private class UserInfo {
-		public Map<Event.AccessType, Integer>	access;
-		public Event.AccessType					maxPermission;
+		public Map<Access.AccessType, Integer>	access;
+		public Access.AccessType					maxPermission;
 		
-		public UserInfo(Map<Event.AccessType, Integer> access, Event.AccessType maxPermission) {
+		public UserInfo(Map<Access.AccessType, Integer> access, Access.AccessType maxPermission) {
 			this.access = access;
 			this.maxPermission = maxPermission;
 		}
@@ -82,7 +76,7 @@ public class Permissions extends WithApplication {
         event.save();
         event.saveOwnerPermission();
 
-        EventUserRelation relation = new EventUserRelation(event, adminUser, AccessType.ADMINISTRATE);
+        EventUserRelation relation = new EventUserRelation(event, adminUser, Access.AccessType.ADMINISTRATE);
         relation.save();
         
         event = Event.find.byId(event.id);
@@ -100,25 +94,25 @@ public class Permissions extends WithApplication {
     	
     	// Initialize actions
     	users = new HashMap<>();
-    	Event.AccessType[] accessTypes = {Event.AccessType.READ, Event.AccessType.WRITE, Event.AccessType.ADMINISTRATE, Event.AccessType.ROOT};
+    	Access.AccessType[] accessTypes = {Access.AccessType.READ, Access.AccessType.WRITE, Access.AccessType.ADMINISTRATE, Access.AccessType.ROOT};
 
     	Integer[] ownerReturnValues = {null, null, null, null};
-    	users.put(ownerUserToken, arraysToMap(accessTypes, ownerReturnValues, Event.AccessType.ROOT));
+    	users.put(ownerUserToken, arraysToMap(accessTypes, ownerReturnValues, Access.AccessType.ROOT));
 
     	Integer[] adminReturnValues = {null, null, null, 403};
-    	users.put(adminUserToken, arraysToMap(accessTypes, adminReturnValues, Event.AccessType.ADMINISTRATE));
+    	users.put(adminUserToken, arraysToMap(accessTypes, adminReturnValues, Access.AccessType.ADMINISTRATE));
     	
     	Integer[] friendWriteReturnValues = {null, null, 403, 403};
-    	users.put(userWriteToken, arraysToMap(accessTypes, friendWriteReturnValues, Event.AccessType.WRITE));
+    	users.put(userWriteToken, arraysToMap(accessTypes, friendWriteReturnValues, Access.AccessType.WRITE));
 
     	Integer[] friendReadReturnValues = {null, null, 403, 403};
-    	users.put(userReadToken, arraysToMap(accessTypes, friendReadReturnValues, Event.AccessType.WRITE));
+    	users.put(userReadToken, arraysToMap(accessTypes, friendReadReturnValues, Access.AccessType.WRITE));
 
     	Integer[] otherReturnValues = {null, null, 403, 403};
-    	users.put(otherUserToken, arraysToMap(accessTypes, otherReturnValues, Event.AccessType.WRITE));
+    	users.put(otherUserToken, arraysToMap(accessTypes, otherReturnValues, Access.AccessType.WRITE));
 
     	Integer[] anonymousReturnValues = {null, 401, 401, 401};
-    	users.put(anonymousUserToken, arraysToMap(accessTypes, anonymousReturnValues, Event.AccessType.READ));
+    	users.put(anonymousUserToken, arraysToMap(accessTypes, anonymousReturnValues, Access.AccessType.READ));
 
     	testActions();
     }
@@ -134,25 +128,25 @@ public class Permissions extends WithApplication {
     	
     	// Initialize actions
     	users = new HashMap<>();
-    	Event.AccessType[] accessTypes = {Event.AccessType.READ, Event.AccessType.WRITE, Event.AccessType.ADMINISTRATE, Event.AccessType.ROOT};
+    	Access.AccessType[] accessTypes = {Access.AccessType.READ, Access.AccessType.WRITE, Access.AccessType.ADMINISTRATE, Access.AccessType.ROOT};
 
     	Integer[] ownerReturnValues = {null, null, null, null};
-    	users.put(ownerUserToken, arraysToMap(accessTypes, ownerReturnValues, Event.AccessType.ROOT));
+    	users.put(ownerUserToken, arraysToMap(accessTypes, ownerReturnValues, Access.AccessType.ROOT));
 
     	Integer[] adminReturnValues = {null, null, null, 403};
-    	users.put(adminUserToken, arraysToMap(accessTypes, adminReturnValues, Event.AccessType.ADMINISTRATE));
+    	users.put(adminUserToken, arraysToMap(accessTypes, adminReturnValues, Access.AccessType.ADMINISTRATE));
     	
     	Integer[] friendWriteReturnValues = {null, null, 403, 403};
-    	users.put(userWriteToken, arraysToMap(accessTypes, friendWriteReturnValues, Event.AccessType.WRITE));
+    	users.put(userWriteToken, arraysToMap(accessTypes, friendWriteReturnValues, Access.AccessType.WRITE));
 
     	Integer[] friendReadReturnValues = {null, null, 403, 403};
-    	users.put(userReadToken, arraysToMap(accessTypes, friendReadReturnValues, Event.AccessType.WRITE));
+    	users.put(userReadToken, arraysToMap(accessTypes, friendReadReturnValues, Access.AccessType.WRITE));
 
     	Integer[] otherReturnValues = {null, null, 403, 403};
-    	users.put(otherUserToken, arraysToMap(accessTypes, otherReturnValues, Event.AccessType.WRITE));
+    	users.put(otherUserToken, arraysToMap(accessTypes, otherReturnValues, Access.AccessType.WRITE));
 
     	Integer[] anonymousReturnValues = {null, 401, 401, 401};
-    	users.put(anonymousUserToken, arraysToMap(accessTypes, anonymousReturnValues, Event.AccessType.READ));
+    	users.put(anonymousUserToken, arraysToMap(accessTypes, anonymousReturnValues, Access.AccessType.READ));
 
     	testActions();
     }
@@ -163,10 +157,10 @@ public class Permissions extends WithApplication {
     @Test
     public void testPublicProtectedEvent() {
     	// Modify Event
-    	AccessTokenEventRelation readRelation = new AccessTokenEventRelation(event, userReadToken, Event.AccessType.READ);
+    	AccessTokenEventRelation readRelation = new AccessTokenEventRelation(event, userReadToken, Access.AccessType.READ);
     	readRelation.save();
 
-    	AccessTokenEventRelation writeRelation = new AccessTokenEventRelation(event, userWriteToken, Event.AccessType.WRITE);
+    	AccessTokenEventRelation writeRelation = new AccessTokenEventRelation(event, userWriteToken, Access.AccessType.WRITE);
     	writeRelation.save();
     	
     	event.writingPrivacy = Event.Privacy.PROTECTED;
@@ -175,25 +169,25 @@ public class Permissions extends WithApplication {
     	
     	// Initialize actions
     	users = new HashMap<>();
-    	Event.AccessType[] accessTypes = {Event.AccessType.READ, Event.AccessType.WRITE, Event.AccessType.ADMINISTRATE, Event.AccessType.ROOT};
+    	Access.AccessType[] accessTypes = {Access.AccessType.READ, Access.AccessType.WRITE, Access.AccessType.ADMINISTRATE, Access.AccessType.ROOT};
 
     	Integer[] ownerReturnValues = {null, null, null, null};
-    	users.put(ownerUserToken, arraysToMap(accessTypes, ownerReturnValues, Event.AccessType.ROOT));
+    	users.put(ownerUserToken, arraysToMap(accessTypes, ownerReturnValues, Access.AccessType.ROOT));
 
     	Integer[] adminReturnValues = {null, null, null, 403};
-    	users.put(adminUserToken, arraysToMap(accessTypes, adminReturnValues, Event.AccessType.ADMINISTRATE));
+    	users.put(adminUserToken, arraysToMap(accessTypes, adminReturnValues, Access.AccessType.ADMINISTRATE));
     	
     	Integer[] friendWriteReturnValues = {null, null, 403, 403};
-    	users.put(userWriteToken, arraysToMap(accessTypes, friendWriteReturnValues, Event.AccessType.WRITE));
+    	users.put(userWriteToken, arraysToMap(accessTypes, friendWriteReturnValues, Access.AccessType.WRITE));
 
     	Integer[] friendReadReturnValues = {null, 403, 403, 403};
-    	users.put(userReadToken, arraysToMap(accessTypes, friendReadReturnValues, Event.AccessType.READ));
+    	users.put(userReadToken, arraysToMap(accessTypes, friendReadReturnValues, Access.AccessType.READ));
 
     	Integer[] otherReturnValues = {null, 403, 403, 403};
-    	users.put(otherUserToken, arraysToMap(accessTypes, otherReturnValues, Event.AccessType.READ));
+    	users.put(otherUserToken, arraysToMap(accessTypes, otherReturnValues, Access.AccessType.READ));
 
     	Integer[] anonymousReturnValues = {null, 401, 401, 401};
-    	users.put(anonymousUserToken, arraysToMap(accessTypes, anonymousReturnValues, Event.AccessType.READ));
+    	users.put(anonymousUserToken, arraysToMap(accessTypes, anonymousReturnValues, Access.AccessType.READ));
 
     	testActions();
     }
@@ -204,9 +198,9 @@ public class Permissions extends WithApplication {
     @Test
     public void testPublicPrivateEvent() {
     	// Modify Event
-        EventUserRelation readRelation = new EventUserRelation(event, userRead, AccessType.READ);
+        EventUserRelation readRelation = new EventUserRelation(event, userRead, Access.AccessType.READ);
         readRelation.save();
-        EventUserRelation writeRelation = new EventUserRelation(event, userWrite, AccessType.WRITE);
+        EventUserRelation writeRelation = new EventUserRelation(event, userWrite, Access.AccessType.WRITE);
         writeRelation.save();
         
         event.writingPrivacy = Event.Privacy.PRIVATE;
@@ -215,25 +209,25 @@ public class Permissions extends WithApplication {
 
     	// Initialize actions
         users = new HashMap<>();
-    	Event.AccessType[] accessTypes = {Event.AccessType.READ, Event.AccessType.WRITE, Event.AccessType.ADMINISTRATE, Event.AccessType.ROOT};
+    	Access.AccessType[] accessTypes = {Access.AccessType.READ, Access.AccessType.WRITE, Access.AccessType.ADMINISTRATE, Access.AccessType.ROOT};
     	
     	Integer[] ownerReturnValues = {null, null, null, null};
-    	users.put(ownerUserToken, arraysToMap(accessTypes, ownerReturnValues, Event.AccessType.ROOT));
+    	users.put(ownerUserToken, arraysToMap(accessTypes, ownerReturnValues, Access.AccessType.ROOT));
 
     	Integer[] adminReturnValues = {null, null, null, 403};
-    	users.put(adminUserToken, arraysToMap(accessTypes, adminReturnValues, Event.AccessType.ADMINISTRATE));
+    	users.put(adminUserToken, arraysToMap(accessTypes, adminReturnValues, Access.AccessType.ADMINISTRATE));
     	
     	Integer[] friendWriteReturnValues = {null, null, 403, 403};
-    	users.put(userWriteToken, arraysToMap(accessTypes, friendWriteReturnValues, Event.AccessType.WRITE));
+    	users.put(userWriteToken, arraysToMap(accessTypes, friendWriteReturnValues, Access.AccessType.WRITE));
 
     	Integer[] friendReadReturnValues = {null, 403, 403, 403};
-    	users.put(userReadToken, arraysToMap(accessTypes, friendReadReturnValues, Event.AccessType.READ));
+    	users.put(userReadToken, arraysToMap(accessTypes, friendReadReturnValues, Access.AccessType.READ));
 
     	Integer[] otherReturnValues = {null, 403, 403, 403};
-    	users.put(otherUserToken, arraysToMap(accessTypes, otherReturnValues, Event.AccessType.READ));
+    	users.put(otherUserToken, arraysToMap(accessTypes, otherReturnValues, Access.AccessType.READ));
 
     	Integer[] anonymousReturnValues = {null, 401, 401, 401};
-    	users.put(anonymousUserToken, arraysToMap(accessTypes, anonymousReturnValues, Event.AccessType.READ));
+    	users.put(anonymousUserToken, arraysToMap(accessTypes, anonymousReturnValues, Access.AccessType.READ));
 
     	testActions();
     }
@@ -244,10 +238,10 @@ public class Permissions extends WithApplication {
     @Test
     public void testProtectedEventNotSet() {
     	// Modify Event
-    	AccessTokenEventRelation readRelation = new AccessTokenEventRelation(event, userReadToken, Event.AccessType.READ);
+    	AccessTokenEventRelation readRelation = new AccessTokenEventRelation(event, userReadToken, Access.AccessType.READ);
     	readRelation.save();
 
-    	AccessTokenEventRelation writeRelation = new AccessTokenEventRelation(event, userWriteToken, Event.AccessType.WRITE);
+    	AccessTokenEventRelation writeRelation = new AccessTokenEventRelation(event, userWriteToken, Access.AccessType.WRITE);
     	writeRelation.save();
     	
     	event.writingPrivacy = Event.Privacy.NOT_SET;
@@ -257,25 +251,25 @@ public class Permissions extends WithApplication {
 
     	// Initialize actions
     	users = new HashMap<>();
-    	Event.AccessType[] accessTypes = {Event.AccessType.READ, Event.AccessType.WRITE, Event.AccessType.ADMINISTRATE, Event.AccessType.ROOT};
+    	Access.AccessType[] accessTypes = {Access.AccessType.READ, Access.AccessType.WRITE, Access.AccessType.ADMINISTRATE, Access.AccessType.ROOT};
 
     	Integer[] ownerReturnValues = {null, null, null, null};
-    	users.put(ownerUserToken, arraysToMap(accessTypes, ownerReturnValues, Event.AccessType.ROOT));
+    	users.put(ownerUserToken, arraysToMap(accessTypes, ownerReturnValues, Access.AccessType.ROOT));
 
     	Integer[] adminReturnValues = {null, null, null, 403};
-    	users.put(adminUserToken, arraysToMap(accessTypes, adminReturnValues, Event.AccessType.ADMINISTRATE));
+    	users.put(adminUserToken, arraysToMap(accessTypes, adminReturnValues, Access.AccessType.ADMINISTRATE));
         
     	Integer[] friendWriteReturnValues = {null, null, 403, 403};
-    	users.put(userWriteToken, arraysToMap(accessTypes, friendWriteReturnValues, Event.AccessType.WRITE));
+    	users.put(userWriteToken, arraysToMap(accessTypes, friendWriteReturnValues, Access.AccessType.WRITE));
 
     	Integer[] friendReadReturnValues = {null, 403, 403, 403};
-    	users.put(userReadToken, arraysToMap(accessTypes, friendReadReturnValues, Event.AccessType.READ));
+    	users.put(userReadToken, arraysToMap(accessTypes, friendReadReturnValues, Access.AccessType.READ));
 
     	Integer[] otherReturnValues = {403, 403, 403, 403};
-    	users.put(otherUserToken, arraysToMap(accessTypes, otherReturnValues, Event.AccessType.NONE));
+    	users.put(otherUserToken, arraysToMap(accessTypes, otherReturnValues, Access.AccessType.NONE));
 
     	Integer[] anonymousReturnValues = {403, 401, 401, 401};
-    	users.put(anonymousUserToken, arraysToMap(accessTypes, anonymousReturnValues, Event.AccessType.NONE));
+    	users.put(anonymousUserToken, arraysToMap(accessTypes, anonymousReturnValues, Access.AccessType.NONE));
 
     	testActions();
     }
@@ -286,10 +280,10 @@ public class Permissions extends WithApplication {
     @Test
     public void testProtectedEventSet() {
     	// Modify Event
-    	AccessTokenEventRelation readRelation = new AccessTokenEventRelation(event, userReadToken, Event.AccessType.READ);
+    	AccessTokenEventRelation readRelation = new AccessTokenEventRelation(event, userReadToken, Access.AccessType.READ);
     	readRelation.save();
 
-    	AccessTokenEventRelation writeRelation = new AccessTokenEventRelation(event, userWriteToken, Event.AccessType.WRITE);
+    	AccessTokenEventRelation writeRelation = new AccessTokenEventRelation(event, userWriteToken, Access.AccessType.WRITE);
     	writeRelation.save();
     	
     	event.writingPrivacy = Event.Privacy.PROTECTED;
@@ -299,25 +293,25 @@ public class Permissions extends WithApplication {
 
     	// Initialize actions
     	users = new HashMap<>();
-    	Event.AccessType[] accessTypes = {Event.AccessType.READ, Event.AccessType.WRITE, Event.AccessType.ADMINISTRATE, Event.AccessType.ROOT};
+    	Access.AccessType[] accessTypes = {Access.AccessType.READ, Access.AccessType.WRITE, Access.AccessType.ADMINISTRATE, Access.AccessType.ROOT};
 
     	Integer[] ownerReturnValues = {null, null, null, null};
-    	users.put(ownerUserToken, arraysToMap(accessTypes, ownerReturnValues, Event.AccessType.ROOT));
+    	users.put(ownerUserToken, arraysToMap(accessTypes, ownerReturnValues, Access.AccessType.ROOT));
 
     	Integer[] adminReturnValues = {null, null, null, 403};
-    	users.put(adminUserToken, arraysToMap(accessTypes, adminReturnValues, Event.AccessType.ADMINISTRATE));
+    	users.put(adminUserToken, arraysToMap(accessTypes, adminReturnValues, Access.AccessType.ADMINISTRATE));
 
     	Integer[] friendWriteReturnValues = {null, null, 403, 403};
-    	users.put(userWriteToken, arraysToMap(accessTypes, friendWriteReturnValues, Event.AccessType.WRITE));
+    	users.put(userWriteToken, arraysToMap(accessTypes, friendWriteReturnValues, Access.AccessType.WRITE));
 
     	Integer[] friendReadReturnValues = {null, 403, 403, 403};
-    	users.put(userReadToken, arraysToMap(accessTypes, friendReadReturnValues, Event.AccessType.READ));
+    	users.put(userReadToken, arraysToMap(accessTypes, friendReadReturnValues, Access.AccessType.READ));
 
     	Integer[] otherReturnValues = {403, 403, 403, 403};
-    	users.put(otherUserToken, arraysToMap(accessTypes, otherReturnValues, Event.AccessType.NONE));
+    	users.put(otherUserToken, arraysToMap(accessTypes, otherReturnValues, Access.AccessType.NONE));
 
     	Integer[] anonymousReturnValues = {403, 401, 401, 401};
-    	users.put(anonymousUserToken, arraysToMap(accessTypes, anonymousReturnValues, Event.AccessType.NONE));
+    	users.put(anonymousUserToken, arraysToMap(accessTypes, anonymousReturnValues, Access.AccessType.NONE));
 
     	testActions();
     }
@@ -328,10 +322,10 @@ public class Permissions extends WithApplication {
     @Test
     public void testProtectedPrivateEvent() {
     	// Modify Event
-    	AccessTokenEventRelation readRelation = new AccessTokenEventRelation(event, userReadToken, Event.AccessType.READ);
+    	AccessTokenEventRelation readRelation = new AccessTokenEventRelation(event, userReadToken, Access.AccessType.READ);
     	readRelation.save();
     	
-        EventUserRelation writeRelation = new EventUserRelation(event, userWrite, AccessType.WRITE);
+        EventUserRelation writeRelation = new EventUserRelation(event, userWrite, Access.AccessType.WRITE);
         writeRelation.save();
 
     	event.writingPrivacy = Event.Privacy.PRIVATE;
@@ -341,25 +335,25 @@ public class Permissions extends WithApplication {
 
     	// Initialize actions
     	users = new HashMap<>();
-    	Event.AccessType[] accessTypes = {Event.AccessType.READ, Event.AccessType.WRITE, Event.AccessType.ADMINISTRATE, Event.AccessType.ROOT};
+    	Access.AccessType[] accessTypes = {Access.AccessType.READ, Access.AccessType.WRITE, Access.AccessType.ADMINISTRATE, Access.AccessType.ROOT};
 
     	Integer[] ownerReturnValues = {null, null, null, null};
-    	users.put(ownerUserToken, arraysToMap(accessTypes, ownerReturnValues, Event.AccessType.ROOT));
+    	users.put(ownerUserToken, arraysToMap(accessTypes, ownerReturnValues, Access.AccessType.ROOT));
 
     	Integer[] adminReturnValues = {null, null, null, 403};
-    	users.put(adminUserToken, arraysToMap(accessTypes, adminReturnValues, Event.AccessType.ADMINISTRATE));
+    	users.put(adminUserToken, arraysToMap(accessTypes, adminReturnValues, Access.AccessType.ADMINISTRATE));
         
     	Integer[] friendWriteReturnValues = {null, null, 403, 403};
-    	users.put(userWriteToken, arraysToMap(accessTypes, friendWriteReturnValues, Event.AccessType.WRITE));
+    	users.put(userWriteToken, arraysToMap(accessTypes, friendWriteReturnValues, Access.AccessType.WRITE));
 
     	Integer[] friendReadReturnValues = {null, 403, 403, 403};
-    	users.put(userReadToken, arraysToMap(accessTypes, friendReadReturnValues, Event.AccessType.READ));
+    	users.put(userReadToken, arraysToMap(accessTypes, friendReadReturnValues, Access.AccessType.READ));
 
     	Integer[] otherReturnValues = {403, 403, 403, 403};
-    	users.put(otherUserToken, arraysToMap(accessTypes, otherReturnValues, Event.AccessType.NONE));
+    	users.put(otherUserToken, arraysToMap(accessTypes, otherReturnValues, Access.AccessType.NONE));
 
     	Integer[] anonymousReturnValues = {403, 401, 401, 401};
-    	users.put(anonymousUserToken, arraysToMap(accessTypes, anonymousReturnValues, Event.AccessType.NONE));
+    	users.put(anonymousUserToken, arraysToMap(accessTypes, anonymousReturnValues, Access.AccessType.NONE));
 
     	testActions();
     }
@@ -370,10 +364,10 @@ public class Permissions extends WithApplication {
     @Test
     public void testPrivateEventNotSet() {
     	// Modify Event
-        EventUserRelation readingRelation = new EventUserRelation(event, userRead, AccessType.READ);
+        EventUserRelation readingRelation = new EventUserRelation(event, userRead, Access.AccessType.READ);
         readingRelation.save();
         
-        EventUserRelation writingRelation = new EventUserRelation(event, userWrite, AccessType.WRITE);
+        EventUserRelation writingRelation = new EventUserRelation(event, userWrite, Access.AccessType.WRITE);
         writingRelation.save();
         
         event.writingPrivacy = Event.Privacy.NOT_SET;
@@ -383,25 +377,25 @@ public class Permissions extends WithApplication {
         
     	// Initialize actions
         users = new HashMap<>();
-    	Event.AccessType[] accessTypes = {Event.AccessType.READ, Event.AccessType.WRITE, Event.AccessType.ADMINISTRATE, Event.AccessType.ROOT};
+    	Access.AccessType[] accessTypes = {Access.AccessType.READ, Access.AccessType.WRITE, Access.AccessType.ADMINISTRATE, Access.AccessType.ROOT};
 
     	Integer[] ownerReturnValues = {null, null, null, null};
-    	users.put(ownerUserToken, arraysToMap(accessTypes, ownerReturnValues, Event.AccessType.ROOT));
+    	users.put(ownerUserToken, arraysToMap(accessTypes, ownerReturnValues, Access.AccessType.ROOT));
 
     	Integer[] adminReturnValues = {null, null, null, 403};
-    	users.put(adminUserToken, arraysToMap(accessTypes, adminReturnValues, Event.AccessType.ADMINISTRATE));
+    	users.put(adminUserToken, arraysToMap(accessTypes, adminReturnValues, Access.AccessType.ADMINISTRATE));
     	
     	Integer[] friendWriteReturnValues = {null, null, 403, 403};
-    	users.put(userWriteToken, arraysToMap(accessTypes, friendWriteReturnValues, Event.AccessType.WRITE));
+    	users.put(userWriteToken, arraysToMap(accessTypes, friendWriteReturnValues, Access.AccessType.WRITE));
 
     	Integer[] friendReturnValues = {null, 403, 403, 403};
-    	users.put(userReadToken, arraysToMap(accessTypes, friendReturnValues, Event.AccessType.READ));
+    	users.put(userReadToken, arraysToMap(accessTypes, friendReturnValues, Access.AccessType.READ));
 
     	Integer[] otherReturnValues = {403, 403, 403, 403};
-    	users.put(otherUserToken, arraysToMap(accessTypes, otherReturnValues, Event.AccessType.NONE));
+    	users.put(otherUserToken, arraysToMap(accessTypes, otherReturnValues, Access.AccessType.NONE));
 
     	Integer[] anonymousReturnValues = {401, 401, 401, 401};
-    	users.put(anonymousUserToken, arraysToMap(accessTypes, anonymousReturnValues, Event.AccessType.NONE));
+    	users.put(anonymousUserToken, arraysToMap(accessTypes, anonymousReturnValues, Access.AccessType.NONE));
 
     	testActions();
     }
@@ -412,10 +406,10 @@ public class Permissions extends WithApplication {
     @Test
     public void testPrivateEventSet() {
     	// Modify Event
-        EventUserRelation readingRelation = new EventUserRelation(event, userRead, AccessType.READ);
+        EventUserRelation readingRelation = new EventUserRelation(event, userRead, Access.AccessType.READ);
         readingRelation.save();
         
-        EventUserRelation writingRelation = new EventUserRelation(event, userWrite, AccessType.WRITE);
+        EventUserRelation writingRelation = new EventUserRelation(event, userWrite, Access.AccessType.WRITE);
         writingRelation.save();
         
         event.writingPrivacy = Event.Privacy.PRIVATE;
@@ -425,25 +419,25 @@ public class Permissions extends WithApplication {
         
     	// Initialize actions
         users = new HashMap<>();
-    	Event.AccessType[] accessTypes = {Event.AccessType.READ, Event.AccessType.WRITE, Event.AccessType.ADMINISTRATE, Event.AccessType.ROOT};
+    	Access.AccessType[] accessTypes = {Access.AccessType.READ, Access.AccessType.WRITE, Access.AccessType.ADMINISTRATE, Access.AccessType.ROOT};
 
     	Integer[] ownerReturnValues = {null, null, null, null};
-    	users.put(ownerUserToken, arraysToMap(accessTypes, ownerReturnValues, Event.AccessType.ROOT));
+    	users.put(ownerUserToken, arraysToMap(accessTypes, ownerReturnValues, Access.AccessType.ROOT));
 
     	Integer[] adminReturnValues = {null, null, null, 403};
-    	users.put(adminUserToken, arraysToMap(accessTypes, adminReturnValues, Event.AccessType.ADMINISTRATE));
+    	users.put(adminUserToken, arraysToMap(accessTypes, adminReturnValues, Access.AccessType.ADMINISTRATE));
     	
     	Integer[] friendWriteReturnValues = {null, null, 403, 403};
-    	users.put(userWriteToken, arraysToMap(accessTypes, friendWriteReturnValues, Event.AccessType.WRITE));
+    	users.put(userWriteToken, arraysToMap(accessTypes, friendWriteReturnValues, Access.AccessType.WRITE));
 
     	Integer[] friendReturnValues = {null, 403, 403, 403};
-    	users.put(userReadToken, arraysToMap(accessTypes, friendReturnValues, Event.AccessType.READ));
+    	users.put(userReadToken, arraysToMap(accessTypes, friendReturnValues, Access.AccessType.READ));
 
     	Integer[] otherReturnValues = {403, 403, 403, 403};
-    	users.put(otherUserToken, arraysToMap(accessTypes, otherReturnValues, Event.AccessType.NONE));
+    	users.put(otherUserToken, arraysToMap(accessTypes, otherReturnValues, Access.AccessType.NONE));
 
     	Integer[] anonymousReturnValues = {401, 401, 401, 401};
-    	users.put(anonymousUserToken, arraysToMap(accessTypes, anonymousReturnValues, Event.AccessType.NONE));
+    	users.put(anonymousUserToken, arraysToMap(accessTypes, anonymousReturnValues, Access.AccessType.NONE));
 
     	testActions();
     }
@@ -453,7 +447,7 @@ public class Permissions extends WithApplication {
      */
     private void testActions() {
     	for (Map.Entry<AccessToken, UserInfo> userEntry : users.entrySet()) {
-    		for (Map.Entry<Event.AccessType, Integer> rightEntry : userEntry.getValue().access.entrySet()) {
+    		for (Map.Entry<Access.AccessType, Integer> rightEntry : userEntry.getValue().access.entrySet()) {
     			Result result = Access.hasPermissionOnEvent(userEntry.getKey(), event, rightEntry.getKey());
     			if (rightEntry.getValue() != null && result != null) {
     				assertEquals(rightEntry.getValue(), new Integer(status(result)));
@@ -465,8 +459,8 @@ public class Permissions extends WithApplication {
     	}
     }
     
-    private UserInfo arraysToMap(Event.AccessType[] types, Integer[] values, Event.AccessType maxRight) {
-    	Map<Event.AccessType, Integer> res = new HashMap<>();
+    private UserInfo arraysToMap(Access.AccessType[] types, Integer[] values, Access.AccessType maxRight) {
+    	Map<Access.AccessType, Integer> res = new HashMap<>();
     	
     	for (int i = 0; i < types.length && i < values.length; ++i) {
     		res.put(types[i], values[i]);

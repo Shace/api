@@ -15,6 +15,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import play.db.ebean.Model;
+import Utils.Access;
 
 @Entity
 @Table(name="se_event")
@@ -25,14 +26,6 @@ public class Event extends Model {
 		PROTECTED,
 		PRIVATE,
 		NOT_SET
-	}
-	
-	public enum AccessType {
-		NONE,
-		READ,
-		WRITE,
-		ADMINISTRATE,
-		ROOT
 	}
 	
 	/**
@@ -90,11 +83,11 @@ public class Event extends Model {
 	
 	public void	saveOwnerPermission() {
 		if (this.owner != null) {
-			setPermission(this.owner, AccessType.ROOT).save();
+			setPermission(this.owner, Access.AccessType.ROOT).save();
 		}
 	}
 	
-	public boolean	hasPermission(User user, AccessType permission) {
+	public boolean	hasPermission(User user, Access.AccessType permission) {
 		if (user != null) {
 			for (EventUserRelation relation : permissions) {
 				if (user.equals(relation.user) &&
@@ -107,7 +100,7 @@ public class Event extends Model {
 		return false;
 	}
 	
-	public EventUserRelation	setPermission(User user, AccessType permission) {
+	public EventUserRelation	setPermission(User user, Access.AccessType permission) {
 		for (EventUserRelation relation : permissions) {
 			if (user.equals(relation.user) && relation.permission == permission) {
 				return relation;
@@ -119,15 +112,15 @@ public class Event extends Model {
 		return res;
 	}
 	
-	public AccessType	getPermission(User user) {
-		AccessType res = AccessType.NONE;
+	public Access.AccessType	getPermission(User user) {
+		Access.AccessType res = Access.AccessType.NONE;
 		for (EventUserRelation relation : permissions) {
 			if (relation.user.equals(user) && relation.permission.compareTo(res) > 0) {
-				if (relation.permission.compareTo(Event.AccessType.ADMINISTRATE) >= 0) {
+				if (relation.permission.compareTo(Access.AccessType.ADMINISTRATE) >= 0) {
 					res = relation.permission;
-				} else if (relation.permission.compareTo(Event.AccessType.READ) <= 0 && readingPrivacy == Privacy.PRIVATE) {
+				} else if (relation.permission.compareTo(Access.AccessType.READ) <= 0 && readingPrivacy == Privacy.PRIVATE) {
 					res = relation.permission;
-				} else if (relation.permission.compareTo(Event.AccessType.WRITE) <= 0 && 
+				} else if (relation.permission.compareTo(Access.AccessType.WRITE) <= 0 && 
 							(writingPrivacy == Privacy.PRIVATE || (writingPrivacy == Privacy.NOT_SET && readingPrivacy == Privacy.PRIVATE))) {
 					res = relation.permission;
 				}

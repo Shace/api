@@ -15,6 +15,7 @@ import Utils.Slugs;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+@CORS
 public class Tags extends Controller {
     /**
      * Add a tag to a media.
@@ -36,7 +37,7 @@ public class Tags extends Controller {
             return notFound("Event not found");
         }
 
-        error = Access.hasPermissionOnEvent(access, ownerEvent, Event.AccessType.READ);
+        error = Access.hasPermissionOnEvent(access, ownerEvent, Access.AccessType.READ);
         if (error != null) {
             return error;
         }
@@ -63,7 +64,7 @@ public class Tags extends Controller {
         //Comment comment = Comment.create(access.user, media, message.asText());
         tag = Tag.create(name.asText(), access.user, media);
         
-        return created(tagToJson(tag, null));
+        return created(tagToJson(access, ownerEvent, tag, null));
     }
     
     /**
@@ -88,7 +89,7 @@ public class Tags extends Controller {
         
         if (tag == null) {
             return notFound("Tag not found");
-        } else if ((!tag.creator.equals(access.user)) && Access.hasPermissionOnEvent(access, ownerEvent, Event.AccessType.ADMINISTRATE) != null) {
+        } else if ((!tag.creator.equals(access.user)) && Access.hasPermissionOnEvent(access, ownerEvent, Access.AccessType.ADMINISTRATE) != null) {
             return forbidden("Permission Denied");
         }
 
@@ -101,16 +102,21 @@ public class Tags extends Controller {
      * @param tag : A Tag object to convert
      * @return The Json object containing the tag information
      */
-    public static ObjectNode tagToJson(Tag tag, RequestParameters params) {
+    public static ObjectNode tagToJson(AccessToken access, Event ownerEvent, Tag tag, RequestParameters params) {
         ObjectNode result = Json.newObject();
 
         result.put("id", tag.id);
-        result.put("message", tag.name);
+        result.put("name", tag.name);
         result.put("slug", tag.slug);
         result.put("owner", tag.creator.id);
         result.put("media", tag.media.id);
         result.put("creation", tag.creation.getTime());
-        
+        if (access.user == null || ((!tag.creator.equals(access.user)) && 
+            Access.hasPermissionOnEvent(access, ownerEvent, Access.AccessType.ADMINISTRATE) != null)) {
+            result.put("permission", Access.AccessType.READ.toString());
+        } else {
+            result.put("permission", Access.AccessType.ROOT.toString());
+        }
         return result;
     }
 }

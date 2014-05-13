@@ -35,7 +35,7 @@ public class EventPermissions extends Controller {
             return notFound("Event with token " + token + " not found");
         }
 
-        error = Access.hasPermissionOnEvent(access, event, Event.AccessType.ADMINISTRATE);
+        error = Access.hasPermissionOnEvent(access, event, Access.AccessType.ADMINISTRATE);
         if (error != null) {
         	return error;
         }
@@ -45,13 +45,13 @@ public class EventPermissions extends Controller {
         for (EventUserRelation permission : permissions) {
         	boolean addPermission = false;
         	
-        	if (permission.permission.compareTo(Event.AccessType.ADMINISTRATE) >= 0) {
+        	if (permission.permission.compareTo(Access.AccessType.ADMINISTRATE) >= 0) {
         		addPermission = true;
         	} else if (event.writingPrivacy == Event.Privacy.PRIVATE &&
-        			permission.permission.compareTo(Event.AccessType.WRITE) >= 0) {
+        			permission.permission.compareTo(Access.AccessType.WRITE) >= 0) {
         		addPermission = true;
         	} else if (event.readingPrivacy == Event.Privacy.PRIVATE &&
-        			permission.permission.compareTo(Event.AccessType.READ) >= 0) {
+        			permission.permission.compareTo(Access.AccessType.READ) >= 0) {
         		addPermission = true;
         	}
         	
@@ -82,8 +82,8 @@ public class EventPermissions extends Controller {
             return notFound("Event with token " + token + " not found");
         }
         
-        Event.AccessType userPermission = Access.getPermissionOnEvent(access, event);
-        if (userPermission.compareTo(Event.AccessType.ADMINISTRATE) < 0) {
+        Access.AccessType userPermission = Access.getPermissionOnEvent(access, event);
+        if (userPermission.compareTo(Access.AccessType.ADMINISTRATE) < 0) {
         	return forbidden("You cannot change permissions on this event");
         }
 
@@ -100,12 +100,12 @@ public class EventPermissions extends Controller {
 		ArrayNode permissionsNode = Json.newObject().arrayNode();
 
     	for (JsonNode permissionNode : permissionList) {
-    		Event.AccessType givenPermission = null;
+    	    Access.AccessType givenPermission = null;
 
     		String permissionString = permissionNode.path("permission").textValue();
     		if (permissionString != null) {
     			try {
-    			givenPermission = Event.AccessType.valueOf(permissionString);
+    			givenPermission = Access.AccessType.valueOf(permissionString);
     			} catch (IllegalArgumentException e) {
     				givenPermission = null;
     			}
@@ -170,8 +170,8 @@ public class EventPermissions extends Controller {
             return notFound("Event with token " + token + " not found");
         }
         
-        Event.AccessType userPermission = Access.getPermissionOnEvent(access, event);
-        if (userPermission.compareTo(Event.AccessType.ADMINISTRATE) < 0) {
+        Access.AccessType userPermission = Access.getPermissionOnEvent(access, event);
+        if (userPermission.compareTo(Access.AccessType.ADMINISTRATE) < 0) {
         	return forbidden("You cannot change permissions on this event");
         }
 
