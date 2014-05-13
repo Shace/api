@@ -256,12 +256,12 @@ public class EventsController extends WithApplication {
      * @param expectedNewEventNumber : the expected number of event in the table after running this test
 	 * @param token : the string corresponding to the current connected user (or null if there is not)
 	 */
-    private void	standardDeleteEvent(String eventId, int expectedStatus, int expectedNewEventNumber, String token) {
-    	Result result = callAction(controllers.routes.ref.Events.delete(eventId, token));
-
-    	assertEquals(expectedStatus, status(result));
-    	assertEquals(expectedNewEventNumber, Event.find.all().size());
-	}
+//    private void	standardDeleteEvent(String eventId, int expectedStatus, int expectedNewEventNumber, String token) {
+//    	Result result = callAction(controllers.routes.ref.Events.delete(eventId, token));
+//
+//    	assertEquals(expectedStatus, status(result));
+//    	assertEquals(expectedNewEventNumber, Event.find.all().size());
+//	}
 
     private User	ownerUser;
     private AccessToken token;
