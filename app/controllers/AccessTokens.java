@@ -101,8 +101,12 @@ public class AccessTokens extends Controller {
     @BodyParser.Of(BodyParser.Json.class)
     public static Result connection(String accessToken) {
         AccessToken access = AccessToken.find.byId(accessToken);
-        if (access == null)
+        if (access == null) {
             return notFound("Token not found");
+        }
+        if (access.type == Type.USER) {
+            return badRequest("User already connected");
+        }
 
         JsonNode json = request().body().asJson();
         if (json == null) {
@@ -110,7 +114,8 @@ public class AccessTokens extends Controller {
         }
         String email = json.path("email").textValue();
         String password = json.path("password").textValue();
-        
+        boolean autoRenew = json.path("auto_renew").booleanValue();
+
         if (email == null) {
             return badRequest("Missing parameter [email]");
         }
@@ -125,6 +130,10 @@ public class AccessTokens extends Controller {
         
         access.user = user;
         access.type = Type.USER;
+        access.autoRenew = autoRenew;
+        if (access.autoRenew) {
+            access.expiration = new Date().getTime() + AccessToken.autoRenewExpirationTime;
+        }
         access.save();
         
         return ok(getAccessTokenObjectNode(access));
