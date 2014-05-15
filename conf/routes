@@ -10,6 +10,7 @@ GET		/							controllers.Application.index()
 
 # AccessToken
 POST	/access_token				controllers.AccessTokens.accessToken()
+PUT		/access_token				controllers.AccessTokens.connection(access_token)
 DELETE	/access_token				controllers.AccessTokens.delete(access_token)
 
 # Events

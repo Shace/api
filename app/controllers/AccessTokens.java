@@ -90,6 +90,45 @@ public class AccessTokens extends Controller {
             return ok(getAccessTokenObjectNode(res));
         }
     }
+    
+    /**
+     * Update a token with a user connection
+     * 
+     * @param accessToken An access token corresponding to the user, null if authentication failed
+     * @return An HTTP JSON response containing the properties of the updated
+     *         access token
+     */
+    @BodyParser.Of(BodyParser.Json.class)
+    public static Result connection(String accessToken) {
+        AccessToken access = AccessToken.find.byId(accessToken);
+        if (access == null)
+            return notFound("Token not found");
+
+        JsonNode json = request().body().asJson();
+        if (json == null) {
+            return badRequest("Expecting Json data");
+        }
+        String email = json.path("email").textValue();
+        String password = json.path("password").textValue();
+        
+        if (email == null) {
+            return badRequest("Missing parameter [email]");
+        }
+        if (password == null) {
+            return badRequest("Missing parameter [password]");
+        }
+        
+        User user = Users.authenticate(email, password);
+        if (user == null) {
+            return unauthorized("Invalid user or password");
+        }
+        
+        access.user = user;
+        access.type = Type.USER;
+        access.save();
+        
+        return ok(getAccessTokenObjectNode(access));
+    }
 
     /**
      * Create an access token with an associate user
