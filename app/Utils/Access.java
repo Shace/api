@@ -92,8 +92,8 @@ public class Access {
 
 		if (res.compareTo(AccessType.READ) < 0) {
 			if (event.readingPrivacy == Event.Privacy.PROTECTED) {
-				if (relation != null && relation.permission == AccessType.READ) {
-					res = AccessType.READ;
+				if (relation != null) {
+					res = relation.permission;
 				}
 			} else if (event.readingPrivacy == Event.Privacy.PUBLIC) {
 				res = AccessType.READ;
