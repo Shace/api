@@ -371,7 +371,7 @@ public class Events extends Controller {
             return error;
         }
 
-        Event event = Ebean.find(Event.class).fetch("medias").fetch("medias.owner").fetch("medias.image")
+        Event event = Ebean.find(Event.class).fetch("medias").orderBy("original asc").fetch("medias.owner").fetch("medias.image")
                 .fetch("medias.image.files").fetch("medias.image.files.file").fetch("root").where().eq("token", token).findUnique();
         if (event == null) {
             return notFound("Event with token " + token + " not found");
