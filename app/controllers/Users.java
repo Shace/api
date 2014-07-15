@@ -111,7 +111,7 @@ public class Users extends Controller {
         if (betaInvitation == null) {
         	betaInvitation = new BetaInvitation(null, email, State.REQUESTING);
         	betaInvitation.save();
-        	return ok("Your request to join the beta has been sent.");
+        	return forbidden("Your request to join the beta has been sent.");
         } else if (betaInvitation.state == State.INVITED) {        
 	        User newUser = new User(email, password);
 	        updateOneUser(newUser, root);

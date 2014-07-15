@@ -4,6 +4,7 @@ import java.util.Date;
 
 import models.AccessToken;
 import models.AccessToken.Type;
+import models.BetaInvitation;
 import models.User;
 import play.libs.Json;
 import play.mvc.BodyParser;
@@ -125,6 +126,9 @@ public class AccessTokens extends Controller {
         
         User user = Users.authenticate(email, password);
         if (user == null) {
+            BetaInvitation betaInvitation = BetaInvitation.find.where().eq("email", email).findUnique();
+            if (betaInvitation != null)
+                return unauthorized("Your request to join the beta is still being processed.");
             return unauthorized("Invalid user or password");
         }
         
