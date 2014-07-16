@@ -262,6 +262,6 @@ public class EventPermissions extends Controller {
         currentDeletedNode.put("user", associated.id);
         toDeleteNode.add(currentDeletedNode);
 
-        return ok(toDeleteNode);
+        return ok();
     }
 }
