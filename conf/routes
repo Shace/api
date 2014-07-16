@@ -51,5 +51,12 @@ DELETE	/events/:token/medias/:media/comments/:id	controllers.Comments.delete(tok
 POST	/events/:token/medias/:media/tags			controllers.Tags.add(token : String, media : Integer, access_token)
 DELETE	/events/:token/medias/:media/tags/:id		controllers.Tags.delete(token : String, media : Integer, id : Integer, access_token)
 
+# Beta
+POST	/beta/invite				controllers.BetaInvitations.add(access_token)
+GET		/beta/invitations			controllers.BetaInvitations.invitations(access_token)
+GET		/beta/administration		controllers.BetaInvitations.processingList(access_token)
+PUT		/beta/administration		controllers.BetaInvitations.validateProcessing(access_token)
+
+
 # Map static resources from the /public folder to the /assets URL path
 GET		/assets/*file				controllers.Assets.at(path="/public", file)

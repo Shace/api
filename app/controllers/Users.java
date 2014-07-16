@@ -4,6 +4,8 @@ import java.util.Date;
 import java.util.List;
 
 import models.AccessToken;
+import models.BetaInvitation;
+import models.BetaInvitation.State;
 import models.User;
 import play.libs.Json;
 import play.mvc.BodyParser;
@@ -104,10 +106,25 @@ public class Users extends Controller {
             return badRequest("Email already exists");
         }
         
-        User newUser = new User(email, password);
-        updateOneUser(newUser, root);
-        newUser.save();
-        return created(getUserObjectNode(newUser));
+        // Beta Handling
+        BetaInvitation betaInvitation = BetaInvitation.find.where().eq("email", email).findUnique();
+        if (betaInvitation == null) {
+        	betaInvitation = new BetaInvitation(null, email, State.REQUESTING);
+        	betaInvitation.save();
+        	return ok("Your request to join the beta has been sent.");
+        } else if (betaInvitation.state == State.INVITED) {        
+	        User newUser = new User(email, password);
+	        updateOneUser(newUser, root);
+	        newUser.save();
+	        
+	        // Beta Handling
+	        betaInvitation.createdUser = newUser;
+	        betaInvitation.state = State.CREATED;
+	        betaInvitation.save();
+	        return created(getUserObjectNode(newUser));
+        } else {
+        	return forbidden("Your request to join the beta is still being processed.");
+        }
     }
 
     /**
