@@ -53,7 +53,7 @@ POST	/events/:token/medias/:media/tags			controllers.Tags.add(token : String, me
 DELETE	/events/:token/medias/:media/tags/:id		controllers.Tags.delete(token : String, media : Integer, id : Integer, access_token)
 
 # Beta
-POST	/beta/invite				controllers.BetaInvitations.add(access_token)
+POST	/beta/invitations			controllers.BetaInvitations.add(access_token)
 GET		/beta/invitations			controllers.BetaInvitations.invitations(access_token)
 GET		/beta/administration		controllers.BetaInvitations.processingList(access_token)
 PUT		/beta/administration		controllers.BetaInvitations.validateProcessing(access_token)

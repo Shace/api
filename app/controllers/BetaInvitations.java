@@ -51,7 +51,11 @@ public class BetaInvitations extends Controller {
     				newGuest = new BetaInvitation(access.user, mail, State.INVITED);
     				newGuest.save();
     				current.invitedPeople++;
-    				guestsNode.add(mail);
+    				
+    				ObjectNode infos = Json.newObject();
+    	            infos.put("email", mail);
+    	            infos.put("hasAccepted", false);
+    	            guestsNode.add(infos);
     			}
     		}
 		}
