@@ -93,12 +93,12 @@ public class Users extends Controller {
         }
 
         String email = root.path("email").textValue();
-        if (email == null) {
+        if (email == null || email.isEmpty()) {
             return badRequest("Missing parameter [email]");
         }
 
         String password = root.path("password").textValue();
-        if (password == null) {
+        if (password == null || password.isEmpty()) {
             return badRequest("Missing parameter [password]");
         }
 
