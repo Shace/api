@@ -15,6 +15,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import errors.Error.ParameterType;
+import errors.Error.Type;
+
 @CORS
 public class BetaInvitations extends Controller {
 
@@ -30,12 +33,12 @@ public class BetaInvitations extends Controller {
 
         JsonNode root = request().body().asJson();
         if (root == null) {
-            return badRequest("Unexpected format, JSon required");
+        	return new errors.Error(errors.Error.Type.JSON_REQUIRED).toResponse();
         }
         
         JsonNode guestList = root.get("guests");
         if (guestList == null) {
-            return badRequest("Missing parameter [guests]");
+            return new errors.Error(Type.PARAMETERS_ERROR).addParameter("guests", ParameterType.REQUIRED).toResponse();
         }
 
         BetaInvitation current = BetaInvitation.find.where().eq("createdUser", access.user).findUnique();
@@ -74,7 +77,7 @@ public class BetaInvitations extends Controller {
         }
         BetaInvitation current = BetaInvitation.find.where().eq("createdUser", access.user).findUnique();
         if (current == null) {
-        	return forbidden("No invitations");
+        	return new errors.Error(errors.Error.Type.NO_INVITATIONS).toResponse();
         }
         List<BetaInvitation> guestList = BetaInvitation.find.where().eq("originalUser", access.user).findList();
 		ArrayNode guestsNode = Json.newObject().arrayNode();
@@ -119,12 +122,12 @@ public class BetaInvitations extends Controller {
 
         JsonNode root = request().body().asJson();
         if (root == null) {
-            return badRequest("Unexpected format, JSon required");
+        	return new errors.Error(errors.Error.Type.JSON_REQUIRED).toResponse();
         }
         
         JsonNode guestList = root.get("validated");
         if (guestList == null) {
-            return badRequest("Missing parameter [validated]");
+        	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("validated", ParameterType.REQUIRED).toResponse();
         }
 
 		ArrayNode validatedNode = Json.newObject().arrayNode();

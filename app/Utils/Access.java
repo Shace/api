@@ -38,30 +38,30 @@ public class Access {
 			return null;
 		} else if (authenticationType == AuthenticationType.ANONYMOUS_USER) {
 			if (access == null) {
-				return Controller.forbidden("Access Token Required");
+	        	return new errors.Error(errors.Error.Type.ACCESS_TOKEN_REQUIRED).toResponse();
 			}
 		} else if (authenticationType == AuthenticationType.CONNECTED_USER) {
 			if (access == null) {
-				return Controller.forbidden("Access Token Required");
+	        	return new errors.Error(errors.Error.Type.ACCESS_TOKEN_REQUIRED).toResponse();
 			} else if (access.user == null) {
-				return Controller.unauthorized("You need to be authenticated");
+	        	return new errors.Error(errors.Error.Type.NEED_AUTHENTICATION).toResponse();
 			}
 		} else if (authenticationType == AuthenticationType.NOT_CONNECTED_USER) {
 			if (access == null) {
-				return Controller.forbidden("Access Token Required");
+	        	return new errors.Error(errors.Error.Type.ACCESS_TOKEN_REQUIRED).toResponse();
 			} else if (access.isConnectedUser() && access.user.isAdmin == false) {
-				return Controller.unauthorized("You cannot be connected");
+	        	return new errors.Error(errors.Error.Type.NEED_ANONYMOUS).toResponse();
 			}
 		} else if (authenticationType == AuthenticationType.ADMIN_USER) {
 			if (access == null) {
-				return Controller.forbidden("Access Token Required");
+	        	return new errors.Error(errors.Error.Type.ACCESS_TOKEN_REQUIRED).toResponse();
 			} else if (access.user == null) {
-				return Controller.unauthorized("You need to be authenticated");
+	        	return new errors.Error(errors.Error.Type.NEED_AUTHENTICATION).toResponse();
 			} else if (access.user.isAdmin == false) {
-	            return Controller.forbidden("You need to be administrator");
+	        	return new errors.Error(errors.Error.Type.NEED_ADMIN).toResponse();
 			}
 		} else {
-			return Controller.badRequest("Access Token Error");
+        	return new errors.Error(errors.Error.Type.ACCESS_TOKEN_ERROR).toResponse();
 		}
 		return null;
 	}
@@ -115,12 +115,12 @@ public class Access {
 
 			if ((accessType.compareTo(AccessType.WRITE) >= 0 && access.isConnectedUser() == false) ||
 					(event.readingPrivacy == Privacy.PRIVATE && access.isConnectedUser() == false)) {
-				return Controller.unauthorized("You need to be authenticated");
+	        	return new errors.Error(errors.Error.Type.NEED_AUTHENTICATION).toResponse();
 			} else if ((accessType == AccessType.READ && event.readingPrivacy == Privacy.PROTECTED) ||
 					((accessType == AccessType.WRITE && writingPrivacy == Privacy.PROTECTED))) {
-				return Controller.forbidden("You need a password for this event");
+	        	return new errors.Error(errors.Error.Type.NEED_PASSWORD).toResponse();
 			} else {
-				return Controller.forbidden("You don't have the required permission on this event");
+				return new errors.Error(errors.Error.Type.EVENT_FORBIDDEN).toResponse();
 			}
 		}
 	}
@@ -128,24 +128,24 @@ public class Access {
 	static public Result	hasPermissionOnUser(AccessToken access, User user, UserAccessType accessType) {
 		if (accessType == UserAccessType.READ) {
 			if (access.isConnectedUser() == false) {
-				return Controller.unauthorized("You need to be authenticated");
+				return new errors.Error(errors.Error.Type.NEED_AUTHENTICATION).toResponse();
 			} else if (access.user.equals(user)) {
 				return null;
 			}
 		} else if (accessType == UserAccessType.WRITE) {
 			if (access.isConnectedUser() == false) {
-				return Controller.unauthorized("You need to be authenticated");
+				return new errors.Error(errors.Error.Type.NEED_AUTHENTICATION).toResponse();
 			} else if (access.user.equals(user)) {
 				return null;
 			}
 		} else if (accessType == UserAccessType.ROOT) {
 			if (access.isConnectedUser() == false) {
-				return Controller.unauthorized("You need to be authenticated");
+				return new errors.Error(errors.Error.Type.NEED_AUTHENTICATION).toResponse();
 			} else if (access.user.isAdmin == true) {
 				return null;
 			}
 		} 
-		return Controller.forbidden("You don't have the required permission on this user");
+		return new errors.Error(errors.Error.Type.USER_FORBIDDEN).toResponse();
 	}
 	
 	static private	AccessType	max(AccessType l, AccessType r) {

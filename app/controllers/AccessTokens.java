@@ -18,6 +18,8 @@ import com.avaje.ebean.SqlUpdate;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import errors.Error.ParameterType;
+
 /**
  * Controller that handles the different API action applied to the AccessToken
  * @author Loick Michard
@@ -62,8 +64,9 @@ public class AccessTokens extends Controller {
      */
     public static Result delete(String accessToken) {
         AccessToken access = AccessToken.find.byId(accessToken);
-        if (access == null)
-            return notFound("Token not found");
+        if (access == null) {
+        	return new errors.Error(errors.Error.Type.TOKEN_NOT_FOUND).toResponse();
+        }
 
         access.delete();
         return noContent();
@@ -81,7 +84,7 @@ public class AccessTokens extends Controller {
         JsonNode json = request().body().asJson();
 
         if (json == null) {
-            return badRequest("Expecting Json data");
+        	return new errors.Error(errors.Error.Type.JSON_REQUIRED).toResponse();
         }
         String email = json.path("email").textValue();
         String password = json.path("password").textValue();
@@ -89,11 +92,11 @@ public class AccessTokens extends Controller {
         if (email == null) {
             return ok(getAccessTokenObjectNode(AccessToken.create(autoRenew, null, Type.GUEST)));
         } else if (password == null) {
-            return badRequest("Missing parameter [password]");
+            return new errors.Error(errors.Error.Type.PARAMETERS_ERROR).addParameter("password", ParameterType.REQUIRED).toResponse();
         } else {
             AccessToken res = authenticate(email, password, autoRenew);
             if (res == null) {
-                return unauthorized("Invalid user or password");
+            	return new errors.Error(errors.Error.Type.INVALID_IDS).toResponse();
             }
             return ok(getAccessTokenObjectNode(res));
         }
@@ -110,33 +113,38 @@ public class AccessTokens extends Controller {
     public static Result connection(String accessToken) {
         AccessToken access = AccessToken.find.byId(accessToken);
         if (access == null) {
-            return notFound("Token not found");
+        	return new errors.Error(errors.Error.Type.TOKEN_NOT_FOUND).toResponse();
         }
         if (access.type == Type.USER) {
-            return badRequest("User already connected");
+        	return new errors.Error(errors.Error.Type.ALREADY_CONNECTED).toResponse();
         }
 
         JsonNode json = request().body().asJson();
         if (json == null) {
-            return badRequest("Expecting Json data");
+        	return new errors.Error(errors.Error.Type.JSON_REQUIRED).toResponse();
         }
         String email = json.path("email").textValue();
         String password = json.path("password").textValue();
         boolean autoRenew = json.path("auto_renew").booleanValue();
 
+        errors.Error parametersErrors = new errors.Error(errors.Error.Type.PARAMETERS_ERROR);
         if (email == null) {
-            return badRequest("Missing parameter [email]");
+            parametersErrors.addParameter("email", ParameterType.REQUIRED);
         }
         if (password == null) {
-            return badRequest("Missing parameter [password]");
+        	parametersErrors.addParameter("password", ParameterType.REQUIRED);
+        }
+        if (parametersErrors.isParameterError()) {
+        	return parametersErrors.toResponse();
         }
         
         User user = Users.authenticate(email, password);
         if (user == null) {
             BetaInvitation betaInvitation = BetaInvitation.find.where().eq("email", email).findUnique();
-            if (betaInvitation != null)
-                return unauthorized("Your request to join the beta is still being processed.");
-            return unauthorized("Invalid user or password");
+            if (betaInvitation != null) {
+            	return new errors.Error(errors.Error.Type.BETA_PROCESSING).toResponse();
+            }
+        	return new errors.Error(errors.Error.Type.INVALID_IDS).toResponse();
         }
         
         access.user = user;
@@ -207,7 +215,7 @@ public class AccessTokens extends Controller {
          } else if (language.equalsIgnoreCase(Lang.FR.toString())) {
         	 newLang = Lang.FR;
          } else {
-        	 return notFound("Language not found");
+         	return new errors.Error(errors.Error.Type.LANGUAGE_NOT_FOUND).toResponse();
          }
          if (access.user != null) {
         	 //access.user.refresh();

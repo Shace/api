@@ -16,6 +16,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import errors.Error.ParameterType;
+import errors.Error.Type;
+
 /**
  * Controller that handles the different API action applied to the Event Permissions
  * @author Samuel Olivier
@@ -32,7 +35,7 @@ public class EventPermissions extends Controller {
 
         Event event = Ebean.find(Event.class).where().eq("token", token).findUnique();
         if (event == null) {
-            return notFound("Event with token " + token + " not found");
+        	return new errors.Error(errors.Error.Type.EVENT_NOT_FOUND).toResponse();
         }
 
         error = Access.hasPermissionOnEvent(access, event, Access.AccessType.ADMINISTRATE);
@@ -80,22 +83,22 @@ public class EventPermissions extends Controller {
 
         Event event = Ebean.find(Event.class).where().eq("token", token).findUnique();
         if (event == null) {
-            return notFound("Event with token " + token + " not found");
+        	return new errors.Error(errors.Error.Type.EVENT_NOT_FOUND).toResponse();
         }
 
         Access.AccessType userPermission = Access.getPermissionOnEvent(access, event);
         if (userPermission.compareTo(Access.AccessType.ADMINISTRATE) < 0) {
-            return forbidden("You cannot change permissions on this event");
+        	return new errors.Error(errors.Error.Type.NEED_ADMINISTRATE).toResponse();
         }
 
         JsonNode root = request().body().asJson();
         if (root == null) {
-            return badRequest("Unexpected format, JSON required");
+        	return new errors.Error(errors.Error.Type.JSON_REQUIRED).toResponse();
         }
 
         JsonNode permissionList = root.get("permissions");
         if (permissionList == null) {
-            return badRequest("Missing parameter [permissions]");
+        	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("permissions", ParameterType.REQUIRED).toResponse();
         }
 
         ArrayNode permissionsNode = Json.newObject().arrayNode();
@@ -168,22 +171,22 @@ public class EventPermissions extends Controller {
 
         Event event = Ebean.find(Event.class).where().eq("token", token).findUnique();
         if (event == null) {
-            return notFound("Event with token " + token + " not found");
+        	return new errors.Error(errors.Error.Type.EVENT_NOT_FOUND).toResponse();
         }
 
         Access.AccessType userPermission = Access.getPermissionOnEvent(access, event);
         if (userPermission.compareTo(Access.AccessType.ADMINISTRATE) < 0) {
-            return forbidden("You cannot change permissions on this event");
+        	return new errors.Error(errors.Error.Type.NEED_ADMINISTRATE).toResponse();
         }
 
         JsonNode root = request().body().asJson();
         if (root == null) {
-            return badRequest("Unexpected format, JSON required");
+        	return new errors.Error(errors.Error.Type.JSON_REQUIRED).toResponse();
         }
 
         JsonNode permissionList = root.get("permissions");
         if (permissionList == null) {
-            return badRequest("Missing parameter [permissions]");
+        	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("permissions", ParameterType.REQUIRED).toResponse();
         }
 
         ArrayNode toDeleteNode = Json.newObject().arrayNode();
@@ -235,12 +238,12 @@ public class EventPermissions extends Controller {
 
         Event event = Ebean.find(Event.class).where().eq("token", token).findUnique();
         if (event == null) {
-            return notFound("Event with token " + token + " not found");
+        	return new errors.Error(errors.Error.Type.EVENT_NOT_FOUND).toResponse();
         }
 
         Access.AccessType userPermission = Access.getPermissionOnEvent(access, event);
         if (userPermission.compareTo(Access.AccessType.ADMINISTRATE) < 0) {
-            return forbidden("You cannot change permissions on this event");
+        	return new errors.Error(errors.Error.Type.NEED_ADMINISTRATE).toResponse();
         }
 
         ArrayNode toDeleteNode = Json.newObject().arrayNode();
@@ -248,7 +251,7 @@ public class EventPermissions extends Controller {
 
         User associated = User.find.byId(userId);
         if (associated == null) {
-            return notFound("User with id " + userId + " not found");
+        	return new errors.Error(errors.Error.Type.USER_NOT_FOUND).toResponse();
         }
 
         for (EventUserRelation relation : event.permissions) {

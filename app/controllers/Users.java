@@ -17,6 +17,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import errors.Error.ParameterType;
+import errors.Error.Type;
+
 /**
  * Controller that handles the different API action applied to a User
  * @author Hajar Fares
@@ -89,30 +92,36 @@ public class Users extends Controller {
         }
 
         JsonNode root = request().body().asJson();
+
         if (root == null) {
-            return badRequest("Unexpected format, JSON required");
+        	return new errors.Error(errors.Error.Type.JSON_REQUIRED).toResponse();
         }
-
+        
         String email = root.path("email").textValue();
-        if (email == null || email.isEmpty()) {
-            return badRequest("Missing parameter [email]");
-        }
-
         String password = root.path("password").textValue();
-        if (password == null || password.isEmpty()) {
-            return badRequest("Missing parameter [password]");
+
+        errors.Error parametersErrors = new errors.Error(Type.PARAMETERS_ERROR);
+        if (email == null || email.isEmpty()) {
+        	parametersErrors.addParameter("email", ParameterType.REQUIRED);
         }
 
-        if (User.find.where().eq("email", email).findUnique() != null) {
-            return badRequest("Email already exists");
+        if (password == null || password.isEmpty()) {
+        	parametersErrors.addParameter("password", ParameterType.REQUIRED);
         }
+
+        if (!parametersErrors.isParameterError() && User.find.where().eq("email", email).findUnique() != null) {
+        	parametersErrors.addParameter("email", ParameterType.DUPLICATE);
+        }
+        
+        if (parametersErrors.isParameterError())
+        	return parametersErrors.toResponse();
         
         // Beta Handling
         BetaInvitation betaInvitation = BetaInvitation.find.where().eq("email", email).findUnique();
         if (betaInvitation == null) {
         	betaInvitation = new BetaInvitation(null, email, State.REQUESTING);
         	betaInvitation.save();
-        	return forbidden("Your request to join the beta has been sent.");
+        	return status(ACCEPTED);
         } else if (betaInvitation.state == State.INVITED) {        
 	        User newUser = new User(email, password);
 	        updateOneUser(newUser, root);
@@ -124,7 +133,7 @@ public class Users extends Controller {
 	        betaInvitation.save();
 	        return created(getUserObjectNode(newUser));
         } else {
-        	return forbidden("Your request to join the beta is still being processed.");
+        	return new errors.Error(errors.Error.Type.BETA_PROCESSING).toResponse();
         }
     }
 
@@ -143,7 +152,7 @@ public class Users extends Controller {
 
         User user = User.find.byId(id);
         if (user == null) {
-            return notFound("User with id " + id + " not found");
+        	return new errors.Error(errors.Error.Type.USER_NOT_FOUND).toResponse();
         }
 
         error = Access.hasPermissionOnUser(access, user, Access.UserAccessType.WRITE);
@@ -175,12 +184,12 @@ public class Users extends Controller {
         
         JsonNode root = request().body().asJson();
         if (root == null) {
-            return badRequest("Unexpected format, JSON required");
+        	return new errors.Error(errors.Error.Type.JSON_REQUIRED).toResponse();
         }
         
         User user = User.find.byId(id);
         if (user == null) {
-            return notFound("User with id " + id + " not found");
+        	return new errors.Error(errors.Error.Type.USER_NOT_FOUND).toResponse();
         }
 
         error = Access.hasPermissionOnUser(access, user, Access.UserAccessType.WRITE);
@@ -209,7 +218,7 @@ public class Users extends Controller {
         
         User user = User.find.byId(id);
         if (user == null) {
-            return notFound("User with id " + id + " not found");
+        	return new errors.Error(errors.Error.Type.USER_NOT_FOUND).toResponse();
         }
 
         error = Access.hasPermissionOnUser(access, user, Access.UserAccessType.READ);

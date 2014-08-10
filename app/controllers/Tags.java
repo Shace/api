@@ -15,6 +15,9 @@ import Utils.Slugs;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import errors.Error.ParameterType;
+import errors.Error.Type;
+
 @CORS
 public class Tags extends Controller {
     /**
@@ -34,7 +37,7 @@ public class Tags extends Controller {
 
         Event ownerEvent = Event.find.where().eq("token", ownerEventToken).findUnique();
         if (ownerEvent == null) {
-            return notFound("Event not found");
+        	return new errors.Error(errors.Error.Type.EVENT_NOT_FOUND).toResponse();
         }
 
         error = Access.hasPermissionOnEvent(access, ownerEvent, Access.AccessType.READ);
@@ -44,23 +47,24 @@ public class Tags extends Controller {
         
         Media       media = Media.find.byId(mediaId);
         if (media == null) {
-            return notFound("Media not found");
+        	return new errors.Error(errors.Error.Type.MEDIA_NOT_FOUND).toResponse();
         }
 
         JsonNode root = request().body().asJson();
         if (root == null) {
-            return badRequest("Unexpected format, JSon required");
+        	return new errors.Error(errors.Error.Type.JSON_REQUIRED).toResponse();
         }
         
         JsonNode name = root.get("name");
         if (name == null) {
-            return badRequest("Missing parameter [name]");
+        	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("name", ParameterType.REQUIRED).toResponse();
         }
  
         Tag tag = Tag.find.where().eq("slug", Slugs.toSlug(name.asText())).findUnique();
 
-        if (tag != null)
-            return badRequest("Tag already exists");
+        if (tag != null) {
+        	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("name", ParameterType.DUPLICATE).toResponse();
+        }
         //Comment comment = Comment.create(access.user, media, message.asText());
         tag = Tag.create(name.asText(), access.user, media);
         
@@ -82,15 +86,15 @@ public class Tags extends Controller {
         
         Event ownerEvent = Event.find.where().eq("token", token).findUnique();
         if (ownerEvent == null) {
-            return notFound("Event not found");
+        	return new errors.Error(errors.Error.Type.EVENT_NOT_FOUND).toResponse();
         }
         
         Tag   tag = Tag.find.byId(id);
         
         if (tag == null) {
-            return notFound("Tag not found");
+        	return new errors.Error(errors.Error.Type.TAG_NOT_FOUND).toResponse();
         } else if ((!tag.creator.equals(access.user)) && Access.hasPermissionOnEvent(access, ownerEvent, Access.AccessType.ADMINISTRATE) != null) {
-            return forbidden("Permission Denied");
+        	return new errors.Error(errors.Error.Type.NEED_ADMINISTRATE).toResponse();
         }
 
         tag.delete();
