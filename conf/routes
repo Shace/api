@@ -12,6 +12,7 @@ GET		/							controllers.Application.index()
 POST	/access_token				controllers.AccessTokens.accessToken()
 PUT		/access_token/:access_token	controllers.AccessTokens.connection(access_token : String)
 DELETE	/access_token				controllers.AccessTokens.delete(access_token)
+PUT		/language					controllers.AccessTokens.changeLanguage(language : String, access_token : String)
 
 # Events
 GET		/events						controllers.Events.events(access_token)

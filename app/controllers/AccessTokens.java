@@ -3,6 +3,7 @@ package controllers;
 import java.util.Date;
 
 import models.AccessToken;
+import models.AccessToken.Lang;
 import models.AccessToken.Type;
 import models.BetaInvitation;
 import models.User;
@@ -10,6 +11,7 @@ import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
+import Utils.Access;
 
 import com.avaje.ebean.Ebean;
 import com.avaje.ebean.SqlUpdate;
@@ -38,6 +40,11 @@ public class AccessTokens extends Controller {
         result.put("expiration", accessToken.expiration);
         result.put("creation", accessToken.creation);
         result.put("type", accessToken.type.toString().toLowerCase());
+        if (accessToken.user != null && accessToken.user.lang != null) {
+        	result.put("lang", accessToken.user.lang.toString().toLowerCase());
+        } else {
+        	result.put("lang", accessToken.lang.toString().toLowerCase());
+        }
         if (accessToken.user != null && accessToken.type == Type.USER) {
             result.put("user_id", accessToken.user.id);
         } else {
@@ -185,5 +192,43 @@ public class AccessTokens extends Controller {
             update.execute();
         }
         return token;
+    }
+    
+    public static Result changeLanguage(String language, String accessToken) {
+    	 AccessToken access = AccessTokens.access(accessToken);
+         Result error = Access.checkAuthentication(access, Access.AuthenticationType.ANONYMOUS_USER);
+         if (error != null) {
+         	return error;
+         }
+         
+         Lang newLang = access.lang;
+         if (language.equalsIgnoreCase(Lang.EN.toString())) {
+        	 newLang = Lang.EN;
+         } else if (language.equalsIgnoreCase(Lang.FR.toString())) {
+        	 newLang = Lang.FR;
+         } else {
+        	 return notFound("Language not found");
+         }
+         if (access.user != null) {
+        	 //access.user.refresh();
+        	 //access.user.lang = newLang;
+        	 //access.user.save();
+        	 
+        	 String s = "UPDATE se_user set lang = :lang where id = :id";
+             SqlUpdate update = Ebean.createSqlUpdate(s);
+             update.setParameter("lang", newLang);
+             update.setParameter("id", access.user.id);
+             Ebean.execute(update);
+         }
+         //access.lang = newLang;
+         //access.save();
+         
+         String s = "UPDATE se_access_token set lang = :lang where token = :token";
+         SqlUpdate update = Ebean.createSqlUpdate(s);
+         update.setParameter("lang", newLang);
+         update.setParameter("token", access.token);
+         Ebean.execute(update);
+         
+         return ok();
     }
 }

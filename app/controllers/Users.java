@@ -45,6 +45,7 @@ public class Users extends Controller {
         }
         result.put("inscription", user.inscriptionDate.getTime());
         result.put("is_admin", user.isAdmin);
+        result.put("lang", user.lang.toString().toLowerCase());
 
         return result;
     }

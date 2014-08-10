@@ -9,8 +9,8 @@ INSERT INTO se_image_format
 				   	 ('large', 3264, 2448, false);
 
 INSERT INTO se_user
-       (id, email, password, first_name, is_admin, inscription_date)
-       VALUES (0, 'admin@shace.io', '3ed4fd5119338b75e9fbcf7a1279f1f5b0025b64', 'Admin', true, Now());
+       (id, email, password, first_name, is_admin, inscription_date, lang)
+       VALUES (0, 'admin@shace.io', '3ed4fd5119338b75e9fbcf7a1279f1f5b0025b64', 'Admin', true, Now(), 2);
 
 # --- !Downs
 

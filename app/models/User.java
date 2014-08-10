@@ -11,6 +11,7 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import models.AccessToken.Lang;
 import play.data.format.Formats;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
@@ -55,11 +56,14 @@ public class User extends Model {
 	@OneToMany(mappedBy="creator", cascade=CascadeType.ALL)
 	public List<Tag>   tags;
 	
+	public Lang		lang;
+	
 	public User(String email, String password) {
 		this.email = email;
 		this.password = Utils.Hasher.hash(password);
 		this.inscriptionDate = new Date();
 		this.isAdmin = false;
+		this.lang = Lang.NONE;
 	}
 	
 	public static Finder<Integer, User> find = new Finder<Integer, User>
