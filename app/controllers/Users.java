@@ -99,6 +99,8 @@ public class Users extends Controller {
         
         String email = root.path("email").textValue();
         String password = root.path("password").textValue();
+        String firstname = root.path("firstname").textValue();
+        String lastname = root.path("lastname").textValue();
 
         errors.Error parametersErrors = new errors.Error(Type.PARAMETERS_ERROR);
         if (email == null || email.isEmpty()) {
@@ -107,6 +109,14 @@ public class Users extends Controller {
 
         if (password == null || password.isEmpty()) {
         	parametersErrors.addParameter("password", ParameterType.REQUIRED);
+        }
+        
+        if (firstname == null || firstname.isEmpty()) {
+        	parametersErrors.addParameter("firstname", ParameterType.REQUIRED);
+        }
+
+        if (lastname == null || lastname.isEmpty()) {
+        	parametersErrors.addParameter("lastname", ParameterType.REQUIRED);
         }
 
         if (!parametersErrors.isParameterError() && User.find.where().eq("email", email).findUnique() != null) {
