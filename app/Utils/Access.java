@@ -38,23 +38,23 @@ public class Access {
 			return null;
 		} else if (authenticationType == AuthenticationType.ANONYMOUS_USER) {
 			if (access == null) {
-	        	return new errors.Error(errors.Error.Type.ACCESS_TOKEN_REQUIRED).toResponse();
+	        	return new errors.Error(errors.Error.Type.TOKEN_NOT_FOUND).toResponse();
 			}
 		} else if (authenticationType == AuthenticationType.CONNECTED_USER) {
 			if (access == null) {
-	        	return new errors.Error(errors.Error.Type.ACCESS_TOKEN_REQUIRED).toResponse();
+	        	return new errors.Error(errors.Error.Type.TOKEN_NOT_FOUND).toResponse();
 			} else if (access.user == null) {
 	        	return new errors.Error(errors.Error.Type.NEED_AUTHENTICATION).toResponse();
 			}
 		} else if (authenticationType == AuthenticationType.NOT_CONNECTED_USER) {
 			if (access == null) {
-	        	return new errors.Error(errors.Error.Type.ACCESS_TOKEN_REQUIRED).toResponse();
+	        	return new errors.Error(errors.Error.Type.TOKEN_NOT_FOUND).toResponse();
 			} else if (access.isConnectedUser() && access.user.isAdmin == false) {
 	        	return new errors.Error(errors.Error.Type.NEED_ANONYMOUS).toResponse();
 			}
 		} else if (authenticationType == AuthenticationType.ADMIN_USER) {
 			if (access == null) {
-	        	return new errors.Error(errors.Error.Type.ACCESS_TOKEN_REQUIRED).toResponse();
+	        	return new errors.Error(errors.Error.Type.TOKEN_NOT_FOUND).toResponse();
 			} else if (access.user == null) {
 	        	return new errors.Error(errors.Error.Type.NEED_AUTHENTICATION).toResponse();
 			} else if (access.user.isAdmin == false) {

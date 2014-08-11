@@ -90,7 +90,7 @@ public class BetaInvitations extends Controller {
     	ObjectNode result = Json.newObject();
 		result.put("invited", guestsNode);
 		result.put("remaining", invitationNumber - current.invitedPeople);
-		return created(result);
+		return ok(result);
     }
 
     public static Result processingList(String accessToken) {
