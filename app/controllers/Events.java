@@ -1,7 +1,12 @@
 package controllers;
 
-import java.util.List;
-
+import Utils.Access;
+import com.avaje.ebean.Ebean;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import errors.Error.ParameterType;
+import errors.Error.Type;
 import models.AccessToken;
 import models.AccessTokenEventRelation;
 import models.Event;
@@ -11,15 +16,8 @@ import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
-import Utils.Access;
 
-import com.avaje.ebean.Ebean;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import errors.Error.ParameterType;
-import errors.Error.Type;
+import java.util.List;
 
 /**
  * Controller that handles the different API action applied to an Event
@@ -32,7 +30,7 @@ public class Events extends Controller {
     /**
      * Convert an event to a JSON object.
      * 
-     * @param media An Event object to convert
+     * @param event An Event object to convert
      * @return The JSON object containing the event information
      */
     public static ObjectNode getEventObjectNode(Event event, AccessToken accessToken) {
