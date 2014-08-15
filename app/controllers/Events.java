@@ -66,7 +66,43 @@ public class Events extends Controller {
         	return error;
         }
 
+        // TODO privacy => readingPrivacy
         List<Event> events = Event.find.where().eq("privacy", Event.Privacy.PUBLIC).findList();
+
+        ArrayNode eventsNode = Json.newObject().arrayNode();
+
+        for (Event event : events) {
+            eventsNode.add(getEventObjectNode(event, access));
+        }
+        ObjectNode result = Json.newObject();
+        result.put("events", eventsNode);
+        return ok(result);
+    }
+
+    /**
+     * Search for an event.
+     *
+     * TODO The user should also be able to search for ALL events he joined (private and protected as well) (if he's logged)
+     * TODO Change the orderBy to return the most popular events first (If $query match an event at 100%, this event should appears first, followed by the most popular ones )
+     * TODO Throw PARAMETERS_ERROR if query length is 0
+     *
+     * @param query query to lookup
+     * @param accessToken client access token
+     *
+     * @return An HTTP JSON response containing the properties of all the events
+     */
+    public static Result search(String query, String accessToken) {
+        AccessToken access = AccessTokens.access(accessToken);
+        Result error = Access.checkAuthentication(access, Access.AuthenticationType.ANONYMOUS_USER);
+        if (error != null) {
+        	return error;
+        }
+
+        List<Event> events = Event.find.where().eq("readingPrivacy", Event.Privacy.PUBLIC)
+                                       .where().istartsWith("token", query)
+                                       .orderBy("token")
+                                       .setMaxRows(20)
+                                       .findList();
 
         ArrayNode eventsNode = Json.newObject().arrayNode();
 
