@@ -11,6 +11,9 @@ import org.apache.commons.codec.binary.Hex;
 public class Hasher {
 
 	public static String hash(String str) {
+		if (str == null) {
+			return null;
+		}
     	MessageDigest cript;
 		try {
 			cript = MessageDigest.getInstance("SHA-1");

@@ -118,10 +118,14 @@ public class Users extends Controller {
         
         if (firstname == null || firstname.isEmpty()) {
         	parametersErrors.addParameter("firstname", ParameterType.REQUIRED);
+        } else if (firstname.length() < 2) {
+        	parametersErrors.addParameter("firstname", ParameterType.FORMAT);
         }
 
         if (lastname == null || lastname.isEmpty()) {
         	parametersErrors.addParameter("lastname", ParameterType.REQUIRED);
+        } else if (lastname.length() < 2) {
+        	parametersErrors.addParameter("lastname", ParameterType.FORMAT);
         }
 
         if (!parametersErrors.isParameterError() && User.find.where().eq("email", email).findUnique() != null) {
@@ -134,11 +138,11 @@ public class Users extends Controller {
         // Beta Handling
         BetaInvitation betaInvitation = BetaInvitation.find.where().eq("email", email).findUnique();
         if (betaInvitation == null) {
-        	betaInvitation = new BetaInvitation(null, email, State.REQUESTING);
+        	betaInvitation = new BetaInvitation(null, email, password, firstname, lastname, State.REQUESTING);
         	betaInvitation.save();
         	return status(ACCEPTED);
         } else if (betaInvitation.state == State.INVITED) {        
-	        User newUser = new User(email, password);
+	        User newUser = new User(email, password, firstname, lastname);
 	        updateOneUser(newUser, root);
 	        newUser.save();
 	        

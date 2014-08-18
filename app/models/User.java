@@ -58,9 +58,11 @@ public class User extends Model {
 	
 	public Lang		lang;
 	
-	public User(String email, String password) {
+	public User(String email, String password, String firstname, String lastname) {
 		this.email = email;
 		this.password = Utils.Hasher.hash(password);
+		this.firstName = firstname;
+		this.lastName = lastname;
 		this.inscriptionDate = new Date();
 		this.isAdmin = false;
 		this.lang = Lang.NONE;
@@ -72,7 +74,7 @@ public class User extends Model {
 	);
 	
 	public static User create(String email, String password) {
-		User newUser = new User(email, password);
+		User newUser = new User(email, password, null, null);
 		newUser.save();
 		
 		return newUser;

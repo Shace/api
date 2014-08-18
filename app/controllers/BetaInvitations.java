@@ -4,6 +4,7 @@ import java.util.List;
 
 import models.AccessToken;
 import models.BetaInvitation;
+import models.User;
 import models.BetaInvitation.State;
 import play.libs.Json;
 import play.mvc.BodyParser;
@@ -51,7 +52,7 @@ public class BetaInvitations extends Controller {
     		if (mail != null) {
     			BetaInvitation newGuest = BetaInvitation.find.where().eq("email", mail).findUnique();
     			if (newGuest == null) {
-    				newGuest = new BetaInvitation(access.user, mail, State.INVITED);
+    				newGuest = new BetaInvitation(access.user, mail, null, null, null, State.INVITED);
     				newGuest.save();
     				current.invitedPeople++;
     				
@@ -136,8 +137,15 @@ public class BetaInvitations extends Controller {
     		if (id != null) {
     			BetaInvitation currentGuest = BetaInvitation.find.where().eq("id", id).findUnique();
     			if (currentGuest != null && currentGuest.state == State.REQUESTING) {
-    				currentGuest.state = State.INVITED;
-    				currentGuest.save();
+    				User newUser = new User(currentGuest.email, currentGuest.password, currentGuest.firstName, currentGuest.lastName);
+    				newUser.password = currentGuest.password;
+    		        newUser.save();
+    		        
+    		        // Beta Handling
+    		        currentGuest.createdUser = newUser;
+    		        currentGuest.state = State.CREATED;
+    		        currentGuest.save();
+
     				validatedNode.add(id);
     			}
     		}

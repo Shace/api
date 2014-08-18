@@ -78,7 +78,7 @@ public class UsersController extends WithApplication {
     	/**
     	 * Initialization
     	 */
-    	User newUser = new User("test4@gmail.com", "test");
+    	User newUser = new User("test4@gmail.com", "test", "test", "test");
     	newUser.firstName = "Test";
     	newUser.lastName = "test";
     	newUser.save();

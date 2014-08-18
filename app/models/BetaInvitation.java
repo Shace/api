@@ -11,6 +11,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import play.data.format.Formats;
+import play.data.validation.Constraints;
 import play.db.ebean.Model;
 
 @Entity
@@ -44,6 +45,17 @@ public class BetaInvitation extends Model {
 	@Column(length=255)
 	public String		email;
 	
+	@Column(length=40)
+	public String	password;
+	
+	@Column(length=35)
+	@Constraints.MinLength(2)
+	public String	firstName;
+	
+	@Column(length=35)
+	@Constraints.MinLength(2)
+	public String	lastName;
+	
 	@Formats.DateTime(pattern="dd/MM/yyyy")
 	public Date		invitationDate;
 
@@ -53,10 +65,13 @@ public class BetaInvitation extends Model {
 	@Column
 	public State		state;
 	
-	public BetaInvitation(User user, String mail, State state) {
+	public BetaInvitation(User user, String mail, String password, String firstname, String lastname, State state) {
 		this.originalUser = user;
 		this.createdUser = null;
 		this.email = mail;
+		this.password = Utils.Hasher.hash(password);
+		this.firstName = firstname;
+		this.lastName = lastname;
 		this.invitationDate = new Date();
 		this.invitedPeople = 0;
 		this.state = state;
