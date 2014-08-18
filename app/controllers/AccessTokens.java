@@ -50,7 +50,7 @@ public class AccessTokens extends Controller {
         if (accessToken.user != null && accessToken.type == Type.USER) {
             result.put("user_id", accessToken.user.id);
         } else {
-            result.putNull("user_id");
+            result.put("user_id", -1);
         }
 
         return result;
