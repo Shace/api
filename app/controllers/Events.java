@@ -120,7 +120,7 @@ public class Events extends Controller {
     /**
      * List of all forbidden tokens
      */
-    public static List<String> forbiddenTokens = Arrays.asList("search");
+    private static final List<String> forbiddenTokens = Arrays.asList("search");
     
     /**
      * Add an event.
@@ -183,6 +183,8 @@ public class Events extends Controller {
         if (token != null) {
         	if (forbiddenTokens.contains(token)) {
             	return new errors.Error(Type.FORBIDDEN_TOKEN).toResponse();
+        	} else if (!token.matches("[a-zA-Z0-9|-]*")) {
+            	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("token", ParameterType.FORMAT).toResponse();
         	}
         	event.token = token;
         }

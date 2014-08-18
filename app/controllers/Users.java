@@ -7,6 +7,7 @@ import models.AccessToken;
 import models.BetaInvitation;
 import models.BetaInvitation.State;
 import models.User;
+import play.api.data.format.Formats;
 import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
@@ -105,10 +106,14 @@ public class Users extends Controller {
         errors.Error parametersErrors = new errors.Error(Type.PARAMETERS_ERROR);
         if (email == null || email.isEmpty()) {
         	parametersErrors.addParameter("email", ParameterType.REQUIRED);
+        } else if (!Utils.Formats.isValidEmail(email)) {
+        	parametersErrors.addParameter("email", ParameterType.FORMAT);
         }
 
         if (password == null || password.isEmpty()) {
         	parametersErrors.addParameter("password", ParameterType.REQUIRED);
+        } else if (password.length() < 5) {
+        	parametersErrors.addParameter("password", ParameterType.FORMAT);
         }
         
         if (firstname == null || firstname.isEmpty()) {
