@@ -43,6 +43,7 @@ public class Error {
 		NEED_ANONYMOUS			(208, Returns.UNAUTHORIZED, "You cannot be connected"),
 		NEED_ADMIN				(209, Returns.FORBIDDEN, "You need to be administrator"),
 		ACCESS_TOKEN_ERROR		(210, Returns.BAD_REQUEST, "Access token error"),
+		FORBIDDEN_TOKEN			(211, Returns.FORBIDDEN, "This token is forbidden"),
 		
 		LANGUAGE_NOT_FOUND		(300, Returns.NOT_FOUND, "Language not found"),
 		

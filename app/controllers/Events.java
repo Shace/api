@@ -1,10 +1,12 @@
 package controllers;
 
 import Utils.Access;
+
 import com.avaje.ebean.Ebean;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import errors.Error.ParameterType;
 import errors.Error.Type;
 import models.AccessToken;
@@ -17,6 +19,7 @@ import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -115,6 +118,11 @@ public class Events extends Controller {
     }
 
     /**
+     * List of all forbidden tokens
+     */
+    public static List<String> forbiddenTokens = Arrays.asList("search");
+    
+    /**
      * Add an event.
      * The event properties are contained into the HTTP Request body as JSON format.
      * 
@@ -173,6 +181,9 @@ public class Events extends Controller {
         
         event = new Event(readingPrivacy, access.user);
         if (token != null) {
+        	if (forbiddenTokens.contains(token)) {
+            	return new errors.Error(Type.FORBIDDEN_TOKEN).toResponse();
+        	}
         	event.token = token;
         }
         if (readingPassword != null) {
