@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import errors.Error;
 import errors.Error.ParameterType;
 import errors.Error.Type;
 
@@ -77,34 +78,10 @@ public class Users extends Controller {
 
         return ok(result);
     }
-
-    /**
-     * Create a new user. The user properties are contained into the HTTP Request body as JSON format.
-     * 
-     * @return An HTTP JSON response containing the properties of the created
-     *         user
-     */
-    @BodyParser.Of(BodyParser.Json.class)
-    public static Result add(String accessToken) {
-        AccessToken access = AccessTokens.access(accessToken);
-        Result error = Access.checkAuthentication(access, Access.AuthenticationType.NOT_CONNECTED_USER);
-        if (error != null) {
-        	return error;
-        }
-
-        JsonNode root = request().body().asJson();
-
-        if (root == null) {
-        	return new errors.Error(errors.Error.Type.JSON_REQUIRED).toResponse();
-        }
-        
-        String email = root.path("email").textValue();
-        String password = root.path("password").textValue();
-        String firstname = root.path("firstname").textValue();
-        String lastname = root.path("lastname").textValue();
-
-        errors.Error parametersErrors = new errors.Error(Type.PARAMETERS_ERROR);
-        if (email == null || email.isEmpty()) {
+    
+    public static void checkParams(String email, String password, String firstname, String lastname, errors.Error parametersErrors) {
+       
+    	if (email == null || email.isEmpty()) {
         	parametersErrors.addParameter("email", ParameterType.REQUIRED);
         } else if (!Utils.Formats.isValidEmail(email)) {
         	parametersErrors.addParameter("email", ParameterType.FORMAT);
@@ -131,6 +108,34 @@ public class Users extends Controller {
         if (!parametersErrors.isParameterError() && User.find.where().eq("email", email).findUnique() != null) {
         	parametersErrors.addParameter("email", ParameterType.DUPLICATE);
         }
+    }
+
+    /**
+     * Create a new user. The user properties are contained into the HTTP Request body as JSON format.
+     * 
+     * @return An HTTP JSON response containing the properties of the created
+     *         user
+     */
+    @BodyParser.Of(BodyParser.Json.class)
+    public static Result add(String accessToken) {
+        AccessToken access = AccessTokens.access(accessToken);
+        Result error = Access.checkAuthentication(access, Access.AuthenticationType.NOT_CONNECTED_USER);
+        if (error != null) {
+        	return error;
+        }
+
+        JsonNode root = request().body().asJson();
+
+        if (root == null) {
+        	return new errors.Error(errors.Error.Type.JSON_REQUIRED).toResponse();
+        }
+
+        errors.Error parametersErrors = new errors.Error(Type.PARAMETERS_ERROR);
+        String email = root.path("email").textValue();
+        String password = root.path("password").textValue();
+        String firstname = root.path("firstname").textValue();
+        String lastname = root.path("lastname").textValue();
+        checkParams(email, password, firstname, lastname, parametersErrors);
         
         if (parametersErrors.isParameterError())
         	return parametersErrors.toResponse();
@@ -205,6 +210,16 @@ public class Users extends Controller {
         if (root == null) {
         	return new errors.Error(errors.Error.Type.JSON_REQUIRED).toResponse();
         }
+        
+        errors.Error parametersErrors = new errors.Error(Type.PARAMETERS_ERROR);
+        String email = root.path("email").textValue();
+        String password = root.path("password").textValue();
+        String firstname = root.path("firstname").textValue();
+        String lastname = root.path("lastname").textValue();
+        checkParams(email, password, firstname, lastname, parametersErrors);
+        
+        if (parametersErrors.isParameterError())
+        	return parametersErrors.toResponse();
         
         User user = User.find.byId(id);
         if (user == null) {

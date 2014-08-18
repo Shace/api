@@ -405,6 +405,11 @@ public class Events extends Controller {
             }
         }
 
+        if (forbiddenTokens.contains(event.token)) {
+        	return new errors.Error(Type.FORBIDDEN_TOKEN).toResponse();
+    	} else if (!event.token.matches("[a-zA-Z0-9|-]*")) {
+        	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("token", ParameterType.FORMAT).toResponse();
+    	}
         event.update();
         return ok(getEventObjectNode(event, access));
     }
