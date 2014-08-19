@@ -3,6 +3,7 @@ package controllers;
 import java.util.Date;
 
 import models.AccessToken;
+import models.AccessToken.Lang;
 import models.AccessToken.Type;
 import models.BetaInvitation;
 import models.User;
@@ -10,11 +11,14 @@ import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
+import Utils.Access;
 
 import com.avaje.ebean.Ebean;
 import com.avaje.ebean.SqlUpdate;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import errors.Error.ParameterType;
 
 /**
  * Controller that handles the different API action applied to the AccessToken
@@ -38,10 +42,15 @@ public class AccessTokens extends Controller {
         result.put("expiration", accessToken.expiration);
         result.put("creation", accessToken.creation);
         result.put("type", accessToken.type.toString().toLowerCase());
+        if (accessToken.user != null && accessToken.user.lang != null) {
+        	result.put("lang", accessToken.user.lang.toString().toLowerCase());
+        } else {
+        	result.put("lang", accessToken.lang.toString().toLowerCase());
+        }
         if (accessToken.user != null && accessToken.type == Type.USER) {
             result.put("user_id", accessToken.user.id);
         } else {
-            result.putNull("user_id");
+            result.put("user_id", -1);
         }
 
         return result;
@@ -55,8 +64,9 @@ public class AccessTokens extends Controller {
      */
     public static Result delete(String accessToken) {
         AccessToken access = AccessToken.find.byId(accessToken);
-        if (access == null)
-            return notFound("Token not found");
+        if (access == null) {
+        	return new errors.Error(errors.Error.Type.TOKEN_NOT_FOUND).toResponse();
+        }
 
         access.delete();
         return noContent();
@@ -74,7 +84,7 @@ public class AccessTokens extends Controller {
         JsonNode json = request().body().asJson();
 
         if (json == null) {
-            return badRequest("Expecting Json data");
+        	return new errors.Error(errors.Error.Type.JSON_REQUIRED).toResponse();
         }
         String email = json.path("email").textValue();
         String password = json.path("password").textValue();
@@ -82,11 +92,11 @@ public class AccessTokens extends Controller {
         if (email == null) {
             return ok(getAccessTokenObjectNode(AccessToken.create(autoRenew, null, Type.GUEST)));
         } else if (password == null) {
-            return badRequest("Missing parameter [password]");
+            return new errors.Error(errors.Error.Type.PARAMETERS_ERROR).addParameter("password", ParameterType.REQUIRED).toResponse();
         } else {
             AccessToken res = authenticate(email, password, autoRenew);
             if (res == null) {
-                return unauthorized("Invalid user or password");
+            	return new errors.Error(errors.Error.Type.INVALID_IDS).toResponse();
             }
             return ok(getAccessTokenObjectNode(res));
         }
@@ -103,33 +113,38 @@ public class AccessTokens extends Controller {
     public static Result connection(String accessToken) {
         AccessToken access = AccessToken.find.byId(accessToken);
         if (access == null) {
-            return notFound("Token not found");
+        	return new errors.Error(errors.Error.Type.TOKEN_NOT_FOUND).toResponse();
         }
         if (access.type == Type.USER) {
-            return badRequest("User already connected");
+        	return new errors.Error(errors.Error.Type.ALREADY_CONNECTED).toResponse();
         }
 
         JsonNode json = request().body().asJson();
         if (json == null) {
-            return badRequest("Expecting Json data");
+        	return new errors.Error(errors.Error.Type.JSON_REQUIRED).toResponse();
         }
         String email = json.path("email").textValue();
         String password = json.path("password").textValue();
         boolean autoRenew = json.path("auto_renew").booleanValue();
 
+        errors.Error parametersErrors = new errors.Error(errors.Error.Type.PARAMETERS_ERROR);
         if (email == null) {
-            return badRequest("Missing parameter [email]");
+            parametersErrors.addParameter("email", ParameterType.REQUIRED);
         }
         if (password == null) {
-            return badRequest("Missing parameter [password]");
+        	parametersErrors.addParameter("password", ParameterType.REQUIRED);
+        }
+        if (parametersErrors.isParameterError()) {
+        	return parametersErrors.toResponse();
         }
         
         User user = Users.authenticate(email, password);
         if (user == null) {
             BetaInvitation betaInvitation = BetaInvitation.find.where().eq("email", email).findUnique();
-            if (betaInvitation != null)
-                return unauthorized("Your request to join the beta is still being processed.");
-            return unauthorized("Invalid user or password");
+            if (betaInvitation != null) {
+            	return new errors.Error(errors.Error.Type.BETA_PROCESSING).toResponse();
+            }
+        	return new errors.Error(errors.Error.Type.INVALID_IDS).toResponse();
         }
         
         access.user = user;
@@ -185,5 +200,43 @@ public class AccessTokens extends Controller {
             update.execute();
         }
         return token;
+    }
+    
+    public static Result changeLanguage(String language, String accessToken) {
+    	 AccessToken access = AccessTokens.access(accessToken);
+         Result error = Access.checkAuthentication(access, Access.AuthenticationType.ANONYMOUS_USER);
+         if (error != null) {
+         	return error;
+         }
+         
+         Lang newLang = access.lang;
+         if (language.equalsIgnoreCase(Lang.EN.toString())) {
+        	 newLang = Lang.EN;
+         } else if (language.equalsIgnoreCase(Lang.FR.toString())) {
+        	 newLang = Lang.FR;
+         } else {
+         	return new errors.Error(errors.Error.Type.LANGUAGE_NOT_FOUND).toResponse();
+         }
+         if (access.user != null) {
+        	 //access.user.refresh();
+        	 //access.user.lang = newLang;
+        	 //access.user.save();
+        	 
+        	 String s = "UPDATE se_user set lang = :lang where id = :id";
+             SqlUpdate update = Ebean.createSqlUpdate(s);
+             update.setParameter("lang", newLang);
+             update.setParameter("id", access.user.id);
+             Ebean.execute(update);
+         }
+         //access.lang = newLang;
+         //access.save();
+         
+         String s = "UPDATE se_access_token set lang = :lang where token = :token";
+         SqlUpdate update = Ebean.createSqlUpdate(s);
+         update.setParameter("lang", newLang);
+         update.setParameter("token", access.token);
+         Ebean.execute(update);
+         
+         return ok();
     }
 }

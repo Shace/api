@@ -14,6 +14,9 @@ import Utils.RequestParameters;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import errors.Error.ParameterType;
+import errors.Error.Type;
+
 /**
  * Controller that handles the different API action applied to the comments
  * @author Loick Michard
@@ -38,7 +41,7 @@ public class Comments extends Controller {
 
         Event ownerEvent = Event.find.where().eq("token", ownerEventToken).findUnique();
         if (ownerEvent == null) {
-            return notFound("Event not found");
+        	return new errors.Error(errors.Error.Type.EVENT_NOT_FOUND).toResponse();
         }
 
         error = Access.hasPermissionOnEvent(access, ownerEvent, Access.AccessType.READ);
@@ -48,17 +51,17 @@ public class Comments extends Controller {
 
         Media       media = Media.find.byId(mediaId);
         if (media == null) {
-            return notFound("Media not found");
+        	return new errors.Error(errors.Error.Type.MEDIA_NOT_FOUND).toResponse();
         }
 
         JsonNode root = request().body().asJson();
         if (root == null) {
-            return badRequest("Unexpected format, JSon required");
+        	return new errors.Error(errors.Error.Type.JSON_REQUIRED).toResponse();
         }
 
         JsonNode message = root.get("message");
         if (message == null) {
-            return badRequest("Missing parameter [message]");
+        	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("message", ParameterType.REQUIRED).toResponse();
         }
 
         Comment comment = Comment.create(access.user, media, message.asText());
@@ -81,15 +84,15 @@ public class Comments extends Controller {
 
         Event ownerEvent = Event.find.where().eq("token", token).findUnique();
         if (ownerEvent == null) {
-            return notFound("Event not found");
+        	return new errors.Error(errors.Error.Type.EVENT_NOT_FOUND).toResponse();
         }
 
         Comment   comment = Comment.find.byId(id);
 
         if (comment == null) {
-            return notFound("Comment not found");
+        	return new errors.Error(errors.Error.Type.COMMENT_NOT_FOUND).toResponse();
         } else if ((!comment.owner.equals(access.user)) && Access.hasPermissionOnEvent(access, ownerEvent, Access.AccessType.ADMINISTRATE) != null) {
-            return forbidden("Permission Denied");
+        	return new errors.Error(errors.Error.Type.NEED_ADMINISTRATE).toResponse();
         }
 
         comment.delete();

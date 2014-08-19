@@ -18,9 +18,12 @@ import models.User;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.amazonaws.services.simpleemail.model.Content;
+
 import play.api.libs.json.Json;
 import play.mvc.Result;
 import play.test.FakeRequest;
+import play.test.Helpers;
 import play.test.WithApplication;
 import controllers.AccessTokens;
 
@@ -42,7 +45,7 @@ public class EventsController extends WithApplication {
     	 * Valid request creating one event
     	 */
     	standardAddEvent(
-    			"{\"token\":\"test token public\",\"privacy\":\"public\",\"name\":\"Test Event\",\"description\":\"Here is the test event description\"}",
+    			"{\"token\":\"test-token-public\",\"privacy\":\"public\",\"name\":\"Test Event\",\"description\":\"Here is the test event description\"}",
     			CREATED, 1, token.token);
     	
 
@@ -50,7 +53,7 @@ public class EventsController extends WithApplication {
     	 * Valid request creating one event
     	 */
     	standardAddEvent(
-    			"{\"token\":\"test token protected\",\"privacy\":\"public\",\"name\":\"Test Event\",\"password\":\"secret\",\"description\":\"Here is the test event description\"}",
+    			"{\"token\":\"test-token-protected\",\"privacy\":\"public\",\"name\":\"Test Event\",\"password\":\"secret\",\"description\":\"Here is the test event description\"}",
     			CREATED, 2, token.token);
     	
 
@@ -58,7 +61,7 @@ public class EventsController extends WithApplication {
     	 * Valid request creating one event
     	 */
     	standardAddEvent(
-    			"{\"token\":\"test token private\",\"privacy\":\"public\",\"name\":\"Test Event\",\"description\":\"Here is the test event description\"}",
+    			"{\"token\":\"test-token-private\",\"privacy\":\"public\",\"name\":\"Test Event\",\"description\":\"Here is the test event description\"}",
     			CREATED, 3, token.token);
 
 
@@ -66,7 +69,7 @@ public class EventsController extends WithApplication {
     	 * Valid request with a token already used
     	 */
     	standardAddEvent(
-    			"{\"token\":\"test token public\",\"privacy\":\"public\",\"name\":\"Test Event\",\"description\":\"Here is the test event description\"}",
+    			"{\"token\":\"test-token-public\",\"privacy\":\"public\",\"name\":\"Test Event\",\"description\":\"Here is the test event description\"}",
     			BAD_REQUEST, 3, token.token);
     	
     	
@@ -74,15 +77,15 @@ public class EventsController extends WithApplication {
     	 * Valid request with a not connected user
     	 */
     	standardAddEvent(
-    			"{\"token\":\"test token1\",\"privacy\":\"public\",\"name\":\"Test Event\",\"description\":\"Here is the test event description\"}",
-    			FORBIDDEN, 3, null);
+    			"{\"token\":\"test-token1\",\"privacy\":\"public\",\"name\":\"Test Event\",\"description\":\"Here is the test event description\"}",
+    			NOT_FOUND, 3, null);
 
     	
     	/**
     	 * Unvalid request with a bad privacy name
     	 */
     	standardAddEvent(
-    			"{\"token\":\"test token1\",\"privacy\":\"UNVALID\",\"name\":\"Test Event\",\"description\":\"Here is the test event description\"}",
+    			"{\"token\":\"test-token1\",\"privacy\":\"UNVALID\",\"name\":\"Test Event\",\"description\":\"Here is the test event description\"}",
     			BAD_REQUEST, 3, token.token);
     	
     	
@@ -90,7 +93,7 @@ public class EventsController extends WithApplication {
     	 * Unvalid request with a protected privacy but no password
     	 */
     	standardAddEvent(
-    			"{\"token\":\"test token1\",\"privacy\":\"protected\",\"name\":\"Test Event\",\"description\":\"Here is the test event description\"}",
+    			"{\"token\":\"test-token1\",\"privacy\":\"protected\",\"name\":\"Test Event\",\"description\":\"Here is the test event description\"}",
     			BAD_REQUEST, 3, token.token);    	
     }
 	
@@ -103,7 +106,7 @@ public class EventsController extends WithApplication {
     	 * Initialization
     	 */
     	Event newEvent = new Event(Event.Privacy.PUBLIC, ownerUser);
-    	newEvent.token = "event token";
+    	newEvent.token = "event-token";
     	newEvent.name = "Test Name";
     	newEvent.description = "Test Description";
     	newEvent.save();
@@ -141,7 +144,7 @@ public class EventsController extends WithApplication {
     	 */
     	standardUpdateEvent(
     			"{\"name\":\"New Test Name1\",\"description\":\"New Test Description1\"}",
-    			newEvent.token, FORBIDDEN, false, "", "", null);
+    			newEvent.token, NOT_FOUND, false, "", "", null);
     	
     	
     	/**
@@ -239,7 +242,8 @@ public class EventsController extends WithApplication {
 	private void	standardUpdateEvent(String jsonBody, String eventId, int expectedStatus, boolean checkNewValues, String expectedNewName, String expectedNewDescription, String token) {
     	FakeRequest fakeRequest = new FakeRequest(PUT, "/events/" + eventId).withJsonBody(Json.parse(jsonBody));
     	Result result = callAction(controllers.routes.ref.Events.update(eventId, token), fakeRequest);
-
+    	System.out.println(jsonBody);
+    	System.out.println(Helpers.contentAsString(result));
     	assertEquals(expectedStatus, status(result));
     	if (!checkNewValues)
     		return ;

@@ -2,6 +2,8 @@ name := "api"
 
 version := "1.0-SNAPSHOT"
 
+scalaVersion := "2.11.1"
+
 libraryDependencies ++= Seq(
   javaJdbc,
   javaEbean,
@@ -13,9 +15,9 @@ libraryDependencies ++= Seq(
   jdbc
 )
 
-play.Project.playJavaSettings
+lazy val root = (project in file(".")).enablePlugins(PlayJava)
 
-ScoverageSbtPlugin.instrumentSettings
+instrumentSettings
 
 CoverallsPlugin.coverallsSettings
 

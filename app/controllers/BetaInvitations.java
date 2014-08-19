@@ -4,6 +4,7 @@ import java.util.List;
 
 import models.AccessToken;
 import models.BetaInvitation;
+import models.User;
 import models.BetaInvitation.State;
 import play.libs.Json;
 import play.mvc.BodyParser;
@@ -14,6 +15,9 @@ import Utils.Access;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import errors.Error.ParameterType;
+import errors.Error.Type;
 
 @CORS
 public class BetaInvitations extends Controller {
@@ -30,12 +34,12 @@ public class BetaInvitations extends Controller {
 
         JsonNode root = request().body().asJson();
         if (root == null) {
-            return badRequest("Unexpected format, JSon required");
+        	return new errors.Error(errors.Error.Type.JSON_REQUIRED).toResponse();
         }
         
         JsonNode guestList = root.get("guests");
         if (guestList == null) {
-            return badRequest("Missing parameter [guests]");
+            return new errors.Error(Type.PARAMETERS_ERROR).addParameter("guests", ParameterType.REQUIRED).toResponse();
         }
 
         BetaInvitation current = BetaInvitation.find.where().eq("createdUser", access.user).findUnique();
@@ -55,7 +59,7 @@ public class BetaInvitations extends Controller {
     		if (mail != null) {
     			BetaInvitation newGuest = BetaInvitation.find.where().eq("email", mail).findUnique();
     			if (newGuest == null) {
-    				newGuest = new BetaInvitation(access.user, mail, State.INVITED);
+    				newGuest = new BetaInvitation(access.user, mail, null, null, null, State.INVITED);
     				newGuest.save();
     				current.invitedPeople++;
     				
@@ -81,7 +85,7 @@ public class BetaInvitations extends Controller {
         }
         BetaInvitation current = BetaInvitation.find.where().eq("createdUser", access.user).findUnique();
         if (current == null && access.user.isAdmin == false) {
-        	return forbidden("No invitations");
+        	return new errors.Error(errors.Error.Type.NO_INVITATIONS).toResponse();
         } else if (current == null) {
         	current = new BetaInvitation(null, access.user.email, State.CREATED);
         	current.createdUser = access.user;
@@ -96,9 +100,9 @@ public class BetaInvitations extends Controller {
     		guestsNode.add(infos);
 		}
     	ObjectNode result = Json.newObject();
-		result.put("invited", guestsNode);
-		result.put("remaining", access.user.isAdmin ? 10 : (invitationNumber - current.invitedPeople));
-		return created(result);
+	result.put("invited", guestsNode);
+	result.put("remaining", access.user.isAdmin ? 10 : (invitationNumber - current.invitedPeople));
+	return created(result);
     }
 
     public static Result processingList(String accessToken) {
@@ -130,12 +134,12 @@ public class BetaInvitations extends Controller {
 
         JsonNode root = request().body().asJson();
         if (root == null) {
-            return badRequest("Unexpected format, JSon required");
+        	return new errors.Error(errors.Error.Type.JSON_REQUIRED).toResponse();
         }
         
         JsonNode guestList = root.get("validated");
         if (guestList == null) {
-            return badRequest("Missing parameter [validated]");
+        	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("validated", ParameterType.REQUIRED).toResponse();
         }
 
 		ArrayNode validatedNode = Json.newObject().arrayNode();
@@ -144,8 +148,15 @@ public class BetaInvitations extends Controller {
     		if (id != null) {
     			BetaInvitation currentGuest = BetaInvitation.find.where().eq("id", id).findUnique();
     			if (currentGuest != null && currentGuest.state == State.REQUESTING) {
-    				currentGuest.state = State.INVITED;
-    				currentGuest.save();
+    				User newUser = new User(currentGuest.email, currentGuest.password, currentGuest.firstName, currentGuest.lastName);
+    				newUser.password = currentGuest.password;
+    		        newUser.save();
+    		        
+    		        // Beta Handling
+    		        currentGuest.createdUser = newUser;
+    		        currentGuest.state = State.CREATED;
+    		        currentGuest.save();
+
     				validatedNode.add(id);
     			}
     		}

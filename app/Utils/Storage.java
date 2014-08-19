@@ -101,7 +101,7 @@ public class Storage {
     
     public static String getBaseUrl() {
         if (S3Plugin.amazonS3 == null)
-            return Play.application().configuration().getString("storage.baseurl");
+            return "http:" + Play.application().configuration().getString("storage.baseurl");
         else
             return "https://s3.amazonaws.com/" + S3Plugin.s3Bucket + "/";
     }

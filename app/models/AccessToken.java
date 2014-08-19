@@ -21,6 +21,12 @@ public class AccessToken extends Model {
 		USER
 	}
 	
+	public enum Lang {
+		NONE,
+		FR,
+		EN
+	}
+	
 	/**
 	 * Unique version uid for serialization
 	 */
@@ -53,6 +59,7 @@ public class AccessToken extends Model {
 	public User		user;
 	
 	public Type		type;
+	public Lang		lang;
 
 	
 	public AccessToken(String token, boolean autoRenew, User user, Type type) {
@@ -62,6 +69,11 @@ public class AccessToken extends Model {
 		this.expiration = this.creation + ((autoRenew) ? autoRenewExpirationTime : temporaryExpirationTime);
 		this.user = user;
 		this.type = type;
+		if (this.user != null) {
+			this.lang = this.user.lang;
+		} else {
+			this.lang = Lang.NONE;
+		}
 	}
 	
 	public static Finder<String, AccessToken> find = new Finder<String, AccessToken>

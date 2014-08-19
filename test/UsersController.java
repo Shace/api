@@ -19,8 +19,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import play.api.libs.json.Json;
+import play.mvc.Http;
 import play.mvc.Result;
 import play.test.FakeRequest;
+import play.test.Helpers;
 import play.test.WithApplication;
 import controllers.AccessTokens;
 
@@ -41,32 +43,32 @@ public class UsersController extends WithApplication {
     	 * Valid request creating one user
     	 */
     	standardAddUser(
-    			"{\"email\":\"test@gmail.com\",\"password\":\"test\",\"first_name\":\"Test\",\"last_name\":\"test\"}",
-    			CREATED, 1, token.token);
+    			"{\"email\":\"test@gmail.com\",\"password\":\"test5\",\"first_name\":\"Test\",\"last_name\":\"test\"}",
+    			Http.Status.ACCEPTED, 1, token.token);
     	
 
     	/**
          * Valid request creating one user
          */
         standardAddUser(
-                "{\"email\":\"test2@gmail.com\",\"password\":\"test\",\"first_name\":\"Test\",\"last_name\":\"test\"}",
-                CREATED, 2, token.token);
+                "{\"email\":\"test2@gmail.com\",\"password\":\"test5\",\"first_name\":\"Test\",\"last_name\":\"test\"}",
+                Http.Status.ACCEPTED, 1, token.token);
 
 
     	/**
     	 * Valid request with a mail already used
     	 */
     	standardAddUser(
-                "{\"email\":\"test@gmail.com\",\"password\":\"test\",\"first_name\":\"Test\",\"last_name\":\"test\"}",
-    			BAD_REQUEST, 2, token.token);
+                "{\"email\":\"test@gmail.com\",\"password\":\"test5\",\"first_name\":\"Test\",\"last_name\":\"test\"}",
+    			Http.Status.UNAUTHORIZED, 1, token.token);
     	
     	
     	/**
     	 * Valid request with a not connected user
     	 */
     	standardAddUser(
-                "{\"email\":\"test3@gmail.com\",\"password\":\"test\",\"first_name\":\"Test\",\"last_name\":\"test\"}",
-                FORBIDDEN, 2, null);
+                "{\"email\":\"test3@gmail.com\",\"password\":\"test5\",\"first_name\":\"Test\",\"last_name\":\"test\"}",
+                NOT_FOUND, 1, null);
     
     }
 	
@@ -78,19 +80,19 @@ public class UsersController extends WithApplication {
     	/**
     	 * Initialization
     	 */
-    	User newUser = new User("test4@gmail.com", "test");
+    	User newUser = new User("test4@gmail.com", "test5", "test", "test");
     	newUser.firstName = "Test";
     	newUser.lastName = "test";
     	newUser.save();
     	
-    	AccessToken token = AccessTokens.authenticate(newUser.email, "test", true);
+    	AccessToken token = AccessTokens.authenticate(newUser.email, "test5", true);
     	
     	/**
     	 * Valid request updating one user
     	 */
     	standardUpdateUser(
-    			"{\"first_name\":\"Chuck\",\"last_name\":\"Norris\", \"password\":\"42\"}",
-    			newUser.id, OK, true, "Chuck", "Norris", Utils.Hasher.hash("42"), token.token);
+    			"{\"first_name\":\"Chuck\",\"last_name\":\"Norris\", \"password\":\"424242\"}",
+    			newUser.id, OK, true, "Chuck", "Norris", Utils.Hasher.hash("424242"), token.token);
     	newUser = User.find.byId(newUser.id);
 
     	
@@ -107,7 +109,7 @@ public class UsersController extends WithApplication {
     	 * Unvalid request with not existing user
     	 */
     	standardUpdateUser(
-                "{\"first_name\":\"Chuck\",\"last_name\":\"Norris\", \"password\":\"42\"}",
+                "{\"first_name\":\"Chuck\",\"last_name\":\"Norris\", \"password\":\"424242\"}",
                4242, NOT_FOUND, false, "", "", "", token.token);
     	
     	
@@ -115,8 +117,8 @@ public class UsersController extends WithApplication {
     	 * Valid request with a not connected user
     	 */
     	standardUpdateUser(
-                "{\"first_name\":\"Chuck\",\"last_name\":\"Norris\", \"password\":\"42\"}",
-               newUser.id, FORBIDDEN, false, "", "", "", null);
+                "{\"first_name\":\"Chuck\",\"last_name\":\"Norris\", \"password\":\"424242\"}",
+               newUser.id, NOT_FOUND, false, "", "", "", null);
     	
     	
     	/**
@@ -126,7 +128,7 @@ public class UsersController extends WithApplication {
         User otherUser = User.create("other@gmail.com", "othersecret");
     	AccessToken otherToken = AccessTokens.authenticate(otherUser.email, "othersecret", true);
     	standardUpdateUser(
-                "{\"first_name\":\"Chuck\",\"last_name\":\"Norris\", \"password\":\"42\"}",
+                "{\"first_name\":\"Chuck\",\"last_name\":\"Norris\", \"password\":\"424242\"}",
                newUser.id, FORBIDDEN, false, "", "", "", otherToken.token);	
     	
     }
@@ -150,6 +152,8 @@ public class UsersController extends WithApplication {
     	FakeRequest fakeRequest = new FakeRequest(POST, "/users/").withJsonBody(Json.parse(jsonBody));
     	Result result = callAction(controllers.routes.ref.Users.add(token), fakeRequest);
 
+    	System.out.println(jsonBody);
+    	System.out.println(Helpers.contentAsString(result));
     	assertEquals(expectedStatus, status(result));
     	assertEquals(expectedNewUserNumber, User.find.all().size());
 	}
@@ -166,6 +170,8 @@ public class UsersController extends WithApplication {
 	    FakeRequest fakeRequest = new FakeRequest(PUT, "/users/" + userId).withJsonBody(Json.parse(jsonBody));
     	Result result = callAction(controllers.routes.ref.Users.update(userId, token), fakeRequest);
 
+    	System.out.println(jsonBody);
+    	System.out.println(Helpers.contentAsString(result));
     	assertEquals(expectedStatus, status(result));
     	if (!checkNewValues)
     		return ;

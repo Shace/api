@@ -17,6 +17,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import errors.Error.ParameterType;
+import errors.Error.Type;
+
 /**
  * Controller that handles the different API action applied to a User
  * @author Hajar Fares
@@ -45,6 +48,7 @@ public class Users extends Controller {
         }
         result.put("inscription", user.inscriptionDate.getTime());
         result.put("is_admin", user.isAdmin);
+        result.put("lang", user.lang.toString().toLowerCase());
 
         return result;
     }
@@ -72,6 +76,45 @@ public class Users extends Controller {
 
         return ok(result);
     }
+    
+    public static void checkParams(boolean required, String email, String password, String firstname, String lastname, errors.Error parametersErrors) {
+       
+    	if (email == null || email.isEmpty()) {
+    		if (required) {
+    			parametersErrors.addParameter("email", ParameterType.REQUIRED);
+    		}
+        } else if (!Utils.Formats.isValidEmail(email)) {
+        	parametersErrors.addParameter("email", ParameterType.FORMAT);
+        }
+
+        if (password == null || password.isEmpty()) {
+        	if (required) {
+    			parametersErrors.addParameter("password", ParameterType.REQUIRED);
+    		}
+        } else if (password.length() < 5) {
+        	parametersErrors.addParameter("password", ParameterType.FORMAT);
+        }
+        
+        if (firstname == null || firstname.isEmpty()) {
+        	if (required) {
+    			parametersErrors.addParameter("first_name", ParameterType.REQUIRED);
+    		}
+        } else if (firstname.length() < 2) {
+        	parametersErrors.addParameter("first_name", ParameterType.FORMAT);
+        }
+
+        if (lastname == null || lastname.isEmpty()) {
+        	if (required) {
+    			parametersErrors.addParameter("last_name", ParameterType.REQUIRED);
+    		}
+        } else if (lastname.length() < 2) {
+        	parametersErrors.addParameter("last_name", ParameterType.FORMAT);
+        }
+
+        if (!parametersErrors.isParameterError() && User.find.where().eq("email", email).findUnique() != null) {
+        	parametersErrors.addParameter("email", ParameterType.DUPLICATE);
+        }
+    }
 
     /**
      * Create a new user. The user properties are contained into the HTTP Request body as JSON format.
@@ -88,32 +131,29 @@ public class Users extends Controller {
         }
 
         JsonNode root = request().body().asJson();
+
         if (root == null) {
-            return badRequest("Unexpected format, JSON required");
+        	return new errors.Error(errors.Error.Type.JSON_REQUIRED).toResponse();
         }
 
+        errors.Error parametersErrors = new errors.Error(Type.PARAMETERS_ERROR);
         String email = root.path("email").textValue();
-        if (email == null || email.isEmpty()) {
-            return badRequest("Missing parameter [email]");
-        }
-
         String password = root.path("password").textValue();
-        if (password == null || password.isEmpty()) {
-            return badRequest("Missing parameter [password]");
-        }
-
-        if (User.find.where().eq("email", email).findUnique() != null) {
-            return badRequest("Email already exists");
-        }
+        String firstname = root.path("first_name").textValue();
+        String lastname = root.path("last_name").textValue();
+        checkParams(true, email, password, firstname, lastname, parametersErrors);
+        
+        if (parametersErrors.isParameterError())
+        	return parametersErrors.toResponse();
         
         // Beta Handling
         BetaInvitation betaInvitation = BetaInvitation.find.where().eq("email", email).findUnique();
         if (betaInvitation == null) {
-        	betaInvitation = new BetaInvitation(null, email, State.REQUESTING);
+        	betaInvitation = new BetaInvitation(null, email, password, firstname, lastname, State.REQUESTING);
         	betaInvitation.save();
-        	return forbidden("Your request to join the beta has been sent.");
+        	return status(ACCEPTED);
         } else if (betaInvitation.state == State.INVITED) {        
-	        User newUser = new User(email, password);
+	        User newUser = new User(email, password, firstname, lastname);
 	        updateOneUser(newUser, root);
 	        newUser.save();
 	        
@@ -123,7 +163,7 @@ public class Users extends Controller {
 	        betaInvitation.save();
 	        return created(getUserObjectNode(newUser));
         } else {
-        	return forbidden("Your request to join the beta is still being processed.");
+        	return new errors.Error(errors.Error.Type.BETA_PROCESSING).toResponse();
         }
     }
 
@@ -142,7 +182,7 @@ public class Users extends Controller {
 
         User user = User.find.byId(id);
         if (user == null) {
-            return notFound("User with id " + id + " not found");
+        	return new errors.Error(errors.Error.Type.USER_NOT_FOUND).toResponse();
         }
 
         error = Access.hasPermissionOnUser(access, user, Access.UserAccessType.WRITE);
@@ -174,12 +214,22 @@ public class Users extends Controller {
         
         JsonNode root = request().body().asJson();
         if (root == null) {
-            return badRequest("Unexpected format, JSON required");
+        	return new errors.Error(errors.Error.Type.JSON_REQUIRED).toResponse();
         }
+        
+        errors.Error parametersErrors = new errors.Error(Type.PARAMETERS_ERROR);
+        String email = root.path("email").textValue();
+        String password = root.path("password").textValue();
+        String firstname = root.path("first_name").textValue();
+        String lastname = root.path("last_name").textValue();
+        checkParams(false, email, password, firstname, lastname, parametersErrors);
+        
+        if (parametersErrors.isParameterError())
+        	return parametersErrors.toResponse();
         
         User user = User.find.byId(id);
         if (user == null) {
-            return notFound("User with id " + id + " not found");
+        	return new errors.Error(errors.Error.Type.USER_NOT_FOUND).toResponse();
         }
 
         error = Access.hasPermissionOnUser(access, user, Access.UserAccessType.WRITE);
@@ -208,7 +258,7 @@ public class Users extends Controller {
         
         User user = User.find.byId(id);
         if (user == null) {
-            return notFound("User with id " + id + " not found");
+        	return new errors.Error(errors.Error.Type.USER_NOT_FOUND).toResponse();
         }
 
         error = Access.hasPermissionOnUser(access, user, Access.UserAccessType.READ);

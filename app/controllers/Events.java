@@ -1,7 +1,14 @@
 package controllers;
 
-import java.util.List;
+import Utils.Access;
 
+import com.avaje.ebean.Ebean;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import errors.Error.ParameterType;
+import errors.Error.Type;
 import models.AccessToken;
 import models.AccessTokenEventRelation;
 import models.Event;
@@ -11,12 +18,9 @@ import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
-import Utils.Access;
 
-import com.avaje.ebean.Ebean;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Controller that handles the different API action applied to an Event
@@ -29,7 +33,7 @@ public class Events extends Controller {
     /**
      * Convert an event to a JSON object.
      * 
-     * @param media An Event object to convert
+     * @param event An Event object to convert
      * @return The JSON object containing the event information
      */
     public static ObjectNode getEventObjectNode(Event event, AccessToken accessToken) {
@@ -65,6 +69,7 @@ public class Events extends Controller {
         	return error;
         }
 
+        // TODO privacy => readingPrivacy
         List<Event> events = Event.find.where().eq("privacy", Event.Privacy.PUBLIC).findList();
 
         ArrayNode eventsNode = Json.newObject().arrayNode();
@@ -77,6 +82,46 @@ public class Events extends Controller {
         return ok(result);
     }
 
+    /**
+     * Search for an event.
+     *
+     * TODO The user should also be able to search for ALL events he joined (private and protected as well) (if he's logged)
+     * TODO Change the orderBy to return the most popular events first (If $query match an event at 100%, this event should appears first, followed by the most popular ones )
+     * TODO Throw PARAMETERS_ERROR if query length is 0
+     *
+     * @param query query to lookup
+     * @param accessToken client access token
+     *
+     * @return An HTTP JSON response containing the properties of all the events
+     */
+    public static Result search(String query, String accessToken) {
+        AccessToken access = AccessTokens.access(accessToken);
+        Result error = Access.checkAuthentication(access, Access.AuthenticationType.ANONYMOUS_USER);
+        if (error != null) {
+        	return error;
+        }
+
+        List<Event> events = Event.find.where().eq("readingPrivacy", Event.Privacy.PUBLIC)
+                                       .where().istartsWith("token", query)
+                                       .orderBy("token")
+                                       .setMaxRows(20)
+                                       .findList();
+
+        ArrayNode eventsNode = Json.newObject().arrayNode();
+
+        for (Event event : events) {
+            eventsNode.add(getEventObjectNode(event, access));
+        }
+        ObjectNode result = Json.newObject();
+        result.put("events", eventsNode);
+        return ok(result);
+    }
+
+    /**
+     * List of all forbidden tokens
+     */
+    private static final List<String> forbiddenTokens = Arrays.asList("search");
+    
     /**
      * Add an event.
      * The event properties are contained into the HTTP Request body as JSON format.
@@ -92,8 +137,9 @@ public class Events extends Controller {
         }
         
         JsonNode json = request().body().asJson();
-        if (json == null)
-            return badRequest("Unexpected format, JSON required");
+        if (json == null) {
+        	return new errors.Error(errors.Error.Type.JSON_REQUIRED).toResponse();
+        }
         
         Privacy readingPrivacy = Privacy.NOT_SET;
         String 	token = null;
@@ -103,15 +149,15 @@ public class Events extends Controller {
         Event event = null;
 
         if (readingPrivacyStr == null) {
-            return badRequest("Missing parameter [readingPrivacy]");
+        	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("readingPrivacy", ParameterType.REQUIRED).toResponse();
         }
         if (readingPrivacyStr.equals("public")) {
             token = json.path("token").textValue();
 
             if (token == null) {
-                return badRequest("Missing parameter [token]");
+            	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("token", ParameterType.REQUIRED).toResponse();
             } else if (Event.find.where().eq("token", token).findUnique() != null) {
-                return badRequest("Token already used");
+            	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("token", ParameterType.DUPLICATE).toResponse();
             }
             readingPrivacy = Privacy.PUBLIC;
         } else if (readingPrivacyStr.equals("protected")) {
@@ -119,22 +165,27 @@ public class Events extends Controller {
             readingPassword = json.path("password").textValue();
 
             if (token == null) {
-                return badRequest("Missing parameter [token]");
+            	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("token", ParameterType.REQUIRED).toResponse();
             } else if (Event.find.where().eq("token", token).findUnique() != null) {
-                return badRequest("Token already used");
+            	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("token", ParameterType.DUPLICATE).toResponse();
             } else if (readingPassword == null) {
-                return badRequest("Missing parameter [password]");
+            	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("password", ParameterType.REQUIRED).toResponse();
             }
             readingPrivacy = Privacy.PROTECTED;
             readingPassword = Utils.Hasher.hash(readingPassword);
         } else if (readingPrivacyStr.equals("private")) {
         	readingPrivacy = Privacy.PRIVATE;
         } else {
-            return badRequest("[readingPrivacy] has to be in ('public', 'protected', 'private')");
+        	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("readingPrivacy", ParameterType.FORMAT).toResponse();
         }
         
         event = new Event(readingPrivacy, access.user);
         if (token != null) {
+        	if (forbiddenTokens.contains(token)) {
+            	return new errors.Error(Type.FORBIDDEN_TOKEN).toResponse();
+        	} else if (!token.matches("[a-zA-Z0-9|-]*")) {
+            	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("token", ParameterType.FORMAT).toResponse();
+        	}
         	event.token = token;
         }
         if (readingPassword != null) {
@@ -143,7 +194,7 @@ public class Events extends Controller {
         
         String name = json.path("name").textValue();
         if (name == null) {
-            return badRequest("Missing parameter [name]");
+        	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("name", ParameterType.REQUIRED).toResponse();
         }
         event.name = name;
 
@@ -172,7 +223,7 @@ public class Events extends Controller {
 
         Event event = Event.find.where().eq("token", token).findUnique();
         if (event == null) {
-            return notFound("Event with token " + token + " not found");
+        	return new errors.Error(errors.Error.Type.EVENT_NOT_FOUND).toResponse();
         }
         
         error = Access.hasPermissionOnEvent(access, event, Access.AccessType.ROOT);
@@ -204,21 +255,21 @@ public class Events extends Controller {
 
         Event event = Event.find.where().eq("token", token).findUnique();
         if (event == null) {
-            return notFound("Event with token " + token + " not found");
+        	return new errors.Error(errors.Error.Type.EVENT_NOT_FOUND).toResponse();
         }
 
         JsonNode root = request().body().asJson();
         if (root == null) {
-            return badRequest("Unexpected format, JSON required");
+        	return new errors.Error(errors.Error.Type.JSON_REQUIRED).toResponse();
         }
 
         if (event.writingPrivacy != Event.Privacy.PROTECTED && event.readingPrivacy != Event.Privacy.PROTECTED) {
-        	return badRequest("You cannot request an access with a password on this event");
+        	return new errors.Error(errors.Error.Type.NO_PASSWORD).toResponse();
         }
         
         String password = root.path("password").textValue();
         if (password == null) {
-        	return badRequest("We need a password to grant you the access");
+        	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("password", ParameterType.REQUIRED).toResponse();
         }
         
         password = Utils.Hasher.hash(password);
@@ -232,7 +283,7 @@ public class Events extends Controller {
             	grantedAccess = Access.AccessType.READ;
         	}
         } else {
-        	return forbidden("Wrong password");
+        	return new errors.Error(errors.Error.Type.WRONG_PASSWORD).toResponse();
         }
         
 		AccessTokenEventRelation newAccess = AccessTokenEventRelation.find.where().eq("accessToken", access).eq("event", event).findUnique();
@@ -263,7 +314,7 @@ public class Events extends Controller {
 
         Event event = Event.find.where().eq("token", token).findUnique();
         if (event == null) {
-            return notFound("Event with token " + token + " not found");
+        	return new errors.Error(errors.Error.Type.EVENT_NOT_FOUND).toResponse();
         }
         
         error = Access.hasPermissionOnEvent(access, event, Access.AccessType.ADMINISTRATE);
@@ -273,7 +324,7 @@ public class Events extends Controller {
         
         JsonNode root = request().body().asJson();
         if (root == null) {
-            return badRequest("Unexpected format, JSON required");
+        	return new errors.Error(errors.Error.Type.JSON_REQUIRED).toResponse();
         }
         
         fillEventFromJSON(event, root);
@@ -284,9 +335,9 @@ public class Events extends Controller {
         		token = root.path("token").textValue();
 
         		if (event.readingPrivacy == Privacy.PRIVATE && token == null) {
-        			return badRequest("A token is required for a public event");
+                	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("token", ParameterType.REQUIRED).toResponse();
         		} else if (token != null && !token.equals(event.token) && Event.find.where().eq("token", token).findUnique() != null) {
-        			return badRequest("Token already used");
+                	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("token", ParameterType.DUPLICATE).toResponse();
         		} else {
         			event.readingPrivacy = Privacy.PUBLIC;
         			if (token != null) {
@@ -297,14 +348,14 @@ public class Events extends Controller {
         		token = root.path("token").textValue();
 
         		if (event.readingPrivacy == Privacy.PRIVATE && token == null) {
-        			return badRequest("A token is required for a protected event");
+                	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("token", ParameterType.REQUIRED).toResponse();
         		} else if (token != null && !token.equals(event.token) && Event.find.where().eq("token", token).findUnique() != null) {
-        			return badRequest("Token already used");
+                	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("token", ParameterType.DUPLICATE).toResponse();
         		}
    
         		String readingPassword = root.path("password").textValue();
         		if (readingPassword == null) {
-        			return badRequest("Missing parameter [password]");
+                	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("password", ParameterType.REQUIRED).toResponse();
         		}
         		
         		event.readingPrivacy = Privacy.PROTECTED;
@@ -320,7 +371,7 @@ public class Events extends Controller {
         		event.readingPrivacy = Privacy.PRIVATE;
         		event.token = event.id;
         	} else {
-        		return badRequest("[privacy] has to be in ('public', 'protected', 'private')");
+            	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("privacy", ParameterType.FORMAT).toResponse();
         	}
         }
         String writingPrivacyStr = root.path("writingPrivacy").textValue();
@@ -330,7 +381,7 @@ public class Events extends Controller {
         	} else if (writingPrivacyStr.equals("protected")) {
         		String writingPassword = root.path("writingPassword").textValue();
         		if (writingPassword == null) {
-        			return badRequest("Missing parameter [writingPassword]");
+                	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("writingPassword", ParameterType.REQUIRED).toResponse();
         		}
         		if (event.writingPrivacy == Event.Privacy.NOT_SET && event.readingPrivacy == Event.Privacy.PROTECTED) {
         			List<AccessTokenEventRelation> permissions = AccessTokenEventRelation.find.where().eq("event", event).eq("permission", Access.AccessType.WRITE).findList();
@@ -346,14 +397,19 @@ public class Events extends Controller {
         	} else if (writingPrivacyStr.equals("private")) {
         		event.writingPrivacy = Privacy.PRIVATE;
         	} else {
-        		return badRequest("[readingPrivacy] has to be in ('public', 'protected', 'private')");
+            	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("readingPrivacy", ParameterType.FORMAT).toResponse();
         	}
 
         	if (event.readingPrivacy.compareTo(event.writingPrivacy) > 0) {
-				return badRequest("The writing privacy cannot match the reading privacy");
+            	return new errors.Error(errors.Error.Type.READING_TOO_STRONG).toResponse();
             }
         }
 
+        if (forbiddenTokens.contains(event.token)) {
+        	return new errors.Error(Type.FORBIDDEN_TOKEN).toResponse();
+    	} else if (!event.token.matches("[a-zA-Z0-9|-]*")) {
+        	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("token", ParameterType.FORMAT).toResponse();
+    	}
         event.update();
         return ok(getEventObjectNode(event, access));
     }
@@ -374,7 +430,7 @@ public class Events extends Controller {
         Event event = Ebean.find(Event.class).fetch("medias").orderBy("original asc").fetch("medias.owner").fetch("medias.image")
                 .fetch("medias.image.files").fetch("medias.image.files.file").fetch("root").where().eq("token", token).findUnique();
         if (event == null) {
-            return notFound("Event with token " + token + " not found");
+        	return new errors.Error(errors.Error.Type.EVENT_NOT_FOUND).toResponse();
         }
 
         error = Access.hasPermissionOnEvent(access, event, Access.AccessType.READ);

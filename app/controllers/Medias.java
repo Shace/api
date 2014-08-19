@@ -30,6 +30,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import errors.Error.ParameterType;
+import errors.Error.Type;
+
 /**
  * Controller that handles the different API action applied to the media
  * @author olivie_a
@@ -53,7 +56,7 @@ public class Medias extends Controller {
 
         Event		ownerEvent = Event.find.where().eq("token", ownerEventToken).findUnique();
     	if (ownerEvent == null) {
-    		return notFound("Event not found");
+        	return new errors.Error(errors.Error.Type.EVENT_NOT_FOUND).toResponse();
     	}
 
         error = Access.hasPermissionOnEvent(access, ownerEvent, Access.AccessType.WRITE);
@@ -63,12 +66,12 @@ public class Medias extends Controller {
 
     	JsonNode root = request().body().asJson();
     	if (root == null) {
-    		return badRequest("Unexpected format, JSon required");
+        	return new errors.Error(errors.Error.Type.JSON_REQUIRED).toResponse();
     	}
     	
     	JsonNode mediaList = root.get("medias");
     	if (mediaList == null) {
-    		return badRequest("Missing parameter [medias]");
+        	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("medias", ParameterType.REQUIRED).toResponse();
     	}
     	
 		ArrayNode mediasNode = Json.newObject().arrayNode();
@@ -83,7 +86,7 @@ public class Medias extends Controller {
 		}
 
     	if (mediasNode.size() == 0) {
-    		return badRequest("Empty/Invalid media list");
+        	return new errors.Error(errors.Error.Type.EMPTY_MEDIA_LIST).toResponse();
     	}
 
     	ObjectNode result = Json.newObject();
@@ -105,14 +108,14 @@ public class Medias extends Controller {
     	
     	Media	currentMedia = Media.find.byId(id);
     	if (currentMedia == null) {
-    		return notFound("Media not found");
+        	return new errors.Error(errors.Error.Type.MEDIA_NOT_FOUND).toResponse();
     	}
     	
     	Event	currentEvent = currentMedia.event;
     	if (currentEvent == null) {
-    		return notFound("Media not found");
+        	return new errors.Error(errors.Error.Type.MEDIA_NOT_FOUND).toResponse();
     	} else if (!currentMedia.owner.equals(access.user)) {
-    		return forbidden("Permission Denied");
+        	return new errors.Error(errors.Error.Type.NEED_OWNER).toResponse();
     	}
 
        	currentMedia.delete();
@@ -135,19 +138,19 @@ public class Medias extends Controller {
 
     	Media	currentMedia = Media.find.byId(id);
     	if (currentMedia == null) {
-    		return notFound("Media not found");
+        	return new errors.Error(errors.Error.Type.MEDIA_NOT_FOUND).toResponse();
     	}
     	
     	Event	currentEvent = currentMedia.event;
     	if (currentEvent == null) {
-    		return notFound("Media not found");
+        	return new errors.Error(errors.Error.Type.MEDIA_NOT_FOUND).toResponse();
     	} else if (!currentMedia.owner.equals(access.user)) {
-    		return forbidden("Permission Denied");
+        	return new errors.Error(errors.Error.Type.NEED_OWNER).toResponse();
     	}
 
     	JsonNode root = request().body().asJson();
     	if (root == null) {
-    		return badRequest("Unexpected format, JSon required");
+        	return new errors.Error(errors.Error.Type.JSON_REQUIRED).toResponse();
     	}
 
     	updateOneMedia(currentMedia, root);
@@ -172,12 +175,12 @@ public class Medias extends Controller {
 
     	Media	currentMedia = Media.find.byId(id);
     	if (currentMedia == null) {
-    		return notFound("Media not found");
+        	return new errors.Error(errors.Error.Type.MEDIA_NOT_FOUND).toResponse();
     	}
     	
     	Event	currentEvent = currentMedia.event;
     	if (currentEvent == null) {
-    		return notFound("Media not found");
+        	return new errors.Error(errors.Error.Type.MEDIA_NOT_FOUND).toResponse();
     	}
 
     	error = Access.hasPermissionOnEvent(access, currentEvent, Access.AccessType.READ);
@@ -255,12 +258,12 @@ public class Medias extends Controller {
         
     	Media	currentMedia = Media.find.byId(id);
     	if (currentMedia == null) {
-    		return notFound("Media not found");
+        	return new errors.Error(errors.Error.Type.MEDIA_NOT_FOUND).toResponse();
     	}
     	
     	Event	currentEvent = currentMedia.event;
     	if (currentEvent == null) {
-    		return notFound("Media not found");
+        	return new errors.Error(errors.Error.Type.MEDIA_NOT_FOUND).toResponse();
     	}
 
         if (access.user.equals(currentMedia.owner)) {
@@ -273,7 +276,7 @@ public class Medias extends Controller {
               try {
                 currentMedia.image.addFile(file);
               } catch (Image.BadFormat b) {
-                  return badRequest("Bad format image " + b.getMessage());
+              	return new errors.Error(errors.Error.Type.BAD_FORMAT_IMAGE).toResponse();
               }
               
               /*
@@ -297,7 +300,7 @@ public class Medias extends Controller {
             }
             
         } else {
-            return forbidden("Only the owner can edit a media");
+        	return new errors.Error(errors.Error.Type.NEED_OWNER).toResponse();
         }
 
         currentMedia.update();
