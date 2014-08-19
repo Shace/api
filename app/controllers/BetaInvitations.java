@@ -46,7 +46,7 @@ public class BetaInvitations extends Controller {
 	    if (current == null && access.user.isAdmin == false) {
         	return forbidden("No invitations");
 	    } else if (current == null) {
-	    	current = new BetaInvitation(null, access.user.email, State.CREATED);
+	    	current = new BetaInvitation(null, access.user.email, null, null, null, State.CREATED);
 	    	current.createdUser = access.user;
 	    	current.save();
 	    }
@@ -87,7 +87,7 @@ public class BetaInvitations extends Controller {
         if (current == null && access.user.isAdmin == false) {
         	return new errors.Error(errors.Error.Type.NO_INVITATIONS).toResponse();
         } else if (current == null) {
-        	current = new BetaInvitation(null, access.user.email, State.CREATED);
+        	current = new BetaInvitation(null, access.user.email, null, null, null, State.CREATED);
         	current.createdUser = access.user;
         	current.save();
         }
