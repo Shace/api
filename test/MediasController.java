@@ -74,7 +74,7 @@ public class MediasController extends WithApplication {
     	 */
     	standardAddMedia(
     			"{\"medias\":[{\"name\":\"Test Image\",\"description\":\"Here is the test image description\"}]}",
-    			ownerEvent.token, FORBIDDEN, 1, null);
+    			ownerEvent.token, NOT_FOUND, 1, null);
 
     	
     	// TODO : Make a test with a connected user that has no write rights on the event
@@ -134,7 +134,7 @@ public class MediasController extends WithApplication {
     	 */
     	standardUpdateMedia(
     			"{\"name\":\"New Test Name1\",\"description\":\"New Test Description1\"}",
-    			ownerEvent.token, newMedia.id, FORBIDDEN, false, "", "", null);
+    			ownerEvent.token, newMedia.id, NOT_FOUND, false, "", "", null);
 
 
     	// TODO : Make a test a connected user that has no write rights on the media event
@@ -185,7 +185,7 @@ public class MediasController extends WithApplication {
     	/**
     	 * Valid request with a not connected user
     	 */
-    	standardDeleteMedia(newMedia2.id, ownerEvent.token, FORBIDDEN, 2, null);
+    	standardDeleteMedia(newMedia2.id, ownerEvent.token, NOT_FOUND, 2, null);
 
 
     	

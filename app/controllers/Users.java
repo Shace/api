@@ -7,7 +7,6 @@ import models.AccessToken;
 import models.BetaInvitation;
 import models.BetaInvitation.State;
 import models.User;
-import play.api.data.format.Formats;
 import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
@@ -18,7 +17,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import errors.Error;
 import errors.Error.ParameterType;
 import errors.Error.Type;
 
@@ -79,30 +77,38 @@ public class Users extends Controller {
         return ok(result);
     }
     
-    public static void checkParams(String email, String password, String firstname, String lastname, errors.Error parametersErrors) {
+    public static void checkParams(boolean required, String email, String password, String firstname, String lastname, errors.Error parametersErrors) {
        
     	if (email == null || email.isEmpty()) {
-        	parametersErrors.addParameter("email", ParameterType.REQUIRED);
+    		if (required) {
+    			parametersErrors.addParameter("email", ParameterType.REQUIRED);
+    		}
         } else if (!Utils.Formats.isValidEmail(email)) {
         	parametersErrors.addParameter("email", ParameterType.FORMAT);
         }
 
         if (password == null || password.isEmpty()) {
-        	parametersErrors.addParameter("password", ParameterType.REQUIRED);
+        	if (required) {
+    			parametersErrors.addParameter("password", ParameterType.REQUIRED);
+    		}
         } else if (password.length() < 5) {
         	parametersErrors.addParameter("password", ParameterType.FORMAT);
         }
         
         if (firstname == null || firstname.isEmpty()) {
-        	parametersErrors.addParameter("firstname", ParameterType.REQUIRED);
+        	if (required) {
+    			parametersErrors.addParameter("first_name", ParameterType.REQUIRED);
+    		}
         } else if (firstname.length() < 2) {
-        	parametersErrors.addParameter("firstname", ParameterType.FORMAT);
+        	parametersErrors.addParameter("first_name", ParameterType.FORMAT);
         }
 
         if (lastname == null || lastname.isEmpty()) {
-        	parametersErrors.addParameter("lastname", ParameterType.REQUIRED);
+        	if (required) {
+    			parametersErrors.addParameter("last_name", ParameterType.REQUIRED);
+    		}
         } else if (lastname.length() < 2) {
-        	parametersErrors.addParameter("lastname", ParameterType.FORMAT);
+        	parametersErrors.addParameter("last_name", ParameterType.FORMAT);
         }
 
         if (!parametersErrors.isParameterError() && User.find.where().eq("email", email).findUnique() != null) {
@@ -133,9 +139,9 @@ public class Users extends Controller {
         errors.Error parametersErrors = new errors.Error(Type.PARAMETERS_ERROR);
         String email = root.path("email").textValue();
         String password = root.path("password").textValue();
-        String firstname = root.path("firstname").textValue();
-        String lastname = root.path("lastname").textValue();
-        checkParams(email, password, firstname, lastname, parametersErrors);
+        String firstname = root.path("first_name").textValue();
+        String lastname = root.path("last_name").textValue();
+        checkParams(true, email, password, firstname, lastname, parametersErrors);
         
         if (parametersErrors.isParameterError())
         	return parametersErrors.toResponse();
@@ -214,9 +220,9 @@ public class Users extends Controller {
         errors.Error parametersErrors = new errors.Error(Type.PARAMETERS_ERROR);
         String email = root.path("email").textValue();
         String password = root.path("password").textValue();
-        String firstname = root.path("firstname").textValue();
-        String lastname = root.path("lastname").textValue();
-        checkParams(email, password, firstname, lastname, parametersErrors);
+        String firstname = root.path("first_name").textValue();
+        String lastname = root.path("last_name").textValue();
+        checkParams(false, email, password, firstname, lastname, parametersErrors);
         
         if (parametersErrors.isParameterError())
         	return parametersErrors.toResponse();
