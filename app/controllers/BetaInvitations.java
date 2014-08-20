@@ -47,9 +47,16 @@ public class BetaInvitations extends Controller {
         }
 
         BetaInvitation current = BetaInvitation.find.where().eq("createdUser", access.user).findUnique();
+	    if (current == null && access.user.isAdmin == false) {
+        	return forbidden("No invitations");
+	    } else if (current == null) {
+	    	current = new BetaInvitation(null, access.user.email, null, null, null, State.CREATED);
+	    	current.createdUser = access.user;
+	    	current.save();
+	    }
 		ArrayNode guestsNode = Json.newObject().arrayNode();
     	for (JsonNode guestNode: guestList) {
-    		if (current.invitedPeople > invitationNumber) {
+    		if (current.invitedPeople > invitationNumber && access.user.isAdmin == false) {
     			break;
     		}
     		String mail = guestNode.path("email").textValue();
@@ -72,7 +79,7 @@ public class BetaInvitations extends Controller {
     	current.save();
     	ObjectNode result = Json.newObject();
 		result.put("invited", guestsNode);
-		result.put("remaining", invitationNumber - current.invitedPeople);
+		result.put("remaining", access.user.isAdmin ? 10 : (invitationNumber - current.invitedPeople));
 		return created(result);
     }
     
@@ -83,8 +90,12 @@ public class BetaInvitations extends Controller {
             return error;
         }
         BetaInvitation current = BetaInvitation.find.where().eq("createdUser", access.user).findUnique();
-        if (current == null) {
+        if (current == null && access.user.isAdmin == false) {
         	return new errors.Error(errors.Error.Type.NO_INVITATIONS).toResponse();
+        } else if (current == null) {
+        	current = new BetaInvitation(null, access.user.email, null, null, null, State.CREATED);
+        	current.createdUser = access.user;
+        	current.save();
         }
         List<BetaInvitation> guestList = BetaInvitation.find.where().eq("originalUser", access.user).findList();
 		ArrayNode guestsNode = Json.newObject().arrayNode();
@@ -95,9 +106,9 @@ public class BetaInvitations extends Controller {
     		guestsNode.add(infos);
 		}
     	ObjectNode result = Json.newObject();
-		result.put("invited", guestsNode);
-		result.put("remaining", invitationNumber - current.invitedPeople);
-		return ok(result);
+	result.put("invited", guestsNode);
+	result.put("remaining", access.user.isAdmin ? 10 : (invitationNumber - current.invitedPeople));
+	return created(result);
     }
 
     public static Result processingList(String accessToken) {

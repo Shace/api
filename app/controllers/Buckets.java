@@ -1,8 +1,9 @@
 package controllers;
 
-import java.util.Collections;
-import java.util.List;
-
+import com.avaje.ebean.Ebean;
+import com.avaje.ebean.SqlUpdate;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import models.AccessToken;
 import models.Bucket;
 import models.Event;
@@ -10,10 +11,8 @@ import models.Media;
 import play.libs.Json;
 import play.mvc.Controller;
 
-import com.avaje.ebean.Ebean;
-import com.avaje.ebean.SqlUpdate;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.Collections;
+import java.util.List;
 
 @CORS
 public class Buckets extends Controller {
@@ -30,13 +29,15 @@ public class Buckets extends Controller {
         result.put("id", bucket.id);
         result.put("name", bucket.name);
         result.put("level", bucket.level);
-        result.put("first", bucket.first.getTime());
-        result.put("last", bucket.last.getTime());
+        result.put("first", (bucket.first != null) ? (bucket.first.getTime()) : (null));
+        result.put("last", (bucket.last != null) ? (bucket.last.getTime()) : (null));
         result.put("size", bucket.size);
 
         ArrayNode medias = result.putArray("medias");
-        for (Media media : bucket.medias) {
-            medias.add(Medias.mediaToJson(access, ownerEvent, media, null, false));
+        if (bucket.medias != null) {
+            for (Media media : bucket.medias) {
+                medias.add(Medias.mediaToJson(access, ownerEvent, media, null, false));
+            }
         }
 
         bucket.refresh();
