@@ -22,6 +22,7 @@ DELETE         /events/:token                                   controllers.Even
 PUT            /events/:token                                   controllers.Events.update(token : String, access_token)
 POST           /events/:token/access                            controllers.Events.access(token : String, access_token)
 GET            /events/:token                                   controllers.Events.event(token : String, access_token)
+POST           /events/:token/cover                        		controllers.Events.addCover(token : String, access_token)
 
 # Medias
 POST           /events/:token/medias                            controllers.Medias.add(token : String, access_token)

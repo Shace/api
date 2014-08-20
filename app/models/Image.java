@@ -32,6 +32,11 @@ import com.drew.metadata.exif.ExifIFD0Directory;
 @Entity
 @Table(name="se_image")
 public class Image extends Model {
+	
+	public static enum FormatType {
+		GALLERY,
+		EVENT_COVER
+	}
 
     public static class BadFormat extends IOException {
         private static final long serialVersionUID = 2619200964548042413L;
@@ -73,7 +78,7 @@ public class Image extends Model {
      * @param file File containing an image in a valid format
      * @throws BadFormat If a problem occurs with image format or resizing
      */
-    public void addFile(File file) throws BadFormat {
+    public void addFile(File file, FormatType formatType) throws BadFormat {
         try {
             BufferedImage original = ImageIO.read(file);
             if (original == null)
@@ -103,8 +108,10 @@ public class Image extends Model {
              * Generate all formats of stored images
              */
             for (ImageFormat format : ImageFormats.get().formats) {
-                BufferedImage resized = resizeImage(original, format.width, format.height, format.crop);
-                this.files.add(ImageFileRelation.create(this, models.File.create(Storage.storeImage(resized, format), Storage.getBaseUrl()), format.width, format.height, format.name));
+            	if (format.type == formatType) {
+            		BufferedImage resized = resizeImage(original, format.width, format.height, format.crop);
+            		this.files.add(ImageFileRelation.create(this, models.File.create(Storage.storeImage(resized, format), Storage.getBaseUrl()), format.width, format.height, format.name));
+            	}
             }
             this.save();
         } catch (IOException e) {
@@ -121,7 +128,17 @@ public class Image extends Model {
      * @return resized image
      */
     private BufferedImage resizeImage(BufferedImage original, int width, int height, boolean crop) {
-        return Scalr.resize(original, Scalr.Method.QUALITY, Scalr.Mode.AUTOMATIC, width, height);
+    	if (original.getWidth() < width && original.getHeight() < height) {
+    		return original;
+    	}
+    	BufferedImage resized = Scalr.resize(original, Scalr.Method.QUALITY, Scalr.Mode.AUTOMATIC, width, height);
+    	if (resized.getWidth() > width) {
+			resized = Scalr.crop(resized, (resized.getWidth() - width) / 2, 0, width, resized.getHeight());
+    	}
+    	if (resized.getHeight() > height) {
+			resized = Scalr.crop(resized, 0, (resized.getHeight() - height) / 2, resized.getWidth(), height);
+    	}
+    	return resized;
     }
     
     /**
