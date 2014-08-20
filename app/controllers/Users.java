@@ -5,6 +5,7 @@ import java.util.List;
 
 import models.AccessToken;
 import models.BetaInvitation;
+import models.AccessToken.Lang;
 import models.BetaInvitation.State;
 import models.User;
 import play.libs.Json;
@@ -12,10 +13,13 @@ import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
 import Utils.Access;
+import Utils.Mailer;
+import Utils.Mailer.EmailType;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableMap;
 
 import errors.Error.ParameterType;
 import errors.Error.Type;
@@ -150,7 +154,9 @@ public class Users extends Controller {
         BetaInvitation betaInvitation = BetaInvitation.find.where().eq("email", email).findUnique();
         if (betaInvitation == null) {
         	betaInvitation = new BetaInvitation(null, email, password, firstname, lastname, State.REQUESTING);
+        	betaInvitation.lang = access.lang;
         	betaInvitation.save();
+        	Mailer.get().sendMail(EmailType.BETA_REQUEST_SENT, access.getLang(), email, ImmutableMap.of("FIRSTNAME", firstname, "LASTNAME", lastname));
         	return status(ACCEPTED);
         } else if (betaInvitation.state == State.INVITED) {        
 	        User newUser = new User(email, password, firstname, lastname);

@@ -10,6 +10,7 @@ import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
+import models.AccessToken.Lang;
 import play.data.format.Formats;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
@@ -64,6 +65,9 @@ public class BetaInvitation extends Model {
 	
 	@Column
 	public State		state;
+	
+	@Column
+	public Lang			lang;
 	
 	public BetaInvitation(User user, String mail, String password, String firstname, String lastname, State state) {
 		this.originalUser = user;

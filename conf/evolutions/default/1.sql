@@ -36,7 +36,9 @@ create table se_beta_invitation (
   invitation_date           timestamp,
   invited_people            integer,
   state                     integer,
+  lang                      integer,
   constraint ck_se_beta_invitation_state check (state in (0,1,2)),
+  constraint ck_se_beta_invitation_lang check (lang in (0,1,2)),
   constraint pk_se_beta_invitation primary key (id))
 ;
 
@@ -59,6 +61,17 @@ create table se_comment (
   owner_id                  integer,
   media_id                  integer,
   constraint pk_se_comment primary key (id))
+;
+
+create table se_email (
+  id                        integer not null,
+  lang                      integer,
+  type                      integer,
+  subject                   varchar(255),
+  from_email                varchar(255),
+  html                      text,
+  constraint ck_se_email_lang check (lang in (0,1,2)),
+  constraint pk_se_email primary key (id))
 ;
 
 create table se_event (
@@ -175,6 +188,8 @@ create sequence se_bucket_seq;
 
 create sequence se_comment_seq;
 
+create sequence se_email_seq;
+
 create sequence se_event_seq;
 
 create sequence se_event_user_relation_seq;
@@ -193,86 +208,84 @@ create sequence se_tag_seq;
 
 create sequence se_user_seq;
 
-alter table se_access_token add constraint fk_se_access_token_user_1 foreign key (user_id) references se_user (id) on delete restrict on update restrict;
+alter table se_access_token add constraint fk_se_access_token_user_1 foreign key (user_id) references se_user (id);
 create index ix_se_access_token_user_1 on se_access_token (user_id);
-alter table se_access_token_event_relation add constraint fk_se_access_token_event_relat_2 foreign key (event_id) references se_event (id) on delete restrict on update restrict;
+alter table se_access_token_event_relation add constraint fk_se_access_token_event_relat_2 foreign key (event_id) references se_event (id);
 create index ix_se_access_token_event_relat_2 on se_access_token_event_relation (event_id);
-alter table se_access_token_event_relation add constraint fk_se_access_token_event_relat_3 foreign key (accessToken_id) references se_access_token (token) on delete restrict on update restrict;
+alter table se_access_token_event_relation add constraint fk_se_access_token_event_relat_3 foreign key (accessToken_id) references se_access_token (token);
 create index ix_se_access_token_event_relat_3 on se_access_token_event_relation (accessToken_id);
-alter table se_beta_invitation add constraint fk_se_beta_invitation_original_4 foreign key (original_user_id) references se_user (id) on delete restrict on update restrict;
+alter table se_beta_invitation add constraint fk_se_beta_invitation_original_4 foreign key (original_user_id) references se_user (id);
 create index ix_se_beta_invitation_original_4 on se_beta_invitation (original_user_id);
-alter table se_beta_invitation add constraint fk_se_beta_invitation_createdU_5 foreign key (created_user_id) references se_user (id) on delete restrict on update restrict;
+alter table se_beta_invitation add constraint fk_se_beta_invitation_createdU_5 foreign key (created_user_id) references se_user (id);
 create index ix_se_beta_invitation_createdU_5 on se_beta_invitation (created_user_id);
-alter table se_bucket add constraint fk_se_bucket_parent_6 foreign key (parent_id) references se_bucket (id) on delete restrict on update restrict;
+alter table se_bucket add constraint fk_se_bucket_parent_6 foreign key (parent_id) references se_bucket (id);
 create index ix_se_bucket_parent_6 on se_bucket (parent_id);
-alter table se_bucket add constraint fk_se_bucket_event_7 foreign key (event_id) references se_event (id) on delete restrict on update restrict;
+alter table se_bucket add constraint fk_se_bucket_event_7 foreign key (event_id) references se_event (id);
 create index ix_se_bucket_event_7 on se_bucket (event_id);
-alter table se_comment add constraint fk_se_comment_owner_8 foreign key (owner_id) references se_user (id) on delete restrict on update restrict;
+alter table se_comment add constraint fk_se_comment_owner_8 foreign key (owner_id) references se_user (id);
 create index ix_se_comment_owner_8 on se_comment (owner_id);
-alter table se_comment add constraint fk_se_comment_media_9 foreign key (media_id) references se_media (id) on delete restrict on update restrict;
+alter table se_comment add constraint fk_se_comment_media_9 foreign key (media_id) references se_media (id);
 create index ix_se_comment_media_9 on se_comment (media_id);
-alter table se_event add constraint fk_se_event_root_10 foreign key (root_id) references se_bucket (id) on delete restrict on update restrict;
+alter table se_event add constraint fk_se_event_root_10 foreign key (root_id) references se_bucket (id);
 create index ix_se_event_root_10 on se_event (root_id);
-alter table se_event_user_relation add constraint fk_se_event_user_relation_eve_11 foreign key (event_token) references se_event (id) on delete restrict on update restrict;
+alter table se_event_user_relation add constraint fk_se_event_user_relation_eve_11 foreign key (event_token) references se_event (id);
 create index ix_se_event_user_relation_eve_11 on se_event_user_relation (event_token);
-alter table se_event_user_relation add constraint fk_se_event_user_relation_use_12 foreign key (user_id) references se_user (id) on delete restrict on update restrict;
+alter table se_event_user_relation add constraint fk_se_event_user_relation_use_12 foreign key (user_id) references se_user (id);
 create index ix_se_event_user_relation_use_12 on se_event_user_relation (user_id);
-alter table se_image_file_relation add constraint fk_se_image_file_relation_ima_13 foreign key (image_id) references se_image (id) on delete restrict on update restrict;
+alter table se_image_file_relation add constraint fk_se_image_file_relation_ima_13 foreign key (image_id) references se_image (id);
 create index ix_se_image_file_relation_ima_13 on se_image_file_relation (image_id);
-alter table se_image_file_relation add constraint fk_se_image_file_relation_fil_14 foreign key (file_id) references se_file (id) on delete restrict on update restrict;
+alter table se_image_file_relation add constraint fk_se_image_file_relation_fil_14 foreign key (file_id) references se_file (id);
 create index ix_se_image_file_relation_fil_14 on se_image_file_relation (file_id);
-alter table se_media add constraint fk_se_media_owner_15 foreign key (owner_id) references se_user (id) on delete restrict on update restrict;
+alter table se_media add constraint fk_se_media_owner_15 foreign key (owner_id) references se_user (id);
 create index ix_se_media_owner_15 on se_media (owner_id);
-alter table se_media add constraint fk_se_media_event_16 foreign key (event_id) references se_event (id) on delete restrict on update restrict;
+alter table se_media add constraint fk_se_media_event_16 foreign key (event_id) references se_event (id);
 create index ix_se_media_event_16 on se_media (event_id);
-alter table se_media add constraint fk_se_media_image_17 foreign key (image_id) references se_image (id) on delete restrict on update restrict;
+alter table se_media add constraint fk_se_media_image_17 foreign key (image_id) references se_image (id);
 create index ix_se_media_image_17 on se_media (image_id);
-alter table se_tag add constraint fk_se_tag_media_18 foreign key (media_id) references se_media (id) on delete restrict on update restrict;
+alter table se_tag add constraint fk_se_tag_media_18 foreign key (media_id) references se_media (id);
 create index ix_se_tag_media_18 on se_tag (media_id);
-alter table se_tag add constraint fk_se_tag_creator_19 foreign key (user_id) references se_user (id) on delete restrict on update restrict;
+alter table se_tag add constraint fk_se_tag_creator_19 foreign key (user_id) references se_user (id);
 create index ix_se_tag_creator_19 on se_tag (user_id);
 
 
 
-alter table se_bucket_media add constraint fk_se_bucket_media_se_bucket_01 foreign key (se_bucket_id) references se_bucket (id) on delete restrict on update restrict;
+alter table se_bucket_media add constraint fk_se_bucket_media_se_bucket_01 foreign key (se_bucket_id) references se_bucket (id);
 
-alter table se_bucket_media add constraint fk_se_bucket_media_se_media_02 foreign key (se_media_id) references se_media (id) on delete restrict on update restrict;
+alter table se_bucket_media add constraint fk_se_bucket_media_se_media_02 foreign key (se_media_id) references se_media (id);
 
 # --- !Downs
 
-SET REFERENTIAL_INTEGRITY FALSE;
+drop table if exists se_access_token cascade;
 
-drop table if exists se_access_token;
+drop table if exists se_access_token_event_relation cascade;
 
-drop table if exists se_access_token_event_relation;
+drop table if exists se_beta_invitation cascade;
 
-drop table if exists se_beta_invitation;
+drop table if exists se_bucket cascade;
 
-drop table if exists se_bucket;
+drop table if exists se_bucket_media cascade;
 
-drop table if exists se_bucket_media;
+drop table if exists se_comment cascade;
 
-drop table if exists se_comment;
+drop table if exists se_email cascade;
 
-drop table if exists se_event;
+drop table if exists se_event cascade;
 
-drop table if exists se_event_user_relation;
+drop table if exists se_event_user_relation cascade;
 
-drop table if exists se_file;
+drop table if exists se_file cascade;
 
-drop table if exists se_image;
+drop table if exists se_image cascade;
 
-drop table if exists se_image_file_relation;
+drop table if exists se_image_file_relation cascade;
 
-drop table if exists se_image_format;
+drop table if exists se_image_format cascade;
 
-drop table if exists se_media;
+drop table if exists se_media cascade;
 
-drop table if exists se_tag;
+drop table if exists se_tag cascade;
 
-drop table if exists se_user;
-
-SET REFERENTIAL_INTEGRITY TRUE;
+drop table if exists se_user cascade;
 
 drop sequence if exists se_access_token_seq;
 
@@ -283,6 +296,8 @@ drop sequence if exists se_beta_invitation_seq;
 drop sequence if exists se_bucket_seq;
 
 drop sequence if exists se_comment_seq;
+
+drop sequence if exists se_email_seq;
 
 drop sequence if exists se_event_seq;
 

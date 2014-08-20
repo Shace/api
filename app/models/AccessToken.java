@@ -97,4 +97,12 @@ public class AccessToken extends Model {
 	public boolean isConnectedUser() {
 		return this.type == Type.USER;
 	}
+	
+	public Lang getLang() {
+    	if (user != null && user.lang != null) {
+        	return user.lang;
+        } else {
+        	return lang;
+        }
+    }
 }

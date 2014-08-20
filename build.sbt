@@ -12,6 +12,7 @@ libraryDependencies ++= Seq(
   "mysql" % "mysql-connector-java" % "5.1.18",
   "com.amazonaws" % "aws-java-sdk" % "1.7.5",
   "org.imgscalr" % "imgscalr-lib" % "4.2",
+  "com.typesafe.play.plugins" %% "play-plugins-mailer" % "2.3.0",
   jdbc
 )
 

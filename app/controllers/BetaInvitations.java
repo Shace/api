@@ -5,16 +5,20 @@ import java.util.List;
 import models.AccessToken;
 import models.BetaInvitation;
 import models.User;
+import models.AccessToken.Lang;
 import models.BetaInvitation.State;
 import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
 import Utils.Access;
+import Utils.Mailer;
+import Utils.Mailer.EmailType;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableMap;
 
 import errors.Error.ParameterType;
 import errors.Error.Type;
@@ -55,6 +59,8 @@ public class BetaInvitations extends Controller {
     				newGuest = new BetaInvitation(access.user, mail, null, null, null, State.INVITED);
     				newGuest.save();
     				current.invitedPeople++;
+    				
+    		    	Mailer.get().sendMail(EmailType.BETA_INVITATION, access.getLang(), newGuest.email, ImmutableMap.of("FIRSTNAME", access.user.firstName, "LASTNAME", access.user.lastName));
     				
     				ObjectNode infos = Json.newObject();
     	            infos.put("email", mail);
@@ -139,6 +145,7 @@ public class BetaInvitations extends Controller {
     			if (currentGuest != null && currentGuest.state == State.REQUESTING) {
     				User newUser = new User(currentGuest.email, currentGuest.password, currentGuest.firstName, currentGuest.lastName);
     				newUser.password = currentGuest.password;
+    				newUser.lang = currentGuest.lang;
     		        newUser.save();
     		        
     		        // Beta Handling
@@ -146,6 +153,7 @@ public class BetaInvitations extends Controller {
     		        currentGuest.state = State.CREATED;
     		        currentGuest.save();
 
+    		    	Mailer.get().sendMail(EmailType.BETA_REQUEST_ACCEPTED, newUser.lang, newUser.email, ImmutableMap.of("FIRSTNAME", newUser.firstName, "LASTNAME", newUser.lastName));
     				validatedNode.add(id);
     			}
     		}

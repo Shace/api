@@ -1,7 +1,12 @@
 package controllers;
 
+import models.AccessToken.Lang;
 import play.mvc.Controller;
 import play.mvc.Result;
+import Utils.Mailer;
+import Utils.Mailer.EmailType;
+
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Main class that represent the application
