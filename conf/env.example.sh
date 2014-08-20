@@ -14,3 +14,4 @@ export MAIL_HOST="mail.gandi.net"
 export MAIL_USER="noreply@shace.io"
 export MAIL_SSL="yes"
 export MAIL_PORT=465
+export MAIL_PASSWORD=""
