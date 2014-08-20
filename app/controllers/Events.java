@@ -60,31 +60,6 @@ public class Events extends Controller {
     }
 
     /**
-     * List all the visible events.
-     * 
-     * @return An HTTP JSON response containing the properties of all the events
-     */
-    public static Result events(String accessToken) {
-        AccessToken access = AccessTokens.access(accessToken);
-        Result error = Access.checkAuthentication(access, Access.AuthenticationType.ANONYMOUS_USER);
-        if (error != null) {
-        	return error;
-        }
-
-        // TODO privacy => readingPrivacy
-        List<Event> events = Event.find.where().eq("privacy", Event.Privacy.PUBLIC).findList();
-
-        ArrayNode eventsNode = Json.newObject().arrayNode();
-
-        for (Event event : events) {
-            eventsNode.add(getEventObjectNode(event, access));
-        }
-        ObjectNode result = Json.newObject();
-        result.put("events", eventsNode);
-        return ok(result);
-    }
-
-    /**
      * Search for an event.
      *
      * TODO The user should also be able to search for ALL events he joined (private and protected as well) (if he's logged)
