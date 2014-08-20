@@ -1,13 +1,9 @@
 <component name="libraryTable">
   <library name="SBT: org.json:json:20080701:test">
     <CLASSES>
-      <root url="jar:///usr/local/Cellar/play22/2.2.3/libexec/repository/local/org.json/json/20080701/jars/json.jar!/" />
+      <root url="jar://$USER_HOME$/.ivy2/cache/org.json/json/jars/json-20080701.jar!/" />
     </CLASSES>
-    <JAVADOC>
-      <root url="jar:///usr/local/Cellar/play22/2.2.3/libexec/repository/cache/org.json/json/docs/json-20080701-javadoc.jar!/" />
-    </JAVADOC>
-    <SOURCES>
-      <root url="jar:///usr/local/Cellar/play22/2.2.3/libexec/repository/cache/org.json/json/srcs/json-20080701-sources.jar!/" />
-    </SOURCES>
+    <JAVADOC />
+    <SOURCES />
   </library>
 </component>

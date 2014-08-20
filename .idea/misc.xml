@@ -4,7 +4,7 @@
     <entry_points version="2.0" />
   </component>
   <component name="IdProvider" IDEtalkID="BD52BF533772E69E8DE579D2ACF5ADE8" />
-  <component name="JSHintConfiguration" version="2.3.0" use-config-file="false">
+  <component use-config-file="false" version="2.3.0" name="JSHintConfiguration">
     <option bitwise="true" />
     <option camelcase="false" />
     <option curly="true" />
