@@ -1,8 +1,16 @@
 package controllers;
 
 import Utils.Access;
+import Utils.BucketsUpdater;
 
 import com.avaje.ebean.Ebean;
+import com.avaje.ebean.SqlUpdate;
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.imaging.ImageProcessingException;
+import com.drew.metadata.Directory;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.exif.ExifIFD0Directory;
+import com.drew.metadata.exif.ExifSubIFDDirectory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -12,14 +20,23 @@ import errors.Error.Type;
 import models.AccessToken;
 import models.AccessTokenEventRelation;
 import models.Event;
+import models.Image;
 import models.Event.Privacy;
+import models.Image.FormatType;
+import models.ImageFileRelation;
 import models.Media;
 import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
+import play.mvc.Http.MultipartFormData;
+import play.mvc.Http.MultipartFormData.FilePart;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -45,6 +62,9 @@ public class Events extends Controller {
         result.put("creation", event.creation.getTime());
         result.put("privacy", event.readingPrivacy.toString().toLowerCase());
         result.put("permission", Access.getPermissionOnEvent(accessToken, event).toString());
+        if (event.coverImage != null) {
+        	result.put("cover", Images.getImageObjectNode(event.coverImage));
+        }
         
         ArrayNode medias = result.putArray("medias");
         for (Media media : event.medias) {
@@ -405,7 +425,7 @@ public class Events extends Controller {
         }
 
         Event event = Ebean.find(Event.class).fetch("medias").orderBy("original asc").fetch("medias.owner").fetch("medias.image")
-                .fetch("medias.image.files").fetch("medias.image.files.file").fetch("root").where().eq("token", token).findUnique();
+                .fetch("medias.image.files").fetch("medias.image.files.file").fetch("root").fetch("coverImage").fetch("coverImage.files").fetch("coverImage.files.file").where().eq("token", token).findUnique();
         if (event == null) {
         	return new errors.Error(errors.Error.Type.EVENT_NOT_FOUND).toResponse();
         }
@@ -430,5 +450,51 @@ public class Events extends Controller {
         String description = currentNode.path("description").textValue();
         if (description != null)
             currentEvent.description = description;
+    }
+    
+    /**
+     * Add a file to the media identified by the id parameter.
+     * @param id : the media identifier
+     * @return An HTTP response that specifies if the file upload success
+     */
+    public static Result addCover(String token, String accessToken) {
+        AccessToken access = AccessTokens.access(accessToken);
+        Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
+        if (error != null) {
+        	return error;
+        }
+    	
+        Event event = Event.find.where().eq("token", token).findUnique();
+        if (event == null) {
+        	return new errors.Error(errors.Error.Type.EVENT_NOT_FOUND).toResponse();
+        }
+
+    	error = Access.hasPermissionOnEvent(access, event, Access.AccessType.ADMINISTRATE);
+        if (error != null) {
+        	return error;
+        }
+        
+        
+        MultipartFormData body = request().body().asMultipartFormData();
+        FilePart filePart = null; 
+        if (body != null) {
+            filePart = body.getFile("file");
+        }
+        if (filePart != null) {
+          File file = filePart.getFile();
+          try {
+        	  String s = "DELETE FROM se_image_file_relation where image_id = :imageid";
+              SqlUpdate update = Ebean.createSqlUpdate(s);
+              update.setParameter("imageid", event.coverImage.id);
+              Ebean.execute(update);
+              event.coverImage.addFile(file, FormatType.EVENT_COVER);
+          } catch (Image.BadFormat b) {
+          	return new errors.Error(errors.Error.Type.BAD_FORMAT_IMAGE).toResponse();
+          }
+        }
+
+        event.update();
+
+        return noContent();
     }
 }

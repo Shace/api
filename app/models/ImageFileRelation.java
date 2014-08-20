@@ -53,4 +53,8 @@ public class ImageFileRelation extends Model {
 	    return imageFileRelation;
 	}
 	
+	public static Finder<Integer, ImageFileRelation> find = new Finder<Integer, ImageFileRelation>(
+            Integer.class, ImageFileRelation.class
+    );
+	
 }

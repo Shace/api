@@ -10,6 +10,7 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -69,6 +70,10 @@ public class Event extends Model {
 	public Bucket       root;
     
     private User         owner;
+    
+    @OneToOne(cascade=CascadeType.ALL)
+    @JoinColumn(name="cover_image_id")
+	public Image       coverImage;
 
 	public Event(Privacy readingPrivacy, User ownerUser) {
 		this.id = UUID.randomUUID().toString();
@@ -79,6 +84,7 @@ public class Event extends Model {
 		this.owner = ownerUser;
 		this.root = new Bucket(0, null);
 		this.root.save();
+		this.coverImage = Image.create();
 	}
 	
 	public void	saveOwnerPermission() {
