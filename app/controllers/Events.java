@@ -48,8 +48,10 @@ public class Events extends Controller {
         
         ArrayNode medias = result.putArray("medias");
         for (Media media : event.medias) {
-            if (media.image.files.size() > 0)
-                medias.add(Medias.mediaToJson(accessToken, event, media, null, false));
+            if (media.image != null && media.image.files != null) {
+                if (media.image.files.size() > 0)
+                    medias.add(Medias.mediaToJson(accessToken, event, media, null, false));
+            }
         }
         
         result.put("bucket", Buckets.getBucketObjectNode(accessToken, event, event.root));
