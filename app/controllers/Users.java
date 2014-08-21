@@ -5,7 +5,6 @@ import java.util.List;
 
 import models.AccessToken;
 import models.BetaInvitation;
-import models.AccessToken.Lang;
 import models.BetaInvitation.State;
 import models.User;
 import play.libs.Json;

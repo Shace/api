@@ -152,7 +152,7 @@ public class BetaInvitations extends Controller {
     	for (JsonNode guestNode: guestList) {
     		Integer id = guestNode.path("id").intValue();
     		if (id != null) {
-    			BetaInvitation currentGuest = BetaInvitation.find.where().eq("id", id).findUnique();
+    			BetaInvitation currentGuest = BetaInvitation.find.byId(id);
     			if (currentGuest != null && currentGuest.state == State.REQUESTING) {
     				User newUser = new User(currentGuest.email, currentGuest.password, currentGuest.firstName, currentGuest.lastName);
     				newUser.password = currentGuest.password;

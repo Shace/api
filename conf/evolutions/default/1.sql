@@ -100,6 +100,16 @@ create table se_event_user_relation (
   constraint pk_se_event_user_relation primary key (id))
 ;
 
+create table se_feedback (
+  id                        integer not null,
+  description               varchar(255),
+  sender_email              varchar(254),
+  ok_for_answer             boolean,
+  creation_date             timestamp,
+  admin_read                boolean,
+  constraint pk_se_feedback primary key (id))
+;
+
 create table se_file (
   id                        integer not null,
   creation                  timestamp,
@@ -194,6 +204,8 @@ create sequence se_event_seq;
 
 create sequence se_event_user_relation_seq;
 
+create sequence se_feedback_seq;
+
 create sequence se_file_seq;
 
 create sequence se_image_seq;
@@ -273,6 +285,8 @@ drop table if exists se_event cascade;
 
 drop table if exists se_event_user_relation cascade;
 
+drop table if exists se_feedback cascade;
+
 drop table if exists se_file cascade;
 
 drop table if exists se_image cascade;
@@ -302,6 +316,8 @@ drop sequence if exists se_email_seq;
 drop sequence if exists se_event_seq;
 
 drop sequence if exists se_event_user_relation_seq;
+
+drop sequence if exists se_feedback_seq;
 
 drop sequence if exists se_file_seq;
 
