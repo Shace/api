@@ -8,6 +8,7 @@ import models.AccessToken;
 import models.Comment;
 import models.Event;
 import models.Image;
+import models.Image.FormatType;
 import models.Media;
 import models.Tag;
 import play.libs.Json;
@@ -274,7 +275,7 @@ public class Medias extends Controller {
             if (filePart != null) {
               File file = filePart.getFile();
               try {
-                currentMedia.image.addFile(file);
+                currentMedia.image.addFile(file, FormatType.GALLERY);
               } catch (Image.BadFormat b) {
               	return new errors.Error(errors.Error.Type.BAD_FORMAT_IMAGE).toResponse();
               }

@@ -14,4 +14,4 @@ setx MAIL_HOST "mail.gandi.net"
 setx MAIL_USER "noreply@shace.io"
 setx MAIL_SSL "yes"
 setx MAIL_PORT 465
-:: setx MAIL_PASSWORD ""
+setx MAIL_PASSWORD ""

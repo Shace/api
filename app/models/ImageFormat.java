@@ -5,6 +5,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import models.Image.FormatType;
 import play.db.ebean.Model;
 
 @Entity
@@ -23,6 +24,7 @@ public class ImageFormat extends Model {
     public int width;
     public int height;
     public boolean crop;
+    public FormatType	type;
     
     public static Finder<String, ImageFormat> find = new Finder<String, ImageFormat>(
             String.class, ImageFormat.class
