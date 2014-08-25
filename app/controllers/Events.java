@@ -56,6 +56,7 @@ public class Events extends Controller {
     public static ObjectNode getEventObjectNode(Event event, AccessToken accessToken) {
         ObjectNode result = Json.newObject();
 
+        result.put("id", event.id);
         result.put("token", event.token);
         result.put("name", event.name);
         result.put("description", event.description);
