@@ -9,11 +9,17 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 import play.db.ebean.Model;
+import plugins.S3Plugin;
 
 @Entity
 @Table(name="se_file")
 public class File extends Model {
 
+	public enum Type {
+		Local,
+		Amazon
+	}
+	
     /**
      * 
      */
@@ -21,6 +27,7 @@ public class File extends Model {
 
     public File() {
         this.creation = new Date();
+        this.type = Type.Local;
     }
     
     @GeneratedValue
@@ -33,11 +40,18 @@ public class File extends Model {
     public String       uid;
     
     public String       baseURL;
+    
+    public Type			type;
 
     public static File create(String uid, String baseURL) {
         models.File file = new models.File();
         file.uid = uid;
         file.baseURL = baseURL;
+        if (S3Plugin.amazonS3 == null) {
+        	file.type = Type.Local;
+        } else {
+        	file.type = Type.Amazon;
+        }
         file.save();
         return file;
     }

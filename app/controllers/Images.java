@@ -1,5 +1,6 @@
 package controllers;
 
+import models.File;
 import models.Image;
 import models.ImageFileRelation;
 import play.libs.Json;
@@ -28,8 +29,13 @@ public class Images extends Controller {
         result.put("creation", image.creation.getTime());
         if (image.files != null) {
             for (ImageFileRelation ifr : image.files) {
-                if (ifr.file != null && ifr != null)
-                    result.put(ifr.format, Storage.getUrl(ifr.file.baseURL, ifr.file.uid));
+                if (ifr.file != null && ifr != null) {
+                	if (ifr.file.type == File.Type.Amazon) {
+                		result.put(ifr.format, Storage.getUrl(ifr.file.baseURL, ifr.file.uid));
+                	} else if (ifr.file.type == File.Type.Local) {
+                		result.put(ifr.format, Storage.getUrl(Storage.getBaseUrl(), ifr.file.uid));
+                	}
+                }
             }
         }
 

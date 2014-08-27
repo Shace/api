@@ -116,6 +116,8 @@ create table se_file (
   creation                  timestamp,
   uid                       varchar(255),
   base_url                  varchar(255),
+  type                      integer,
+  constraint ck_se_file_type check (type in (0,1)),
   constraint pk_se_file primary key (id))
 ;
 
