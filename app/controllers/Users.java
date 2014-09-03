@@ -114,7 +114,7 @@ public class Users extends Controller {
         	parametersErrors.addParameter("last_name", ParameterType.FORMAT);
         }
 
-        if (!parametersErrors.isParameterError() && User.find.where().eq("email", email).findUnique() != null) {
+        if (!parametersErrors.isParameterError() && required && User.find.where().eq("email", email).findUnique() != null) {
         	parametersErrors.addParameter("email", ParameterType.DUPLICATE);
         }
     }
