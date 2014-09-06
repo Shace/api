@@ -1,16 +1,9 @@
 package controllers;
 
 import Utils.Access;
-import Utils.BucketsUpdater;
 
 import com.avaje.ebean.Ebean;
 import com.avaje.ebean.SqlUpdate;
-import com.drew.imaging.ImageMetadataReader;
-import com.drew.imaging.ImageProcessingException;
-import com.drew.metadata.Directory;
-import com.drew.metadata.Metadata;
-import com.drew.metadata.exif.ExifIFD0Directory;
-import com.drew.metadata.exif.ExifSubIFDDirectory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -23,7 +16,6 @@ import models.Event;
 import models.Image;
 import models.Event.Privacy;
 import models.Image.FormatType;
-import models.ImageFileRelation;
 import models.Media;
 import play.libs.Json;
 import play.mvc.BodyParser;
@@ -33,10 +25,7 @@ import play.mvc.Http.MultipartFormData;
 import play.mvc.Http.MultipartFormData.FilePart;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 /**

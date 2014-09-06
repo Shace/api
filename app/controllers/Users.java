@@ -6,6 +6,7 @@ import java.util.List;
 import models.AccessToken;
 import models.BetaInvitation;
 import models.BetaInvitation.State;
+import models.EventUserRelation;
 import models.User;
 import play.libs.Json;
 import play.mvc.BodyParser;
@@ -331,5 +332,52 @@ public class Users extends Controller {
         }
 
         return ok(getUserObjectNode(access.user));
+    }
+
+    public static ObjectNode getEventsListNode(List<EventUserRelation> eventUserRelations, AccessToken accessToken) {
+        ObjectNode result = Json.newObject();
+
+        ArrayNode events = result.putArray("events");
+        for (EventUserRelation eur : eventUserRelations) {
+            ObjectNode event = Json.newObject();
+
+            event.put("id", eur.event.id);
+            event.put("token", eur.event.token);
+            event.put("name", eur.event.name);
+            event.put("description", eur.event.description);
+            event.put("creation", eur.event.creation.getTime());
+            event.put("privacy", eur.event.readingPrivacy.toString().toLowerCase());
+        	event.put("permission", Access.getPermissionOnEvent(accessToken, eur.event).toString());
+            if (eur.event.coverImage != null) {
+            	event.put("cover", Images.getImageObjectNode(eur.event.coverImage));
+            }
+            
+            events.add(event);
+        }
+
+        return result;
+    }
+    
+    /**
+     * Get all events of connected user
+     * 
+     * @return An HTTP JSON response containing the events of the connected
+     *         user
+     */
+    public static Result events(String accessToken) {
+        AccessToken access = AccessTokens.access(accessToken);
+        Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
+        if (error != null) {
+        	return error;
+        }
+
+        error = Access.hasPermissionOnUser(access, access.user, Access.UserAccessType.READ);
+        if (error != null) {
+        	return error;
+        }
+        
+        List<EventUserRelation> eventUserRelations = EventUserRelation.find.where().eq("user", access.user).findList();
+        
+        return ok(getEventsListNode(eventUserRelations, access));
     }
 }

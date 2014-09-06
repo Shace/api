@@ -42,6 +42,7 @@ POST           /events/:token/medias/:id                        controllers.Medi
 GET            /users                                           controllers.Users.users(access_token)
 POST           /users                                           controllers.Users.add(access_token)
 GET            /users/me                                        controllers.Users.me(access_token)
+GET            /users/me/events                                 controllers.Users.events(access_token)
 DELETE         /users/:id                                       controllers.Users.delete(id : Integer, access_token)
 PUT            /users/:id                                       controllers.Users.update(id : Integer, access_token)
 GET            /users/:id                                       controllers.Users.user(id : Integer, access_token)
