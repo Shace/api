@@ -62,6 +62,8 @@ public class Comments extends Controller {
         JsonNode message = root.get("message");
         if (message == null) {
         	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("message", ParameterType.REQUIRED).toResponse();
+        } else if (message.asText().length() < 2) {
+        	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("message", ParameterType.FORMAT).toResponse();
         }
 
         Comment comment = Comment.create(access.user, media, message.asText());
