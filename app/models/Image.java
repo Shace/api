@@ -1,6 +1,14 @@
 package models;
 
+import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferInt;
+import java.awt.image.DirectColorModel;
+import java.awt.image.PixelGrabber;
+import java.awt.image.Raster;
+import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -83,10 +91,23 @@ public class Image extends Model {
         try {
             long startTime = System.nanoTime();
             long partialStartTime = System.nanoTime();
+            
+            final int[] RGB_MASKS = {0xFF0000, 0xFF00, 0xFF};
+            final ColorModel RGB_OPAQUE =
+                new DirectColorModel(32, RGB_MASKS[0], RGB_MASKS[1], RGB_MASKS[2]);
+            
+            java.awt.Image img = Toolkit.getDefaultToolkit().getImage(file.getAbsolutePath());
+            PixelGrabber pg = new PixelGrabber(img, 0, 0, -1, -1, true);
+            pg.grabPixels();
+            int width = pg.getWidth(), height = pg.getHeight();
 
-            BufferedImage original = ImageIO.read(file);
-            if (original == null)
+            DataBuffer buffer = new DataBufferInt((int[]) pg.getPixels(), pg.getWidth() * pg.getHeight());
+            WritableRaster raster = Raster.createPackedRaster(buffer, width, height, width, RGB_MASKS, null);
+           	BufferedImage original = new BufferedImage(RGB_OPAQUE, raster, false, null);
+            
+            if (original == null) {
                 throw new BadFormat("Error with original image");
+            }
             
             {
             	long partialEstimatedTime = System.nanoTime() - partialStartTime;
@@ -150,7 +171,7 @@ public class Image extends Model {
             long estimatedTime = System.nanoTime() - startTime;
             Logger.debug("Time elapsed to store picture : " + Long.toString(estimatedTime / 1000000) + "ms");
 
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             throw new BadFormat(e.getMessage());
         }
     }
