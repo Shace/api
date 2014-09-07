@@ -18,6 +18,7 @@ import javax.imageio.stream.ImageOutputStream;
 
 import models.Image;
 import models.ImageFormat;
+import play.Logger;
 import play.Play;
 import plugins.S3Plugin;
 
@@ -48,7 +49,10 @@ public class Storage {
     }
     
     private static void storeLocal(BufferedImage image, String extension) throws IOException {
+        long partialStartTime = System.nanoTime();
         File file = new File(Play.application().configuration().getString("storage.path"), extension);
+        
+        //ImageIO.write(image, "JPEG", file);
         
         Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpg");
         if (!writers.hasNext())
@@ -59,7 +63,13 @@ public class Storage {
 
         ImageWriteParam param = writer.getDefaultWriteParam();
         param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-        param.setCompressionQuality(1.0f);
+        param.setCompressionQuality(0.9f);
+        
+        {
+        	long partialEstimatedTime = System.nanoTime() - partialStartTime;
+            Logger.debug("Compress image : " + Long.toString(partialEstimatedTime / 1000000) + "ms");
+            partialStartTime = System.nanoTime();
+        }
 
         writer.write(null, new IIOImage(image, null, null), param);
         writer.dispose();

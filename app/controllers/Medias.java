@@ -11,6 +11,7 @@ import models.Image;
 import models.Image.FormatType;
 import models.Media;
 import models.Tag;
+import play.Logger;
 import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
@@ -251,6 +252,8 @@ public class Medias extends Controller {
      * @return An HTTP response that specifies if the file upload success
      */
     public static Result addFile(String token, Integer id, String accessToken) {
+        long startTime = System.nanoTime();
+
         AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
         if (error != null) {
@@ -308,6 +311,10 @@ public class Medias extends Controller {
 
         //Buckets.addNewMediaToEvent(currentEvent, currentMedia);
         BucketsUpdater.get().updateBucket(currentEvent, currentMedia);
+        
+        long estimatedTime = System.nanoTime() - startTime;
+        Logger.debug("Time elapsed to add file : " + Long.toString(estimatedTime / 1000000) + "ms");
+
         return noContent();
     }
 }

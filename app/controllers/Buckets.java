@@ -4,10 +4,12 @@ import com.avaje.ebean.Ebean;
 import com.avaje.ebean.SqlUpdate;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import models.AccessToken;
 import models.Bucket;
 import models.Event;
 import models.Media;
+import play.Logger;
 import play.libs.Json;
 import play.mvc.Controller;
 
@@ -56,6 +58,8 @@ public class Buckets extends Controller {
     private static final int[] maximumDelays = {30 * 60, 365*24*60*60, -1};
 
     public static void addNewMediaToEvent(Event event, Media media) {
+        long startTime = System.nanoTime();
+
         List<Bucket> buckets = Ebean.find(Bucket.class).fetch("parent").where().eq("event", event).where().eq("level", 0).findList();
         
         /*
@@ -76,6 +80,9 @@ public class Buckets extends Controller {
         }
                         
         mergeLevel(event, 0, added.id, media);
+        
+        long estimatedTime = System.nanoTime() - startTime;
+        Logger.debug("Time elapsed to compute buckets : " + Long.toString(estimatedTime / 1000000) + "ms");
     }
     
     private static void mergeLevel(Event event, int level, Integer parentId, Media media) {

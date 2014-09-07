@@ -18,6 +18,7 @@ import javax.persistence.Table;
 
 import org.imgscalr.Scalr;
 
+import play.Logger;
 import play.db.ebean.Model;
 import Utils.ImageFormats;
 import Utils.Storage;
@@ -80,10 +81,18 @@ public class Image extends Model {
      */
     public void addFile(File file, FormatType formatType) throws BadFormat {
         try {
+            long startTime = System.nanoTime();
+            long partialStartTime = System.nanoTime();
+
             BufferedImage original = ImageIO.read(file);
             if (original == null)
                 throw new BadFormat("Error with original image");
-
+            
+            {
+            	long partialEstimatedTime = System.nanoTime() - partialStartTime;
+                Logger.debug("Reading image : " + Long.toString(partialEstimatedTime / 1000000) + "ms");
+                partialStartTime = System.nanoTime();
+            }
             /* 
              * Handle EXIF orientation
              */
@@ -96,6 +105,12 @@ public class Image extends Model {
             } catch (ImageProcessingException e) {
             } catch (MetadataException e) {
             }
+            
+            {
+            	long partialEstimatedTime = System.nanoTime() - partialStartTime;
+                Logger.debug("Getting metadata : " + Long.toString(partialEstimatedTime / 1000000) + "ms");
+                partialStartTime = System.nanoTime();
+            }
 
             /* 
              * Rotate image if needed in EXIF orientation
@@ -104,16 +119,37 @@ public class Image extends Model {
                 original = transformImage(original, orientation);
             }
             
+            {
+            	long partialEstimatedTime = System.nanoTime() - partialStartTime;
+                Logger.debug("Rotate (transform) image : " + Long.toString(partialEstimatedTime / 1000000) + "ms");
+                partialStartTime = System.nanoTime();
+            }
+            
             /*
              * Generate all formats of stored images
              */
             for (ImageFormat format : ImageFormats.get().formats) {
             	if (format.type == formatType) {
             		BufferedImage resized = resizeImage(original, format.width, format.height, format.crop);
+            		{
+                    	long partialEstimatedTime = System.nanoTime() - partialStartTime;
+                        Logger.debug("Resize image " + format.name + " : " + Long.toString(partialEstimatedTime / 1000000) + "ms");
+                        partialStartTime = System.nanoTime();
+                    }
             		this.files.add(ImageFileRelation.create(this, models.File.create(Storage.storeImage(resized, format), Storage.getBaseUrl()), format.width, format.height, format.name));
+            		{
+                    	long partialEstimatedTime = System.nanoTime() - partialStartTime;
+                        Logger.debug("Store image " + format.name + " : " + Long.toString(partialEstimatedTime / 1000000) + "ms");
+                        partialStartTime = System.nanoTime();
+                    }
             	}
             }
+                        
             this.save();
+            
+            long estimatedTime = System.nanoTime() - startTime;
+            Logger.debug("Time elapsed to store picture : " + Long.toString(estimatedTime / 1000000) + "ms");
+
         } catch (IOException e) {
             throw new BadFormat(e.getMessage());
         }
@@ -131,7 +167,7 @@ public class Image extends Model {
     	if (original.getWidth() < width && original.getHeight() < height) {
     		return original;
     	}
-    	BufferedImage resized = Scalr.resize(original, Scalr.Method.QUALITY, Scalr.Mode.AUTOMATIC, width, height);
+    	BufferedImage resized = Scalr.resize(original, Scalr.Method.AUTOMATIC, Scalr.Mode.AUTOMATIC, width, height);
     	if (resized.getWidth() > width) {
 			resized = Scalr.crop(resized, (resized.getWidth() - width) / 2, 0, width, resized.getHeight());
     	}
