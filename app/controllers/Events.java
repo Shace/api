@@ -283,7 +283,7 @@ public class Events extends Controller {
 			newAccess.permission = grantedAccess;
 		}
         newAccess.save();
-        return ok();
+        return ok(getEventObjectNode(event, access));
     }
     
     /**
