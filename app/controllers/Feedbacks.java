@@ -54,7 +54,7 @@ public class Feedbacks extends Controller {
             return new errors.Error(Type.PARAMETERS_ERROR).addParameter("okForAnswer", ParameterType.REQUIRED).toResponse();
         }
         
-        Feedback feedback = new Feedback(email == null ? access.user.email : email.textValue(), access.user, description.textValue(), okForAnswer.booleanValue());
+        Feedback feedback = new Feedback((email == null || email.asText().isEmpty()) ? access.user.email : email.textValue(), access.user, description.textValue(), okForAnswer.booleanValue());
         feedback.save();
 		return created();
     }
