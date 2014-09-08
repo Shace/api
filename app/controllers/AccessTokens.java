@@ -141,7 +141,7 @@ public class AccessTokens extends Controller {
         User user = Users.authenticate(email, password);
         if (user == null) {
             BetaInvitation betaInvitation = BetaInvitation.find.where().eq("email", email).findUnique();
-            if (betaInvitation != null) {
+            if (betaInvitation != null && betaInvitation.state == BetaInvitation.State.REQUESTING) {
             	return new errors.Error(errors.Error.Type.BETA_PROCESSING).toResponse();
             }
         	return new errors.Error(errors.Error.Type.INVALID_IDS).toResponse();

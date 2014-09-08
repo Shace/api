@@ -226,6 +226,7 @@ public class Users extends Controller {
         errors.Error parametersErrors = new errors.Error(Type.PARAMETERS_ERROR);
         String email = root.path("email").textValue();
         String password = root.path("password").textValue();
+        String oldPassword = root.path("old_password").textValue();
         String firstname = root.path("first_name").textValue();
         String lastname = root.path("last_name").textValue();
         checkParams(false, email, password, firstname, lastname, parametersErrors);
@@ -236,6 +237,14 @@ public class Users extends Controller {
         User user = User.find.byId(id);
         if (user == null) {
         	return new errors.Error(errors.Error.Type.USER_NOT_FOUND).toResponse();
+        }
+
+        if (password != null) {
+        	if (oldPassword == null) {
+        		return new errors.Error(Type.PARAMETERS_ERROR).addParameter("old_password", ParameterType.REQUIRED).toResponse();
+        	} else if (!user.password.equals(Utils.Hasher.hash(oldPassword))) {
+        		return new errors.Error(errors.Error.Type.WRONG_PASSWORD).toResponse();
+        	}
         }
 
         error = Access.hasPermissionOnUser(access, user, Access.UserAccessType.WRITE);
@@ -298,8 +307,9 @@ public class Users extends Controller {
      */
     private static void updateOneUser(User currentUser, JsonNode currentNode) {
         String password = currentNode.path("password").textValue();
-        if (password != null)
+        if (password != null) {
             currentUser.password = Utils.Hasher.hash(password);
+        }
         String firstName = currentNode.path("first_name").textValue();
         if (firstName != null)
             currentUser.firstName = firstName;
