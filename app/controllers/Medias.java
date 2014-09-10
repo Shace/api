@@ -301,6 +301,8 @@ public class Medias extends Controller {
               if (currentMedia.original == null) {
                   currentMedia.original = new Date();
               }
+            } else {
+              	return new errors.Error(errors.Error.Type.BAD_FORMAT_IMAGE).toResponse();
             }
             
         } else {
