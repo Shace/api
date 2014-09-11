@@ -44,7 +44,8 @@ public class Image extends Model {
 	
 	public static enum FormatType {
 		GALLERY,
-		EVENT_COVER
+		COVER,
+		PROFILE_PICTURE
 	}
 
     public static class BadFormat extends IOException {

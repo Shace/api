@@ -1,21 +1,29 @@
 package controllers;
 
+import java.io.File;
 import java.util.Date;
 import java.util.List;
 
 import models.AccessToken;
 import models.BetaInvitation;
+import models.Event;
+import models.Image;
 import models.BetaInvitation.State;
+import models.Image.FormatType;
 import models.EventUserRelation;
 import models.User;
 import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
+import play.mvc.Http.MultipartFormData;
+import play.mvc.Http.MultipartFormData.FilePart;
 import Utils.Access;
 import Utils.Mailer;
 import Utils.Mailer.EmailType;
 
+import com.avaje.ebean.Ebean;
+import com.avaje.ebean.SqlUpdate;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -53,6 +61,12 @@ public class Users extends Controller {
         result.put("inscription", user.inscriptionDate.getTime());
         result.put("is_admin", user.isAdmin);
         result.put("lang", user.lang.toString().toLowerCase());
+        if (user.profilePicture != null) {
+        	result.put("profile_picture", Images.getImageObjectNode(user.profilePicture));
+        }
+        if (user.coverPicture != null) {
+        	result.put("cover_picture", Images.getImageObjectNode(user.coverPicture));
+        }
 
         return result;
     }
@@ -239,17 +253,17 @@ public class Users extends Controller {
         	return new errors.Error(errors.Error.Type.USER_NOT_FOUND).toResponse();
         }
 
+        error = Access.hasPermissionOnUser(access, user, Access.UserAccessType.WRITE);
+        if (error != null) {
+        	return error;
+        }
+
         if (password != null) {
         	if (oldPassword == null) {
         		return new errors.Error(Type.PARAMETERS_ERROR).addParameter("old_password", ParameterType.REQUIRED).toResponse();
         	} else if (!user.password.equals(Utils.Hasher.hash(oldPassword))) {
         		return new errors.Error(errors.Error.Type.WRONG_PASSWORD).toResponse();
         	}
-        }
-
-        error = Access.hasPermissionOnUser(access, user, Access.UserAccessType.WRITE);
-        if (error != null) {
-        	return error;
         }
 
         updateOneUser(user, root);
@@ -389,5 +403,102 @@ public class Users extends Controller {
         List<EventUserRelation> eventUserRelations = EventUserRelation.find.where().eq("user", access.user).findList();
         
         return ok(getEventsListNode(eventUserRelations, access));
+    }
+    
+    /**
+     * Add a file to the media identified by the id parameter.
+     * @param id : the media identifier
+     * @return An HTTP response that specifies if the file upload success
+     */
+    public static Result addProfilePicture(Integer id, String accessToken) {
+        AccessToken access = AccessTokens.access(accessToken);
+        Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
+        if (error != null) {
+        	return error;
+        }
+    	
+        User user = User.find.byId(id);
+        if (user == null) {
+        	return new errors.Error(errors.Error.Type.USER_NOT_FOUND).toResponse();
+        }
+
+    	error = Access.hasPermissionOnUser(access, user, Access.UserAccessType.WRITE);
+        if (error != null) {
+        	return error;
+        }
+        
+        
+        MultipartFormData body = request().body().asMultipartFormData();
+        FilePart filePart = null; 
+        if (body != null) {
+            filePart = body.getFile("file");
+        }
+        if (filePart != null) {
+          File file = filePart.getFile();
+          try {
+        	  if (user.profilePicture == null) {
+        		  user.profilePicture = Image.create();
+        	  }
+        	  String s = "DELETE FROM se_image_file_relation where image_id = :imageid";
+              SqlUpdate update = Ebean.createSqlUpdate(s);
+              update.setParameter("imageid", user.profilePicture.id);
+              Ebean.execute(update);
+              user.profilePicture.addFile(file, FormatType.PROFILE_PICTURE);
+          } catch (Image.BadFormat b) {
+          	return new errors.Error(errors.Error.Type.BAD_FORMAT_IMAGE).toResponse();
+          }
+        }
+
+        user.update();
+
+        return noContent();
+    }
+    /**
+     * Add a file to the media identified by the id parameter.
+     * @param id : the media identifier
+     * @return An HTTP response that specifies if the file upload success
+     */
+    public static Result addCoverPicture(Integer id, String accessToken) {
+        AccessToken access = AccessTokens.access(accessToken);
+        Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
+        if (error != null) {
+        	return error;
+        }
+    	
+        User user = User.find.byId(id);
+        if (user == null) {
+        	return new errors.Error(errors.Error.Type.USER_NOT_FOUND).toResponse();
+        }
+
+    	error = Access.hasPermissionOnUser(access, user, Access.UserAccessType.WRITE);
+        if (error != null) {
+        	return error;
+        }
+        
+        
+        MultipartFormData body = request().body().asMultipartFormData();
+        FilePart filePart = null; 
+        if (body != null) {
+            filePart = body.getFile("file");
+        }
+        if (filePart != null) {
+          File file = filePart.getFile();
+          try {
+        	  if (user.coverPicture == null) {
+        		  user.coverPicture = Image.create();
+        	  }
+        	  String s = "DELETE FROM se_image_file_relation where image_id = :imageid";
+              SqlUpdate update = Ebean.createSqlUpdate(s);
+              update.setParameter("imageid", user.coverPicture.id);
+              Ebean.execute(update);
+              user.coverPicture.addFile(file, FormatType.COVER);
+          } catch (Image.BadFormat b) {
+          	return new errors.Error(errors.Error.Type.BAD_FORMAT_IMAGE).toResponse();
+          }
+        }
+
+        user.update();
+
+        return noContent();
     }
 }

@@ -144,7 +144,7 @@ create table se_image_format (
   height                    integer,
   crop                      boolean,
   type                      integer,
-  constraint ck_se_image_format_type check (type in (0,1)),
+  constraint ck_se_image_format_type check (type in (0,1,2)),
   constraint pk_se_image_format primary key (name))
 ;
 
@@ -183,6 +183,8 @@ create table se_user (
   inscription_date          timestamp,
   is_admin                  boolean,
   lang                      integer,
+  profile_picture_id        integer,
+  cover_picture_id          integer,
   constraint ck_se_user_lang check (lang in (0,1,2)),
   constraint uq_se_user_email unique (email),
   constraint pk_se_user primary key (id))
@@ -268,6 +270,10 @@ alter table se_tag add constraint fk_se_tag_media_20 foreign key (media_id) refe
 create index ix_se_tag_media_20 on se_tag (media_id);
 alter table se_tag add constraint fk_se_tag_creator_21 foreign key (user_id) references se_user (id);
 create index ix_se_tag_creator_21 on se_tag (user_id);
+alter table se_user add constraint fk_se_user_profilePicture_22 foreign key (profile_picture_id) references se_image (id);
+create index ix_se_user_profilePicture_22 on se_user (profile_picture_id);
+alter table se_user add constraint fk_se_user_coverPicture_23 foreign key (cover_picture_id) references se_image (id);
+create index ix_se_user_coverPicture_23 on se_user (cover_picture_id);
 
 
 

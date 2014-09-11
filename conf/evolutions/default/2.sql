@@ -7,7 +7,8 @@ INSERT INTO se_image_format
        VALUES 		('small', 270, 270, true, 0),
        	      		('medium', 1024, 1024, false, 0),
 				   	('large', 3264, 2448, false, 0),
-				   	('cover', 849, 313, true, 1);
+				   	('cover', 849, 313, true, 1),
+				   	('profile', 200, 200, true, 2);
 
 INSERT INTO se_user
        (id, email, password, first_name, last_name, is_admin, inscription_date, lang)

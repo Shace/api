@@ -8,7 +8,9 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import models.AccessToken.Lang;
@@ -58,6 +60,15 @@ public class User extends Model {
 	
 	public Lang		lang;
 	
+    @OneToOne(cascade=CascadeType.ALL)
+    @JoinColumn(name="profile_picture_id")
+	public Image       profilePicture;
+
+    @OneToOne(cascade=CascadeType.ALL)
+    @JoinColumn(name="cover_picture_id")
+	public Image       coverPicture;
+
+	
 	public User(String email, String password, String firstname, String lastname) {
 		this.email = email;
 		this.password = Utils.Hasher.hash(password);
@@ -66,6 +77,8 @@ public class User extends Model {
 		this.inscriptionDate = new Date();
 		this.isAdmin = false;
 		this.lang = Lang.NONE;
+		this.profilePicture = Image.create();
+		this.coverPicture = Image.create();
 	}
 	
 	public static Finder<Integer, User> find = new Finder<Integer, User>

@@ -46,6 +46,8 @@ GET            /users/me/events                                 controllers.User
 DELETE         /users/:id                                       controllers.Users.delete(id : Integer, access_token)
 PUT            /users/:id                                       controllers.Users.update(id : Integer, access_token)
 GET            /users/:id                                       controllers.Users.user(id : Integer, access_token)
+POST           /users/:id/profile                        		controllers.Users.addProfilePicture(id : Integer, access_token)
+POST           /users/:id/cover                        			controllers.Users.addCoverPicture(id: Integer, access_token)
 
 # Comments
 POST           /events/:token/medias/:media/comments            controllers.Comments.add(token : String, media : Integer, access_token)

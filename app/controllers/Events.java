@@ -479,7 +479,7 @@ public class Events extends Controller {
               SqlUpdate update = Ebean.createSqlUpdate(s);
               update.setParameter("imageid", event.coverImage.id);
               Ebean.execute(update);
-              event.coverImage.addFile(file, FormatType.EVENT_COVER);
+              event.coverImage.addFile(file, FormatType.COVER);
           } catch (Image.BadFormat b) {
           	return new errors.Error(errors.Error.Type.BAD_FORMAT_IMAGE).toResponse();
           }
