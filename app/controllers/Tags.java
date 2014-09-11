@@ -60,7 +60,7 @@ public class Tags extends Controller {
         	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("name", ParameterType.REQUIRED).toResponse();
         }
  
-        Tag tag = Tag.find.where().eq("slug", Slugs.toSlug(name.asText())).findUnique();
+        Tag tag = Tag.find.where().eq("slug", Slugs.toSlug(name.asText())).eq("media.id", media.id).findUnique();
 
         if (tag != null) {
         	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("name", ParameterType.DUPLICATE).toResponse();
