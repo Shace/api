@@ -104,6 +104,7 @@ create table se_event_user_relation (
 create table se_feedback (
   id                        integer not null,
   description               varchar(255),
+  user_id                   integer,
   sender_email              varchar(254),
   ok_for_answer             boolean,
   creation_date             timestamp,
@@ -251,20 +252,22 @@ alter table se_event_user_relation add constraint fk_se_event_user_relation_eve_
 create index ix_se_event_user_relation_eve_12 on se_event_user_relation (event_token);
 alter table se_event_user_relation add constraint fk_se_event_user_relation_use_13 foreign key (user_id) references se_user (id);
 create index ix_se_event_user_relation_use_13 on se_event_user_relation (user_id);
-alter table se_image_file_relation add constraint fk_se_image_file_relation_ima_14 foreign key (image_id) references se_image (id);
-create index ix_se_image_file_relation_ima_14 on se_image_file_relation (image_id);
-alter table se_image_file_relation add constraint fk_se_image_file_relation_fil_15 foreign key (file_id) references se_file (id);
-create index ix_se_image_file_relation_fil_15 on se_image_file_relation (file_id);
-alter table se_media add constraint fk_se_media_owner_16 foreign key (owner_id) references se_user (id);
-create index ix_se_media_owner_16 on se_media (owner_id);
-alter table se_media add constraint fk_se_media_event_17 foreign key (event_id) references se_event (id);
-create index ix_se_media_event_17 on se_media (event_id);
-alter table se_media add constraint fk_se_media_image_18 foreign key (image_id) references se_image (id);
-create index ix_se_media_image_18 on se_media (image_id);
-alter table se_tag add constraint fk_se_tag_media_19 foreign key (media_id) references se_media (id);
-create index ix_se_tag_media_19 on se_tag (media_id);
-alter table se_tag add constraint fk_se_tag_creator_20 foreign key (user_id) references se_user (id);
-create index ix_se_tag_creator_20 on se_tag (user_id);
+alter table se_feedback add constraint fk_se_feedback_senderUser_14 foreign key (user_id) references se_user (id);
+create index ix_se_feedback_senderUser_14 on se_feedback (user_id);
+alter table se_image_file_relation add constraint fk_se_image_file_relation_ima_15 foreign key (image_id) references se_image (id);
+create index ix_se_image_file_relation_ima_15 on se_image_file_relation (image_id);
+alter table se_image_file_relation add constraint fk_se_image_file_relation_fil_16 foreign key (file_id) references se_file (id);
+create index ix_se_image_file_relation_fil_16 on se_image_file_relation (file_id);
+alter table se_media add constraint fk_se_media_owner_17 foreign key (owner_id) references se_user (id);
+create index ix_se_media_owner_17 on se_media (owner_id);
+alter table se_media add constraint fk_se_media_event_18 foreign key (event_id) references se_event (id);
+create index ix_se_media_event_18 on se_media (event_id);
+alter table se_media add constraint fk_se_media_image_19 foreign key (image_id) references se_image (id);
+create index ix_se_media_image_19 on se_media (image_id);
+alter table se_tag add constraint fk_se_tag_media_20 foreign key (media_id) references se_media (id);
+create index ix_se_tag_media_20 on se_tag (media_id);
+alter table se_tag add constraint fk_se_tag_creator_21 foreign key (user_id) references se_user (id);
+create index ix_se_tag_creator_21 on se_tag (user_id);
 
 
 

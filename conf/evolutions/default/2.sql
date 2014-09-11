@@ -17,4 +17,11 @@ INSERT INTO se_user
 
 DELETE FROM se_image_format;
 
-DELETE FROM se_user WHERE email='admin@shace.io';
+DELETE FROM se_access_token_event_relation WHERE accesstoken_id IN (SELECT token FROM se_access_token WHERE user_id=0);
+DELETE FROM se_access_token WHERE user_id=0;
+DELETE FROM se_beta_invitation WHERE original_user_id=0 OR created_user_id=0;
+DELETE FROM se_event_user_relation WHERE user_id=0;
+DELETE FROM se_tag WHERE user_id=0;
+DELETE FROM se_media WHERE owner_id=0;
+DELETE FROM se_feedback WHERE sender_id=0;
+DELETE FROM se_user WHERE id=0;
