@@ -5,14 +5,11 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.eclipse.jetty.util.log.Log;
 
 import play.Logger;
-import play.api.Play;
 import models.AccessToken.Lang;
 import models.Email;
 
-import com.google.common.collect.ImmutableMap;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.plugin.MailerAPI;
 import com.typesafe.plugin.MailerPlugin;
