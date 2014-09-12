@@ -5,6 +5,9 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.eclipse.jetty.util.log.Log;
+
+import play.Logger;
 import play.api.Play;
 import models.AccessToken.Lang;
 import models.Email;
@@ -90,6 +93,8 @@ public class Mailer {
 				    	mail.setRecipient(recipient, this.email);
 				    	mail.setFrom(email.fromEmail);
 				    	mail.sendHtml(email.html);
+				    	
+				    	Logger.debug("Sending mail to " + this.email);
 					}
 				} else if (this.mode == EmailMode.CUSTOM_EMAIL) {
 			    	MailerAPI mail = play.Play.application().plugin(MailerPlugin.class).email();
