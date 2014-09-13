@@ -100,8 +100,8 @@ public class Mailer {
 						message.addRecipient(Message.RecipientType.TO,
 								new InternetAddress(this.email));
 
-						message.setSubject(email.subject);
-						message.setContent(email.html, "text/html");
+						message.setSubject(email.subject, "charset=UTF-8");
+						message.setContent(email.html, "text/html;charset=UTF-8");
 
 						Logger.debug("Mail is ready to go");
 						Transport.send(message);
@@ -128,8 +128,8 @@ public class Mailer {
 					message.addRecipient(Message.RecipientType.TO,
 							new InternetAddress(this.email));
 
-					message.setSubject(this.subject);
-					message.setContent(this.content, "text/html");
+					message.setSubject(this.subject, "charset=UTF-8");
+					message.setContent(this.content, "text/html;charset=UTF-8");
 
 					Logger.debug("Mail is ready to go");
 					Transport.send(message);
