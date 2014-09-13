@@ -68,9 +68,11 @@ public class Mailer {
 		
 			public String call() {
 				if (this.mode == EmailMode.DB_EMAIL) {
+			    	Logger.debug("Getting mail in database");
 					Email email = Email.find.where().eq("type", this.type.code).where().eq("lang", this.lang).findUnique();
 					
 					if (email != null) {
+				    	Logger.debug("Start sending mail to " + this.email);
 				    	MailerAPI mail = play.Play.application().plugin(MailerPlugin.class).email();
 				    	
 				    	for (Map.Entry<String, String> entry : this.params.entrySet()) {
