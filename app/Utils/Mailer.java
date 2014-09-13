@@ -91,6 +91,7 @@ public class Mailer {
 				    	recipient += "<" + this.email + ">";
 				    	mail.setRecipient(recipient, this.email);
 				    	mail.setFrom(email.fromEmail);
+				    	Logger.debug("Mail is ready to go");
 				    	mail.sendHtml(email.html);
 				    	
 				    	Logger.debug("Sending mail to " + this.email);
