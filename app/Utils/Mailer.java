@@ -100,14 +100,13 @@ public class Mailer {
 						message.addRecipient(Message.RecipientType.TO,
 								new InternetAddress(this.email));
 
-						message.setSubject(email.subject, "charset=UTF-8");
+						message.setSubject(email.subject, "utf-8");
 						message.setContent(email.html, "text/html;charset=UTF-8");
 
 						Logger.debug("Mail is ready to go");
 						Transport.send(message);
 						Logger.debug("Sending mail to " + this.email);
 					} catch (MessagingException mex) {
-						mex.printStackTrace();
 						Logger.error(mex.getMessage());
 						return "Run";
 					}
@@ -128,7 +127,7 @@ public class Mailer {
 					message.addRecipient(Message.RecipientType.TO,
 							new InternetAddress(this.email));
 
-					message.setSubject(this.subject, "charset=UTF-8");
+					message.setSubject(this.subject, "utf-8");
 					message.setContent(this.content, "text/html;charset=UTF-8");
 
 					Logger.debug("Mail is ready to go");

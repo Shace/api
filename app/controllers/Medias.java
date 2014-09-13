@@ -128,8 +128,15 @@ public class Medias extends Controller {
     	List<Bucket> buckets = new ArrayList<>(currentMedia.buckets);
     	currentMedia.buckets.clear();
     	currentMedia.saveManyToManyAssociations("buckets");
-    	for (Bucket bucket : currentMedia.buckets) {
-    		System.out.println(bucket.size);
+    	for (Bucket bucket : buckets) {
+    		Bucket currentBucket = Bucket.find.byId(bucket.id);
+    		currentBucket.size -= 1;
+    		
+    		if (currentBucket.size == 0) {
+    			bucket.delete();
+    		} else {
+    			bucket.save();
+    		}
     	}
     	return noContent();
 	}
