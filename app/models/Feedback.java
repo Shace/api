@@ -28,6 +28,7 @@ public class Feedback extends Model {
 	@Id
 	public Integer 		id;
 	
+	@Column(columnDefinition = "TEXT")
 	public String		description;
 	
     @ManyToOne
