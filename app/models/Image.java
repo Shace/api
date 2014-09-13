@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import javax.imageio.ImageIO;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -105,10 +104,6 @@ public class Image extends Model {
             DataBuffer buffer = new DataBufferInt((int[]) pg.getPixels(), pg.getWidth() * pg.getHeight());
             WritableRaster raster = Raster.createPackedRaster(buffer, width, height, width, RGB_MASKS, null);
            	BufferedImage original = new BufferedImage(RGB_OPAQUE, raster, false, null);
-            
-            if (original == null) {
-                throw new BadFormat("Error with original image");
-            }
             
             {
             	long partialEstimatedTime = System.nanoTime() - partialStartTime;

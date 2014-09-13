@@ -133,9 +133,21 @@ public class Medias extends Controller {
     		currentBucket.size -= 1;
     		
     		if (currentBucket.size == 0) {
-    			bucket.delete();
+    			if (currentBucket.event.root != currentBucket) {
+    				currentBucket.delete();
+    			}
     		} else {
-    			bucket.save();
+    			currentBucket.first = null;
+    			currentBucket.last = null;
+    			for (Media media: currentBucket.medias) {
+    				if (currentBucket.first == null || media.original.getTime() < currentBucket.first.getTime()) {
+    					currentBucket.first = media.original;
+    				}
+    				if (currentBucket.last == null || media.original.getTime() > currentBucket.last.getTime()) {
+    					currentBucket.last = media.original;
+    				}
+    			}
+    			currentBucket.save();
     		}
     	}
     	return noContent();
