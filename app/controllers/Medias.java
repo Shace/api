@@ -2,9 +2,12 @@ package controllers;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import models.AccessToken;
+import models.Bucket;
 import models.Comment;
 import models.Event;
 import models.Image;
@@ -12,6 +15,7 @@ import models.Image.FormatType;
 import models.Media;
 import models.Tag;
 import play.Logger;
+import play.db.ebean.Transactional;
 import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
@@ -101,6 +105,7 @@ public class Medias extends Controller {
      * @param id : the media identifier
      * @return An HTTP response that specifies if the deletion succeeded or not
      */
+    @Transactional
     public static Result delete(String token, Integer id, String accessToken) {
     	AccessToken	access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
@@ -108,8 +113,8 @@ public class Medias extends Controller {
         	return error;
         }
     	
-    	Media	currentMedia = Media.find.byId(id);
-    	if (currentMedia == null) {
+    	Media	currentMedia = Media.find.fetch("buckets").where().eq("id", id).findUnique();
+    	if (currentMedia == null || !currentMedia.valid) {
         	return new errors.Error(errors.Error.Type.MEDIA_NOT_FOUND).toResponse();
     	}
     	
@@ -120,8 +125,13 @@ public class Medias extends Controller {
         	return new errors.Error(errors.Error.Type.NEED_OWNER).toResponse();
     	}
 
-       	currentMedia.delete();
-		return noContent();
+    	List<Bucket> buckets = new ArrayList<>(currentMedia.buckets);
+    	currentMedia.buckets.clear();
+    	currentMedia.saveManyToManyAssociations("buckets");
+    	for (Bucket bucket : currentMedia.buckets) {
+    		System.out.println(bucket.size);
+    	}
+    	return noContent();
 	}
     
     /**
