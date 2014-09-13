@@ -108,6 +108,7 @@ public class Mailer {
 						Transport.send(message);
 						Logger.debug("Sending mail to " + this.email);
 					} catch (MessagingException mex) {
+						mex.printStackTrace();
 						Logger.error(mex.getMessage());
 						return "Run";
 					}
@@ -166,7 +167,6 @@ public class Mailer {
 		properties.put("mail.smtp.auth", true);
 		properties.put("mail.smtp.ssl.enable", true);
 		properties.put("mail.smtp.timeout", 5000);
-		properties.put("mail.smtp.socketFactory.class","javax.net.ssl.SSLSocketFactory");
 		
 		smtpEmail = ConfigFactory.load().getString("smtp.user");
 		smtpPassword = ConfigFactory.load().getString("smtp.password");
