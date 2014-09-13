@@ -92,7 +92,6 @@ public class Mailer {
 			                   smtpEmail, smtpPassword);
 			             }
 			          });
-					session.setDebug(true);
 
 					try{
 						MimeMessage message = new MimeMessage(session);
