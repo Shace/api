@@ -3,18 +3,13 @@ package controllers;
 import java.util.List;
 
 import models.AccessToken;
-import models.BetaInvitation;
 import models.Feedback;
-import models.User;
-import models.BetaInvitation.State;
 import Utils.Access;
 import Utils.Mailer;
-import Utils.Mailer.EmailType;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.ImmutableMap;
 
 import errors.Error.ParameterType;
 import errors.Error.Type;

@@ -10,11 +10,14 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import Utils.Access;
+import Utils.Mailer;
+import Utils.Mailer.EmailType;
 
 import com.avaje.ebean.Ebean;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableMap;
 
 import errors.Error.ParameterType;
 import errors.Error.Type;
@@ -58,11 +61,11 @@ public class EventPermissions extends Controller {
                 addPermission = true;
             }
 
-            if (addPermission && permission.user != null) {
+            if (addPermission && permission.email != null) {
                 ObjectNode permissionNode = Json.newObject();
 
-                permissionNode.put("user", permission.user.id);
-                permissionNode.put("email", permission.user.email);
+                permissionNode.put("id", permission.id);
+                permissionNode.put("email", permission.email);
                 permissionNode.put("permission", permission.permission.toString());
                 permissionsNode.add(permissionNode);
             }
@@ -119,42 +122,48 @@ public class EventPermissions extends Controller {
                 continue;
             }
 
-            User associated = null;
-
             String email = permissionNode.path("email").textValue();
+            User associated = null;
+            
             if (email != null) {
                 associated = User.find.where().eq("email", email).findUnique();
-                if (associated == null) {
-                    // TODO : Send mail to this person
-                }
             } else {
                 Integer id = permissionNode.path("id").intValue();
                 if (id != null) {
                     associated = User.find.byId(id);
+                    email = (associated == null) ? null : associated.email;
                 }
             }
 
-            if (associated == null) {
+            if (email == null) {
                 continue ;
             }
 
             EventUserRelation currentRelation = null;
             for (EventUserRelation relation : event.permissions) {
-                if (relation.user != null && associated.equals(relation.user)) {
+                if (relation.email != null && email.equals(relation.email)) {
                     currentRelation = relation;
                     break ;
                 }
             }
 
             if (currentRelation == null) {
-                currentRelation = new EventUserRelation(event, associated, givenPermission);
+                currentRelation = new EventUserRelation(event, email, givenPermission);
             } else {
                 currentRelation.permission = givenPermission;
             }
+
+            if (associated == null) {
+		    	Mailer.get().sendMail(EmailType.EVENT_ANONYMOUS_INVITATION, access.getLang(), email, ImmutableMap.of("FIRSTNAME", access.user.firstName, "LASTNAME", access.user.lastName, "TOKEN", token, "EVENT", event.name));
+            } else {
+		    	Mailer.get().sendMail(EmailType.EVENT_INVITATION, associated.lang, email, ImmutableMap.of("FIRSTNAME", access.user.firstName, "LASTNAME", access.user.lastName, "TOKEN", token, "USER_FIRSTNAME", associated.firstName, "EVENT", event.name));
+            }
+            
             currentRelation.save();
             ObjectNode newPermissionNode = Json.newObject();
 
-            newPermissionNode.put("user", currentRelation.user.id);
+            newPermissionNode.put("id", currentRelation.id);
+            newPermissionNode.put("email", email);
             newPermissionNode.put("permission", currentRelation.permission.toString());
             permissionsNode.add(newPermissionNode);
         }
@@ -192,25 +201,27 @@ public class EventPermissions extends Controller {
         ArrayNode toDeleteNode = Json.newObject().arrayNode();
 
         for (JsonNode permissionNode : permissionList) {
-            User associated = null;
 
             String email = permissionNode.path("email").textValue();
+            User associated = null;
+
             if (email != null) {
                 associated = User.find.where().eq("email", email).findUnique();
             } else {
                 Integer id = permissionNode.path("id").intValue();
                 if (id != null) {
                     associated = User.find.byId(id);
+                    email = (associated == null) ? null : associated.email;
                 }
             }
 
-            if (associated == null) {
+            if (email == null) {
                 continue ;
             }
 
             boolean hasDeleted = false;
             for (EventUserRelation relation : event.permissions) {
-                if (relation.user != null && associated.equals(relation.user)) {
+                if (relation.email != null && email.equals(relation.email)) {
                     relation.delete();
                     hasDeleted = true;
                 }
@@ -222,14 +233,14 @@ public class EventPermissions extends Controller {
 
             ObjectNode currentDeletedNode = Json.newObject();
 
-            currentDeletedNode.put("user", associated.id);
+            currentDeletedNode.put("email", email);
             toDeleteNode.add(currentDeletedNode);
         }
 
         return ok(toDeleteNode);
     }
 
-    public static Result    deleteUserPermissions(String token, String accessToken, Integer userId) {
+    public static Result    deleteUserPermissions(String token, String accessToken, Integer permissionId) {
         AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
         if (error != null) {
@@ -248,21 +259,15 @@ public class EventPermissions extends Controller {
 
         ArrayNode toDeleteNode = Json.newObject().arrayNode();
 
-
-        User associated = User.find.byId(userId);
-        if (associated == null) {
-        	return new errors.Error(errors.Error.Type.USER_NOT_FOUND).toResponse();
-        }
-
         for (EventUserRelation relation : event.permissions) {
-            if (relation.user != null && associated.equals(relation.user)) {
+            if (relation.id != null && permissionId.equals(relation.id)) {
                 relation.delete();
             }
         }
 
         ObjectNode currentDeletedNode = Json.newObject();
 
-        currentDeletedNode.put("user", associated.id);
+        currentDeletedNode.put("id", permissionId);
         toDeleteNode.add(currentDeletedNode);
 
         return ok();

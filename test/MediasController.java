@@ -166,26 +166,26 @@ public class MediasController extends WithApplication {
     	/**
     	 * Valid request deleting one media
     	 */
-    	standardDeleteMedia(newMedia.id, ownerEvent.token, NO_CONTENT, 2, token.token);
+    	standardDeleteMedia(newMedia.id, ownerEvent.token, NO_CONTENT, 3, token.token);
 
 
     	/**
     	 * Unvalid request with a not existing media
     	 */
-    	standardDeleteMedia(4242, ownerEvent.token, NOT_FOUND, 2, token.token);
+    	standardDeleteMedia(4242, ownerEvent.token, NOT_FOUND, 3, token.token);
 
 
     	/**
     	 * Unvalid request with a not existing event
     	 */
-    	standardDeleteMedia(newMedia2.id, ownerEvent.token, NOT_FOUND, 2, token.token);
+    	standardDeleteMedia(newMedia2.id, ownerEvent.token, NOT_FOUND, 3, token.token);
 
     	
     	
     	/**
     	 * Valid request with a not connected user
     	 */
-    	standardDeleteMedia(newMedia2.id, ownerEvent.token, NOT_FOUND, 2, null);
+    	standardDeleteMedia(newMedia2.id, ownerEvent.token, NOT_FOUND, 3, null);
 
 
     	

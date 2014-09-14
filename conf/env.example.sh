@@ -2,7 +2,7 @@
 
 export LOCAL_STORAGE=true
 export MEDIA_PATH=`pwd`/../public/medias/
-export MEDIA_ROOT_URL="127.0.0.1:9000"
+export MEDIA_ROOT_URL="127.0.0.1:9000/medias/assets"
 export SECRET_KEY='8mtC^AGeQs`=ImcCTmGp^oKhjDr`IHs:n77isJy;Poko?KEHskTixTXCmkUltiEx'
 
 # The commented part are for a basic mysql installation

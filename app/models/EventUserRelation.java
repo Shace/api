@@ -31,16 +31,14 @@ public class EventUserRelation extends Model {
 	@JoinColumn(name="event_token")
 	public Event	event;
 	
-	@ManyToOne
-	@JoinColumn(name="user_id")
-	public User		user;
+	public String	email;
 	
 	@Enumerated(EnumType.ORDINAL)
 	public Access.AccessType	permission;
 	
-	public EventUserRelation(Event event, User user, Access.AccessType permission) {
+	public EventUserRelation(Event event, String email, Access.AccessType permission) {
 		this.event = event;
-		this.user = user;
+		this.email = email;
 		this.permission = permission;
 	}
 	

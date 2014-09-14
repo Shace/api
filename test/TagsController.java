@@ -70,7 +70,7 @@ public class TagsController extends WithApplication {
         privateEvent.save();
         privateEvent.saveOwnerPermission();
 
-        EventUserRelation relation = new EventUserRelation(privateEvent, friendUser, Access.AccessType.READ);
+        EventUserRelation relation = new EventUserRelation(privateEvent, friendUser.email, Access.AccessType.READ);
         relation.save();
 
         privateMedia = Media.create("First Photo2", ownerUser, privateEvent);
@@ -139,7 +139,7 @@ public class TagsController extends WithApplication {
 
     @Test
     public void administrativeDeletions() {      
-        EventUserRelation relation = new EventUserRelation(publicEvent, otherUser, Access.AccessType.ADMINISTRATE);
+        EventUserRelation relation = new EventUserRelation(publicEvent, otherUser.email, Access.AccessType.ADMINISTRATE);
         relation.save();
 
         Integer c1 = standardAddTag("{\"name\":\"test\"}", 201, 1, ownerUserToken.token, publicEvent.token, publicMedia.id);

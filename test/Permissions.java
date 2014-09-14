@@ -76,7 +76,7 @@ public class Permissions extends WithApplication {
         event.save();
         event.saveOwnerPermission();
 
-        EventUserRelation relation = new EventUserRelation(event, adminUser, Access.AccessType.ADMINISTRATE);
+        EventUserRelation relation = new EventUserRelation(event, adminUser.email, Access.AccessType.ADMINISTRATE);
         relation.save();
         
         event = Event.find.byId(event.id);
@@ -198,9 +198,9 @@ public class Permissions extends WithApplication {
     @Test
     public void testPublicPrivateEvent() {
     	// Modify Event
-        EventUserRelation readRelation = new EventUserRelation(event, userRead, Access.AccessType.READ);
+        EventUserRelation readRelation = new EventUserRelation(event, userRead.email, Access.AccessType.READ);
         readRelation.save();
-        EventUserRelation writeRelation = new EventUserRelation(event, userWrite, Access.AccessType.WRITE);
+        EventUserRelation writeRelation = new EventUserRelation(event, userWrite.email, Access.AccessType.WRITE);
         writeRelation.save();
         
         event.writingPrivacy = Event.Privacy.PRIVATE;
@@ -325,7 +325,7 @@ public class Permissions extends WithApplication {
     	AccessTokenEventRelation readRelation = new AccessTokenEventRelation(event, userReadToken, Access.AccessType.READ);
     	readRelation.save();
     	
-        EventUserRelation writeRelation = new EventUserRelation(event, userWrite, Access.AccessType.WRITE);
+        EventUserRelation writeRelation = new EventUserRelation(event, userWrite.email, Access.AccessType.WRITE);
         writeRelation.save();
 
     	event.writingPrivacy = Event.Privacy.PRIVATE;
@@ -364,10 +364,10 @@ public class Permissions extends WithApplication {
     @Test
     public void testPrivateEventNotSet() {
     	// Modify Event
-        EventUserRelation readingRelation = new EventUserRelation(event, userRead, Access.AccessType.READ);
+        EventUserRelation readingRelation = new EventUserRelation(event, userRead.email, Access.AccessType.READ);
         readingRelation.save();
         
-        EventUserRelation writingRelation = new EventUserRelation(event, userWrite, Access.AccessType.WRITE);
+        EventUserRelation writingRelation = new EventUserRelation(event, userWrite.email, Access.AccessType.WRITE);
         writingRelation.save();
         
         event.writingPrivacy = Event.Privacy.NOT_SET;
@@ -406,10 +406,10 @@ public class Permissions extends WithApplication {
     @Test
     public void testPrivateEventSet() {
     	// Modify Event
-        EventUserRelation readingRelation = new EventUserRelation(event, userRead, Access.AccessType.READ);
+        EventUserRelation readingRelation = new EventUserRelation(event, userRead.email, Access.AccessType.READ);
         readingRelation.save();
         
-        EventUserRelation writingRelation = new EventUserRelation(event, userWrite, Access.AccessType.WRITE);
+        EventUserRelation writingRelation = new EventUserRelation(event, userWrite.email, Access.AccessType.WRITE);
         writingRelation.save();
         
         event.writingPrivacy = Event.Privacy.PRIVATE;

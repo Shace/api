@@ -11,6 +11,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
@@ -42,6 +43,7 @@ public class Media extends Model {
 		this.creation = new Date();
 		this.type = Type.IMAGE;
 		this.rank = 0;
+		this.valid = true;
 		
 		this.image = Image.create();
 	}
@@ -81,9 +83,14 @@ public class Media extends Model {
 	
 	public Date        original;
 	
+	public boolean		valid;
+	
     @OneToMany(mappedBy="media", cascade=CascadeType.ALL)
     @OrderBy("creation")
     public List<Comment> comments;
+    
+	@ManyToMany(mappedBy = "medias")
+	public List<Bucket>		buckets;
 	
 	public static Finder<Integer, Media> find = new Finder<Integer, Media>(
 			Integer.class, Media.class
@@ -92,6 +99,7 @@ public class Media extends Model {
 	 public static Media create(String name, User ownerUser, Event ownerEvent) {
 		 Media media = new Media(ownerUser, ownerEvent);
 		 media.name = name;
+		 media.valid = true;
 		 media.save();
 		 return media; 
 	 }

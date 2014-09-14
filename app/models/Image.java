@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import javax.imageio.ImageIO;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -106,10 +105,6 @@ public class Image extends Model {
             WritableRaster raster = Raster.createPackedRaster(buffer, width, height, width, RGB_MASKS, null);
            	BufferedImage original = new BufferedImage(RGB_OPAQUE, raster, false, null);
             
-            if (original == null) {
-                throw new BadFormat("Error with original image");
-            }
-            
             {
             	long partialEstimatedTime = System.nanoTime() - partialStartTime;
                 Logger.debug("Reading image : " + Long.toString(partialEstimatedTime / 1000000) + "ms");
@@ -189,7 +184,16 @@ public class Image extends Model {
     	if (original.getWidth() < width && original.getHeight() < height) {
     		return original;
     	}
-    	BufferedImage resized = Scalr.resize(original, Scalr.Method.AUTOMATIC, Scalr.Mode.AUTOMATIC, width, height);
+    	BufferedImage resized = null;
+    	if (crop && width == height) {
+    		if (original.getWidth() > original.getHeight()) {
+        		resized = Scalr.resize(original, Scalr.Method.AUTOMATIC, Scalr.Mode.FIT_TO_HEIGHT, width, height);
+    		} else {
+        		resized = Scalr.resize(original, Scalr.Method.AUTOMATIC, Scalr.Mode.FIT_TO_WIDTH, width, height);
+    		}
+    	} else {
+    		resized = Scalr.resize(original, Scalr.Method.AUTOMATIC, Scalr.Mode.AUTOMATIC, width, height);
+    	}
     	if (resized.getWidth() > width) {
 			resized = Scalr.crop(resized, (resized.getWidth() - width) / 2, 0, width, resized.getHeight());
     	}

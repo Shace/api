@@ -510,6 +510,6 @@ public class Events extends Controller {
 
         event.update();
 
-        return noContent();
+        return ok(Images.getImageObjectNode(event.coverImage));
     }
 }
