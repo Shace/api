@@ -414,7 +414,7 @@ public class Medias extends Controller {
     	if (like != null) {
     		like.delete();
     		currentMedia.rank -= 1;
-    		currentMedia.update();
+    		currentMedia.save();
     	}
 		return noContent();
     }

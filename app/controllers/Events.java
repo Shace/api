@@ -56,7 +56,7 @@ public class Events extends Controller {
         if (event.startDate != null)
         	result.put("start_date", event.startDate.getTime());
         if (event.finishDate != null)
-        	result.put("end_date", event.finishDate.getTime());
+        	result.put("finish_date", event.finishDate.getTime());
         if (event.coverImage != null) {
         	result.put("cover", Images.getImageObjectNode(event.coverImage));
         }
@@ -456,8 +456,8 @@ public class Events extends Controller {
 	            currentEvent.startDate = startDate;
             }
         }
-        if (currentNode.path("end_date").canConvertToLong()) {
-        	Long dateTime = currentNode.path("end_date").asLong();
+        if (currentNode.path("finish_date").canConvertToLong()) {
+        	Long dateTime = currentNode.path("finish_date").asLong();
             if (dateTime == 0) {
             	currentEvent.finishDate = null;
             } else {
