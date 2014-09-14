@@ -8,6 +8,7 @@ import models.AccessToken;
 import models.Comment;
 import models.Event;
 import models.Image;
+import models.UserMediaLikeRelation;
 import models.Image.FormatType;
 import models.Media;
 import models.Tag;
@@ -319,4 +320,74 @@ public class Medias extends Controller {
 
         return noContent();
     }
+    
+    /**
+     * Like the media identified by the id parameter.
+     * The new media properties are contained into the HTTP Request body as Json format.
+     * @param id : the media identifier
+	 * @return An HTTP Success or an error
+     */
+    @BodyParser.Of(BodyParser.Json.class)
+    public static Result like(String token, Integer id, String accessToken) {
+    	AccessToken	access = AccessTokens.access(accessToken);
+        Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
+        if (error != null) {
+        	return error;
+        }
+
+    	Media	currentMedia = Media.find.byId(id);
+    	if (currentMedia == null) {
+        	return new errors.Error(errors.Error.Type.MEDIA_NOT_FOUND).toResponse();
+    	}
+    	
+    	Event	currentEvent = currentMedia.event;
+    	if (currentEvent == null) {
+        	return new errors.Error(errors.Error.Type.MEDIA_NOT_FOUND).toResponse();
+    	} else if (!currentMedia.owner.equals(access.user)) {
+        	return new errors.Error(errors.Error.Type.NEED_OWNER).toResponse();
+    	}
+
+    	if (UserMediaLikeRelation.find.where().eq("media_id", currentMedia.id).findUnique() == null) {
+    		UserMediaLikeRelation.create(access.user, currentMedia);
+    		currentMedia.rank += 1;
+       		currentMedia.save();
+    	}
+		return ok();
+    }
+    
+    /**
+     * Like the media identified by the id parameter.
+     * The new media properties are contained into the HTTP Request body as Json format.
+     * @param id : the media identifier
+	 * @return An HTTP Success or an error
+     */
+    @BodyParser.Of(BodyParser.Json.class)
+    public static Result unlike(String token, Integer id, String accessToken) {
+    	AccessToken	access = AccessTokens.access(accessToken);
+        Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
+        if (error != null) {
+        	return error;
+        }
+
+    	Media	currentMedia = Media.find.byId(id);
+    	if (currentMedia == null) {
+        	return new errors.Error(errors.Error.Type.MEDIA_NOT_FOUND).toResponse();
+    	}
+    	
+    	Event	currentEvent = currentMedia.event;
+    	if (currentEvent == null) {
+        	return new errors.Error(errors.Error.Type.MEDIA_NOT_FOUND).toResponse();
+    	} else if (!currentMedia.owner.equals(access.user)) {
+        	return new errors.Error(errors.Error.Type.NEED_OWNER).toResponse();
+    	}
+
+		UserMediaLikeRelation like = UserMediaLikeRelation.find.where().eq("media_id", currentMedia.id).eq("user_id", access.user.id).findUnique();
+    	if (like != null) {
+    		like.delete();
+    		currentMedia.rank -= 1;
+    		currentMedia.update();
+    	}
+		return noContent();
+    }
+
 }

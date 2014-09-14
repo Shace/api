@@ -63,6 +63,10 @@ public class Event extends Model {
 		
 	public Date			creation;
 	
+	public Date			startDate;
+	
+	public Date			finishDate;
+	
 	@OneToMany(mappedBy="event", cascade=CascadeType.ALL)
 	public List<Media>	medias;
 	
@@ -78,6 +82,9 @@ public class Event extends Model {
 	public Event(Privacy readingPrivacy, User ownerUser) {
 		this.id = UUID.randomUUID().toString();
 		this.token = this.id;
+		this.creation = new Date();
+		this.startDate= null;
+		this.finishDate= null;
 		this.creation = new Date();
 		this.readingPrivacy = readingPrivacy;
 		this.writingPrivacy = Privacy.NOT_SET;

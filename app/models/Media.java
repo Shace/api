@@ -18,7 +18,6 @@ import javax.persistence.OrderBy;
 import javax.persistence.Table;
 
 import play.db.ebean.Model;
-import Utils.JSONable;
 
 @Entity
 @Table(name="se_media")
@@ -47,45 +46,35 @@ public class Media extends Model {
 		this.image = Image.create();
 	}
 	
-	@JSONable
 	@GeneratedValue
 	@Column(unique=true)
 	@Id
 	public Integer 		id;
 	
-	@JSONable
 	@Enumerated(EnumType.ORDINAL)
 	public Type			type;
 
-	@JSONable
 	@Column(length=255)
 	public String		name;
 	
-	@JSONable
 	public String		description;
 
-	@JSONable(defaultField=false)
 	public Integer 		rank;
 	
-	@JSONable
 	public Date			creation;
 	
-	@JSONable(defaultField=false)
 	@ManyToOne
 	@JoinColumn(name="owner_id")
 	public User			owner;
 	
-	@JSONable(defaultField=false)
 	@ManyToOne
 	@JoinColumn(name="event_id")
 	public Event		event;
 	
-	@JSONable(defaultField=false)
 	@OneToMany(mappedBy="media", cascade=CascadeType.ALL)
 	public List<Tag>	tags;
 
 	
-	@JSONable(defaultField=false)
     @OneToOne(cascade=CascadeType.ALL)
     @JoinColumn(name="image_id")
 	public Image       image;

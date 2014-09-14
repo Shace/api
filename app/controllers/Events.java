@@ -26,6 +26,7 @@ import play.mvc.Http.MultipartFormData.FilePart;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -52,6 +53,10 @@ public class Events extends Controller {
         result.put("creation", event.creation.getTime());
         result.put("privacy", event.readingPrivacy.toString().toLowerCase());
         result.put("permission", Access.getPermissionOnEvent(accessToken, event).toString());
+        if (event.startDate != null)
+        	result.put("start_date", event.startDate.getTime());
+        if (event.finishDate != null)
+        	result.put("end_date", event.finishDate.getTime());
         if (event.coverImage != null) {
         	result.put("cover", Images.getImageObjectNode(event.coverImage));
         }
@@ -442,6 +447,24 @@ public class Events extends Controller {
         String description = currentNode.path("description").textValue();
         if (description != null)
             currentEvent.description = description;
+        if (currentNode.path("start_date").canConvertToLong()) {
+            Long dateTime = currentNode.path("start_date").asLong();
+            if (dateTime == 0) {
+            	currentEvent.startDate = null;
+            } else {
+	            Date startDate = new Date(dateTime);
+	            currentEvent.startDate = startDate;
+            }
+        }
+        if (currentNode.path("end_date").canConvertToLong()) {
+        	Long dateTime = currentNode.path("end_date").asLong();
+            if (dateTime == 0) {
+            	currentEvent.finishDate = null;
+            } else {
+            	Date finishDate = new Date(dateTime);
+                currentEvent.finishDate = finishDate;
+            }
+        }
     }
     
     /**

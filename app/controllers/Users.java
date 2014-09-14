@@ -453,6 +453,7 @@ public class Users extends Controller {
 
         return noContent();
     }
+    
     /**
      * Add a file to the media identified by the id parameter.
      * @param id : the media identifier
