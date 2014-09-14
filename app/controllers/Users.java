@@ -450,7 +450,7 @@ public class Users extends Controller {
 
         user.update();
 
-        return noContent();
+        return ok(Images.getImageObjectNode(user.profilePicture));
     }
     /**
      * Add a file to the media identified by the id parameter.
@@ -498,6 +498,6 @@ public class Users extends Controller {
 
         user.update();
 
-        return noContent();
+        return ok(Images.getImageObjectNode(user.coverPicture));
     }
 }
