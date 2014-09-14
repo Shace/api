@@ -184,7 +184,16 @@ public class Image extends Model {
     	if (original.getWidth() < width && original.getHeight() < height) {
     		return original;
     	}
-    	BufferedImage resized = Scalr.resize(original, Scalr.Method.AUTOMATIC, Scalr.Mode.AUTOMATIC, width, height);
+    	BufferedImage resized = null;
+    	if (crop && width == height) {
+    		if (original.getWidth() > original.getHeight()) {
+        		resized = Scalr.resize(original, Scalr.Method.AUTOMATIC, Scalr.Mode.FIT_TO_HEIGHT, width, height);
+    		} else {
+        		resized = Scalr.resize(original, Scalr.Method.AUTOMATIC, Scalr.Mode.FIT_TO_WIDTH, width, height);
+    		}
+    	} else {
+    		resized = Scalr.resize(original, Scalr.Method.AUTOMATIC, Scalr.Mode.AUTOMATIC, width, height);
+    	}
     	if (resized.getWidth() > width) {
 			resized = Scalr.crop(resized, (resized.getWidth() - width) / 2, 0, width, resized.getHeight());
     	}
