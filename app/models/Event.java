@@ -96,7 +96,7 @@ public class Event extends Model {
 	public boolean	hasPermission(User user, Access.AccessType permission) {
 		if (user != null) {
 			for (EventUserRelation relation : permissions) {
-				if (user.equals(relation.user) &&
+				if (user.email.equals(relation.email) &&
 						this.equals(relation.event) &&
 						permission.compareTo(relation.permission) <= 0) {
 					return true;
@@ -108,12 +108,12 @@ public class Event extends Model {
 	
 	public EventUserRelation	setPermission(User user, Access.AccessType permission) {
 		for (EventUserRelation relation : permissions) {
-			if (user.equals(relation.user) && relation.permission == permission) {
+			if (user.email.equals(relation.email) && relation.permission == permission) {
 				return relation;
 			}
 		}
 		
-		EventUserRelation res = new EventUserRelation(this, user, permission);
+		EventUserRelation res = new EventUserRelation(this, user.email, permission);
 		permissions.add(res);
 		return res;
 	}
@@ -121,7 +121,7 @@ public class Event extends Model {
 	public Access.AccessType	getPermission(User user) {
 		Access.AccessType res = Access.AccessType.NONE;
 		for (EventUserRelation relation : permissions) {
-			if (relation.user.equals(user) && relation.permission.compareTo(res) > 0) {
+			if (relation.email.equals(user.email) && relation.permission.compareTo(res) > 0) {
 				if (relation.permission.compareTo(Access.AccessType.ADMINISTRATE) >= 0) {
 					res = relation.permission;
 				} else if (relation.permission.compareTo(Access.AccessType.READ) <= 0 && readingPrivacy == Privacy.PRIVATE) {

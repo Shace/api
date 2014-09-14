@@ -25,7 +25,9 @@ public class Mailer {
 	public enum EmailType {
 		BETA_REQUEST_SENT			(0),
 		BETA_REQUEST_ACCEPTED		(1),
-		BETA_INVITATION				(2)
+		BETA_INVITATION				(2),
+		EVENT_INVITATION			(3),
+		EVENT_ANONYMOUS_INVITATION	(4)
 		;
 
 		public int code;

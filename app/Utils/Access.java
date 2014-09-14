@@ -5,7 +5,6 @@ import models.AccessTokenEventRelation;
 import models.Event;
 import models.Event.Privacy;
 import models.User;
-import play.mvc.Controller;
 import play.mvc.Result;
 
 

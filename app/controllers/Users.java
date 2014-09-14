@@ -6,7 +6,6 @@ import java.util.List;
 
 import models.AccessToken;
 import models.BetaInvitation;
-import models.Event;
 import models.Image;
 import models.BetaInvitation.State;
 import models.Image.FormatType;
@@ -400,7 +399,7 @@ public class Users extends Controller {
         	return error;
         }
         
-        List<EventUserRelation> eventUserRelations = EventUserRelation.find.where().eq("user", access.user).findList();
+        List<EventUserRelation> eventUserRelations = EventUserRelation.find.where().eq("email", access.user.email).findList();
         
         return ok(getEventsListNode(eventUserRelations, access));
     }

@@ -33,7 +33,7 @@ GET            /events/:token/medias/:id                        controllers.Medi
 GET            /events/:token/users                             controllers.EventPermissions.permissions(token : String, access_token)
 PUT            /events/:token/users                             controllers.EventPermissions.setPermissions(token : String, access_token)
 DELETE         /events/:token/users                             controllers.EventPermissions.deletePermissions(token : String, access_token)
-DELETE         /events/:token/users/:id                         controllers.EventPermissions.deleteUserPermissions(token : String, access_token, id : Integer)
+DELETE         /events/:token/users/:permissionId               controllers.EventPermissions.deleteUserPermissions(token : String, access_token, permissionId : Integer)
 
 # File
 POST           /events/:token/medias/:id                        controllers.Medias.addFile(token : String, id : Integer, access_token)
