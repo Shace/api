@@ -13,6 +13,7 @@ import errors.Error.Type;
 import models.AccessToken;
 import models.AccessTokenEventRelation;
 import models.Event;
+import models.Event.LinkAccess;
 import models.Image;
 import models.Event.Privacy;
 import models.Image.FormatType;
@@ -53,6 +54,10 @@ public class Events extends Controller {
         result.put("creation", event.creation.getTime());
         result.put("privacy", event.readingPrivacy.toString().toLowerCase());
         result.put("permission", Access.getPermissionOnEvent(accessToken, event).toString());
+        if (event.readingPrivacy == Privacy.PRIVATE) {
+        	result.put("link_access", event.linkAccess.toString().toLowerCase());
+        }
+        result.put("privacy", event.readingPrivacy.toString().toLowerCase());
         if (event.startDate != null)
         	result.put("start_date", event.startDate.getTime());
         if (event.finishDate != null)
@@ -321,8 +326,6 @@ public class Events extends Controller {
         	return new errors.Error(errors.Error.Type.JSON_REQUIRED).toResponse();
         }
         
-        fillEventFromJSON(event, root);
-        
         String readingPrivacyStr = root.path("privacy").textValue();
         if (readingPrivacyStr != null) {
         	if (readingPrivacyStr.equals("public")) {
@@ -363,6 +366,7 @@ public class Events extends Controller {
 
         	} else if (readingPrivacyStr.equals("private")) {
         		event.readingPrivacy = Privacy.PRIVATE;
+        		event.linkAccess = LinkAccess.NONE;
         		event.token = event.id;
         	} else {
             	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("privacy", ParameterType.FORMAT).toResponse();
@@ -404,6 +408,7 @@ public class Events extends Controller {
     	} else if (!event.token.matches("[a-zA-Z0-9|-]*")) {
         	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("token", ParameterType.FORMAT).toResponse();
     	}
+        fillEventFromJSON(event, root);
         event.update();
         return ok(getEventObjectNode(event, access));
     }
@@ -464,6 +469,16 @@ public class Events extends Controller {
             	Date finishDate = new Date(dateTime);
                 currentEvent.finishDate = finishDate;
             }
+        }
+        String linkAccessStr = currentNode.path("link_access").textValue();
+        if (linkAccessStr != null && currentEvent.readingPrivacy == Privacy.PRIVATE) {
+        	if (linkAccessStr.equals("none")) {
+        		currentEvent.linkAccess = LinkAccess.NONE;
+        	} else if (linkAccessStr.equals("read")) {
+        		currentEvent.linkAccess = LinkAccess.READ;
+        	} else if (linkAccessStr.equals("write")) {
+        		currentEvent.linkAccess = LinkAccess.WRITE;
+        	}
         }
     }
     

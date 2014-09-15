@@ -29,6 +29,12 @@ public class Event extends Model {
 		NOT_SET
 	}
 	
+	public enum LinkAccess {
+        NONE,
+        READ,
+        WRITE
+	}
+	
 	/**
 	 * Unique version uid for serialization
 	 */
@@ -57,6 +63,9 @@ public class Event extends Model {
 
 	@Column(length=40)
 	public String		writingPassword;
+	
+	@Enumerated(EnumType.ORDINAL)
+	public LinkAccess	linkAccess;
 
 	@OneToMany(mappedBy="event")
 	public List<EventUserRelation> permissions;
@@ -88,6 +97,7 @@ public class Event extends Model {
 		this.creation = new Date();
 		this.readingPrivacy = readingPrivacy;
 		this.writingPrivacy = Privacy.NOT_SET;
+		this.linkAccess = LinkAccess.NONE;
 		this.owner = ownerUser;
 		this.root = new Bucket(0, null);
 		this.root.save();
