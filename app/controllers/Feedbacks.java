@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import errors.Error.ParameterType;
 import errors.Error.Type;
+import play.db.ebean.Transactional;
 import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
@@ -22,6 +23,7 @@ import play.mvc.Result;
 public class Feedbacks extends Controller {
 
 	@BodyParser.Of(BodyParser.Json.class)
+	@Transactional
     public static Result add(String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.ANONYMOUS_USER);
@@ -54,6 +56,7 @@ public class Feedbacks extends Controller {
 		return created();
     }
     
+	@Transactional
     public static Result adminList(String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.ADMIN_USER);
@@ -80,6 +83,7 @@ public class Feedbacks extends Controller {
 		return created(result);
     }
     
+	@Transactional
     public static Result processingList(String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.ADMIN_USER);
@@ -107,6 +111,7 @@ public class Feedbacks extends Controller {
     }
     
 	@BodyParser.Of(BodyParser.Json.class)
+	@Transactional
     public static Result validateProcessing(String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.ADMIN_USER);

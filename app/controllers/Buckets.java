@@ -10,6 +10,7 @@ import models.Bucket;
 import models.Event;
 import models.Media;
 import play.Logger;
+import play.db.ebean.Transactional;
 import play.libs.Json;
 import play.mvc.Controller;
 
@@ -55,8 +56,9 @@ public class Buckets extends Controller {
         return result;
     }
     
-    private static final int[] maximumDelays = {30 * 60, 365*24*60*60, -1};
+    private static final int[] MAXIMUM_DELAYS = {30 * 60, 365*24*60*60, -1};
 
+    @Transactional
     public static void addNewMediaToEvent(Event event, Media media) {
         long startTime = System.nanoTime();
 
@@ -68,8 +70,8 @@ public class Buckets extends Controller {
         Bucket added = null;
         for (Bucket bucket : buckets) {
             if (bucket.size.equals(0) || 
-               (bucket.first.getTime() / 1000 - maximumDelays[0] <= media.original.getTime() / 1000 &&
-               bucket.last.getTime() / 1000 + maximumDelays[0] >= media.original.getTime() / 1000)) {
+               (bucket.first.getTime() / 1000 - MAXIMUM_DELAYS[0] <= media.original.getTime() / 1000 &&
+               bucket.last.getTime() / 1000 + MAXIMUM_DELAYS[0] >= media.original.getTime() / 1000)) {
                 added = bucket;
                 break;
             }
@@ -85,6 +87,7 @@ public class Buckets extends Controller {
         Logger.debug("Time elapsed to compute buckets : " + Long.toString(estimatedTime / 1000000) + "ms");
     }
     
+    @Transactional
     private static void mergeLevel(Event event, int level, Integer parentId, Media media) {
         List<Bucket> buckets = Ebean.find(Bucket.class).fetch("parent").where().eq("event", event).where().eq("level", level).orderBy("first asc").findList();
 
@@ -109,8 +112,8 @@ public class Buckets extends Controller {
             Bucket current = buckets.get(i);
             if (i + 1 < buckets.size()) {
                 Bucket next = buckets.get(i + 1);
-                if (maximumDelays[level] == -1 ||
-                        current.last.getTime() / 1000 + maximumDelays[level] >= next.first.getTime() / 1000) {
+                if (MAXIMUM_DELAYS[level] == -1 ||
+                        current.last.getTime() / 1000 + MAXIMUM_DELAYS[level] >= next.first.getTime() / 1000) {
                     
                     if (next.parent != null) {
                         next.parent.size -= next.size;

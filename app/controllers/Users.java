@@ -11,6 +11,7 @@ import models.BetaInvitation.State;
 import models.Image.FormatType;
 import models.EventUserRelation;
 import models.User;
+import play.db.ebean.Transactional;
 import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
@@ -75,6 +76,7 @@ public class Users extends Controller {
      * 
      * @return An HTTP JSON response containing the properties of all the users
      */
+    @Transactional
     public static Result users(String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.ADMIN_USER);
@@ -140,6 +142,7 @@ public class Users extends Controller {
      *         user
      */
     @BodyParser.Of(BodyParser.Json.class)
+    @Transactional
     public static Result add(String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.NOT_CONNECTED_USER);
@@ -192,6 +195,7 @@ public class Users extends Controller {
      * @param id : the user identifier
      * @return An HTTP response that specifies if the deletion succeeded or not
      */
+    @Transactional
     public static Result delete(Integer id, String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
@@ -224,6 +228,7 @@ public class Users extends Controller {
      * @return An HTTP JSON response containing the new properties of edited user
      */
     @BodyParser.Of(BodyParser.Json.class)
+    @Transactional
     public static Result update(Integer id, String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
@@ -277,6 +282,7 @@ public class Users extends Controller {
      * @param id : the user identifier
      * @return An HTTP JSON response containing the properties of the specified user
      */
+    @Transactional
     public static Result user(Integer id, String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
@@ -304,6 +310,7 @@ public class Users extends Controller {
      * @param password User password
      * @return The user corresponding to the email and password, null if not found
      */
+    @Transactional
     public static User authenticate(String email, String password) {
         String sha1 = Utils.Hasher.hash(password);
 
@@ -318,6 +325,7 @@ public class Users extends Controller {
      * @param currentUser : The user to update
      * @param currentNode : The new properties to set
      */
+    @Transactional
     private static void updateOneUser(User currentUser, JsonNode currentNode) {
         String password = currentNode.path("password").textValue();
         if (password != null) {
@@ -342,6 +350,7 @@ public class Users extends Controller {
      * @return An HTTP JSON response containing the properties of the connected
      *         user
      */
+    @Transactional
     public static Result me(String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
@@ -357,6 +366,7 @@ public class Users extends Controller {
         return ok(getUserObjectNode(access.user));
     }
 
+    @Transactional
     public static ObjectNode getEventsListNode(List<EventUserRelation> eventUserRelations, AccessToken accessToken) {
         ObjectNode result = Json.newObject();
 
@@ -387,6 +397,7 @@ public class Users extends Controller {
      * @return An HTTP JSON response containing the events of the connected
      *         user
      */
+    @Transactional
     public static Result events(String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
@@ -409,6 +420,7 @@ public class Users extends Controller {
      * @param id : the media identifier
      * @return An HTTP response that specifies if the file upload success
      */
+    @Transactional
     public static Result addProfilePicture(Integer id, String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
@@ -458,6 +470,7 @@ public class Users extends Controller {
      * @param id : the media identifier
      * @return An HTTP response that specifies if the file upload success
      */
+    @Transactional
     public static Result addCoverPicture(Integer id, String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);

@@ -7,6 +7,7 @@ import models.AccessToken.Lang;
 import models.AccessToken.Type;
 import models.BetaInvitation;
 import models.User;
+import play.db.ebean.Transactional;
 import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
@@ -62,6 +63,7 @@ public class AccessTokens extends Controller {
      * @param accessToken The access token identifier
      * @return An HTTP response that specifies if the deletion succeeded or not
      */
+    @Transactional
     public static Result delete(String accessToken) {
         AccessToken access = AccessToken.find.byId(accessToken);
         if (access == null) {
@@ -80,6 +82,7 @@ public class AccessTokens extends Controller {
      *         access token
      */
     @BodyParser.Of(BodyParser.Json.class)
+    @Transactional
     public static Result accessToken() {
         JsonNode json = request().body().asJson();
 
@@ -110,6 +113,7 @@ public class AccessTokens extends Controller {
      *         access token
      */
     @BodyParser.Of(BodyParser.Json.class)
+    @Transactional
     public static Result connection(String accessToken) {
         AccessToken access = AccessToken.find.byId(accessToken);
         if (access == null) {
@@ -166,6 +170,7 @@ public class AccessTokens extends Controller {
      * @param autoRenew Create an auto renew token if true
      * @return An access token corresponding to the user, null if authentication failed
      */
+    @Transactional
     public static AccessToken authenticate(String email, String password, boolean autoRenew) {
         User user = Users.authenticate(email, password);
         if (user == null) {
@@ -179,7 +184,8 @@ public class AccessTokens extends Controller {
      * 
      * @param accessToken The access token id
      * @return the corresponding AccessToken object
-     */
+     */    
+    @Transactional
     public static AccessToken access(String accessToken) {
 
         if (accessToken == null) {
@@ -202,6 +208,7 @@ public class AccessTokens extends Controller {
         return token;
     }
     
+    @Transactional
     public static Result changeLanguage(String language, String accessToken) {
     	 AccessToken access = AccessTokens.access(accessToken);
          Result error = Access.checkAuthentication(access, Access.AuthenticationType.ANONYMOUS_USER);

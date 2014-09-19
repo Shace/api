@@ -6,6 +6,7 @@ import models.AccessToken;
 import models.BetaInvitation;
 import models.User;
 import models.BetaInvitation.State;
+import play.db.ebean.Transactional;
 import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
@@ -25,9 +26,10 @@ import errors.Error.Type;
 @CORS
 public class BetaInvitations extends Controller {
 
-	public static Integer invitationNumber = 5;
+	public static final Integer MAX_INVITATION_NUMBER = 5;
 	
 	@BodyParser.Of(BodyParser.Json.class)
+    @Transactional
     public static Result add(String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
@@ -55,7 +57,7 @@ public class BetaInvitations extends Controller {
 	    }
 		ArrayNode guestsNode = Json.newObject().arrayNode();
     	for (JsonNode guestNode: guestList) {
-    		if (current.invitedPeople > invitationNumber && access.user.isAdmin == false) {
+    		if (current.invitedPeople > MAX_INVITATION_NUMBER && access.user.isAdmin == false) {
     			break;
     		}
     		String mail = guestNode.path("email").textValue();
@@ -78,10 +80,11 @@ public class BetaInvitations extends Controller {
     	current.save();
     	ObjectNode result = Json.newObject();
 		result.put("invited", guestsNode);
-		result.put("remaining", access.user.isAdmin ? 10 : (invitationNumber - current.invitedPeople));
+		result.put("remaining", access.user.isAdmin ? 10 : (MAX_INVITATION_NUMBER - current.invitedPeople));
 		return created(result);
     }
     
+	@Transactional
     public static Result invitations(String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
@@ -106,10 +109,11 @@ public class BetaInvitations extends Controller {
 		}
     	ObjectNode result = Json.newObject();
 	result.put("invited", guestsNode);
-	result.put("remaining", access.user.isAdmin ? 10 : (invitationNumber - current.invitedPeople));
+	result.put("remaining", access.user.isAdmin ? 10 : (MAX_INVITATION_NUMBER - current.invitedPeople));
 	return created(result);
     }
 
+	@Transactional
     public static Result processingList(String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.ADMIN_USER);
@@ -130,6 +134,7 @@ public class BetaInvitations extends Controller {
     }
     
 	@BodyParser.Of(BodyParser.Json.class)
+	@Transactional
     public static Result validateProcessing(String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.ADMIN_USER);

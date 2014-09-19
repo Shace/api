@@ -1,7 +1,28 @@
 package controllers;
 
+import java.io.File;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+
+import models.AccessToken;
+import models.AccessTokenEventRelation;
+import models.Event;
+import models.Event.LinkAccess;
+import models.Event.Privacy;
+import models.Image;
+import models.Image.BadFormat;
+import models.Image.FormatType;
+import models.Media;
+import play.db.ebean.Transactional;
+import play.libs.Json;
+import play.mvc.BodyParser;
+import play.mvc.Controller;
+import play.mvc.Http.MultipartFormData;
+import play.mvc.Http.MultipartFormData.FilePart;
+import play.mvc.Result;
 import Utils.Access;
-import Utils.Storage;
 
 import com.avaje.ebean.Ebean;
 import com.avaje.ebean.SqlUpdate;
@@ -11,30 +32,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import errors.Error.ParameterType;
 import errors.Error.Type;
-import models.AccessToken;
-import models.AccessTokenEventRelation;
-import models.Bucket;
-import models.Event;
-import models.Event.LinkAccess;
-import models.Image;
-import models.Event.Privacy;
-import models.Image.FormatType;
-import models.ImageFileRelation;
-import models.Media;
-import play.Logger;
-import play.libs.Json;
-import play.mvc.BodyParser;
-import play.mvc.Controller;
-import play.mvc.Result;
-import play.mvc.Http.MultipartFormData;
-import play.mvc.Http.MultipartFormData.FilePart;
-
-import java.io.File;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
 
 /**
  * Controller that handles the different API action applied to an Event
@@ -43,6 +40,47 @@ import java.util.UUID;
  */
 @CORS
 public class Events extends Controller {
+	
+	/**
+	 * List of all forbidden tokens
+	 */
+	private static final List<String> FORBIDDEN_TOKENS = Arrays.asList("search");
+	
+	/**
+	 * Search for an event.
+	 *
+	 * TODO The user should also be able to search for ALL events he joined (private and protected as well) (if he's logged)
+	 * TODO Change the orderBy to return the most popular events first (If $query match an event at 100%, this event should appears first, followed by the most popular ones )
+	 * TODO Throw PARAMETERS_ERROR if query length is 0
+	 *
+	 * @param query query to lookup
+	 * @param accessToken client access token
+	 *
+	 * @return An HTTP JSON response containing the properties of all the events
+	 */
+	@Transactional
+	public static Result search(String query, String accessToken) {
+		AccessToken access = AccessTokens.access(accessToken);
+		Result error = Access.checkAuthentication(access, Access.AuthenticationType.ANONYMOUS_USER);
+		if (error != null) {
+			return error;
+		}
+
+		List<Event> events = Event.find.where().eq("readingPrivacy", Event.Privacy.PUBLIC)
+				.where().istartsWith("token", query)
+				.orderBy("token")
+				.setMaxRows(20)
+				.findList();
+
+		ArrayNode eventsNode = Json.newObject().arrayNode();
+
+		for (Event event : events) {
+			eventsNode.add(getEventObjectNode(event, access));
+		}
+		ObjectNode result = Json.newObject();
+		result.put("events", eventsNode);
+		return ok(result);
+	}
 
     /**
      * Convert an event to a JSON object.
@@ -88,53 +126,13 @@ public class Events extends Controller {
     }
 
     /**
-     * Search for an event.
-     *
-     * TODO The user should also be able to search for ALL events he joined (private and protected as well) (if he's logged)
-     * TODO Change the orderBy to return the most popular events first (If $query match an event at 100%, this event should appears first, followed by the most popular ones )
-     * TODO Throw PARAMETERS_ERROR if query length is 0
-     *
-     * @param query query to lookup
-     * @param accessToken client access token
-     *
-     * @return An HTTP JSON response containing the properties of all the events
-     */
-    public static Result search(String query, String accessToken) {
-        AccessToken access = AccessTokens.access(accessToken);
-        Result error = Access.checkAuthentication(access, Access.AuthenticationType.ANONYMOUS_USER);
-        if (error != null) {
-        	return error;
-        }
-
-        List<Event> events = Event.find.where().eq("readingPrivacy", Event.Privacy.PUBLIC)
-                                       .where().istartsWith("token", query)
-                                       .where().eq("deleted", false)
-                                       .orderBy("token")
-                                       .setMaxRows(20)
-                                       .findList();
-
-        ArrayNode eventsNode = Json.newObject().arrayNode();
-
-        for (Event event : events) {
-            eventsNode.add(getEventObjectNode(event, access));
-        }
-        ObjectNode result = Json.newObject();
-        result.put("events", eventsNode);
-        return ok(result);
-    }
-
-    /**
-     * List of all forbidden tokens
-     */
-    private static final List<String> forbiddenTokens = Arrays.asList("search");
-    
-    /**
      * Add an event.
      * The event properties are contained into the HTTP Request body as JSON format.
      * 
      * @return An HTTP JSON response containing the properties of the added event
      */
     @BodyParser.Of(BodyParser.Json.class)
+    @Transactional
     public static Result add(String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
@@ -187,7 +185,7 @@ public class Events extends Controller {
         
         event = new Event(readingPrivacy, access.user);
         if (token != null) {
-        	if (forbiddenTokens.contains(token)) {
+        	if (FORBIDDEN_TOKENS.contains(token)) {
             	return new errors.Error(Type.FORBIDDEN_TOKEN).toResponse();
         	} else if (!token.matches("[a-zA-Z0-9|-]*")) {
             	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("token", ParameterType.FORMAT).toResponse();
@@ -215,11 +213,13 @@ public class Events extends Controller {
     }
 
     /**
+<<<<<<< HEAD
      * Delete the event identified by the token parameter.
      * 
      * @param token : the event identifier
      * @return An HTTP response that specifies if the deletion succeeded or not
      */
+	@Transactional    
     public static Result delete(String token, String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.ANONYMOUS_USER);
@@ -271,6 +271,7 @@ public class Events extends Controller {
      * @return An HTTP JSON response containing the new properties of edited user
      */
     @BodyParser.Of(BodyParser.Json.class)
+    @Transactional
     public static Result access(String token, String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.ANONYMOUS_USER);
@@ -318,9 +319,93 @@ public class Events extends Controller {
 		} else {
 			newAccess.permission = grantedAccess;
 		}
-        newAccess.save();
-        return ok(getEventObjectNode(event, access));
-    }
+
+		newAccess.save();
+		return ok(getEventObjectNode(event, access));
+	}
+
+	/**
+	 * Get the properties of the event identified by the token parameter.
+	 * 
+	 * @param token : the event identifier
+	 * @return An HTTP JSON response containing the properties of the specified event
+	 */
+	@Transactional
+	public static Result event(String token, String accessToken) {
+		AccessToken access = AccessTokens.access(accessToken);
+		Result error = Access.checkAuthentication(access, Access.AuthenticationType.ANONYMOUS_USER);
+		if (error != null) {
+			return error;
+		}
+
+		Event event = Ebean.find(Event.class).fetch("medias").orderBy("original asc").fetch("medias.owner").fetch("medias.image")
+				.fetch("medias.image.files").fetch("medias.image.files.file").fetch("root").fetch("coverImage").fetch("coverImage.files").fetch("coverImage.files.file").where().eq("token", token).findUnique();
+		if (event == null) {
+			return new errors.Error(errors.Error.Type.EVENT_NOT_FOUND).toResponse();
+		}
+
+		error = Access.hasPermissionOnEvent(access, event, Access.AccessType.READ);
+		if (error != null) {
+			return error;
+		}
+		return ok(getEventObjectNode(event, access));
+	}
+
+	/**
+	 * Add a file to the media identified by the id parameter.
+	 * @param id : the media identifier
+	 * @return An HTTP response that specifies if the file upload success
+	 */
+	@Transactional
+	public static Result addCover(String token, String accessToken) {
+		AccessToken access = AccessTokens.access(accessToken);
+		Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
+		if (error != null) {
+			return error;
+		}
+
+		Event event = Event.find.where().eq("token", token).findUnique();
+		if (event == null) {
+			return new errors.Error(errors.Error.Type.EVENT_NOT_FOUND).toResponse();
+		}
+
+		error = Access.hasPermissionOnEvent(access, event, Access.AccessType.ADMINISTRATE);
+		if (error != null) {
+			return error;
+		}
+
+
+		MultipartFormData body = request().body().asMultipartFormData();
+		FilePart filePart = null; 
+		if (body != null) {
+			filePart = body.getFile("file");
+		}
+		if (filePart != null) {
+			File file = filePart.getFile();
+			try {
+				addCoverFile(event, file);
+			} catch (Image.BadFormat b) {
+				return new errors.Error(errors.Error.Type.BAD_FORMAT_IMAGE).toResponse();
+			}
+		}
+
+		event.update();
+
+		return ok(Images.getImageObjectNode(event.coverImage));
+	}
+
+	@Transactional
+	public static Result addCoverFile(Event event, File file) throws BadFormat {
+		String s = "DELETE FROM se_image_file_relation where image_id = :imageid";
+		SqlUpdate update = Ebean.createSqlUpdate(s);
+		update.setParameter("imageid", event.coverImage.id);
+		Ebean.execute(update);
+		event.coverImage.addFile(file, FormatType.COVER);
+
+		event.update();
+
+		return ok(Images.getImageObjectNode(event.coverImage));
+	}
     
     /**
      * Update the event identified by the token parameter.
@@ -330,6 +415,7 @@ public class Events extends Controller {
      * @return An HTTP JSON response containing the new properties of edited user
      */
     @BodyParser.Of(BodyParser.Json.class)
+    @Transactional
     public static Result update(String token, String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
@@ -429,39 +515,13 @@ public class Events extends Controller {
             }
         }
 
-        if (forbiddenTokens.contains(event.token)) {
+        if (FORBIDDEN_TOKENS.contains(event.token)) {
         	return new errors.Error(Type.FORBIDDEN_TOKEN).toResponse();
     	} else if (!event.token.matches("[a-zA-Z0-9|-]*")) {
         	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("token", ParameterType.FORMAT).toResponse();
     	}
         fillEventFromJSON(event, root);
         event.update();
-        return ok(getEventObjectNode(event, access));
-    }
-
-    /**
-     * Get the properties of the event identified by the token parameter.
-     * 
-     * @param token : the event identifier
-     * @return An HTTP JSON response containing the properties of the specified event
-     */
-    public static Result event(String token, String accessToken) {
-        AccessToken access = AccessTokens.access(accessToken);
-        Result error = Access.checkAuthentication(access, Access.AuthenticationType.ANONYMOUS_USER);
-        if (error != null) {
-            return error;
-        }
-
-        Event event = Ebean.find(Event.class).fetch("medias").orderBy("original asc").fetch("medias.owner").fetch("medias.image")
-                .fetch("medias.image.files").fetch("medias.image.files.file").fetch("root").fetch("coverImage").fetch("coverImage.files").fetch("coverImage.files.file").where().eq("token", token).findUnique();
-        if (event == null) {
-        	return new errors.Error(errors.Error.Type.EVENT_NOT_FOUND).toResponse();
-        }
-
-        error = Access.hasPermissionOnEvent(access, event, Access.AccessType.READ);
-        if (error != null) {
-            return error;
-        }
         return ok(getEventObjectNode(event, access));
     }
     
@@ -507,50 +567,5 @@ public class Events extends Controller {
         	}
         }
     }
-    
-    /**
-     * Add a file to the media identified by the id parameter.
-     * @param id : the media identifier
-     * @return An HTTP response that specifies if the file upload success
-     */
-    public static Result addCover(String token, String accessToken) {
-        AccessToken access = AccessTokens.access(accessToken);
-        Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
-        if (error != null) {
-        	return error;
-        }
-    	
-        Event event = Event.find.where().eq("token", token).findUnique();
-        if (event == null) {
-        	return new errors.Error(errors.Error.Type.EVENT_NOT_FOUND).toResponse();
-        }
-
-    	error = Access.hasPermissionOnEvent(access, event, Access.AccessType.ADMINISTRATE);
-        if (error != null) {
-        	return error;
-        }
-        
-        
-        MultipartFormData body = request().body().asMultipartFormData();
-        FilePart filePart = null; 
-        if (body != null) {
-            filePart = body.getFile("file");
-        }
-        if (filePart != null) {
-          File file = filePart.getFile();
-          try {
-        	  String s = "DELETE FROM se_image_file_relation where image_id = :imageid";
-              SqlUpdate update = Ebean.createSqlUpdate(s);
-              update.setParameter("imageid", event.coverImage.id);
-              Ebean.execute(update);
-              event.coverImage.addFile(file, FormatType.COVER);
-          } catch (Image.BadFormat b) {
-          	return new errors.Error(errors.Error.Type.BAD_FORMAT_IMAGE).toResponse();
-          }
-        }
-
-        event.update();
-
-        return ok(Images.getImageObjectNode(event.coverImage));
-    }
+ 
 }
