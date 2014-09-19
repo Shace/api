@@ -28,6 +28,8 @@ POST           /events/:token/medias                            controllers.Medi
 DELETE         /events/:token/medias/:id                        controllers.Medias.delete(token : String, id : Integer, access_token)
 PUT            /events/:token/medias/:id                        controllers.Medias.update(token : String, id : Integer, access_token)
 GET            /events/:token/medias/:id                        controllers.Medias.media(token : String, id : Integer, access_token)
+POST           /events/:token/medias/:id/like                   controllers.Medias.like(token : String, id : Integer, access_token)
+DELETE         /events/:token/medias/:id/like                   controllers.Medias.unlike(token : String, id : Integer, access_token)
 
 # EventUserRelation
 GET            /events/:token/users                             controllers.EventPermissions.permissions(token : String, access_token)

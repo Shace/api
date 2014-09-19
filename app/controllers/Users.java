@@ -464,6 +464,7 @@ public class Users extends Controller {
 
         return ok(Images.getImageObjectNode(user.profilePicture));
     }
+    
     /**
      * Add a file to the media identified by the id parameter.
      * @param id : the media identifier

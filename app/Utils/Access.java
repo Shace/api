@@ -1,5 +1,7 @@
 package Utils;
 
+import com.amazonaws.services.ec2.model.EventCode;
+
 import models.AccessToken;
 import models.AccessTokenEventRelation;
 import models.Event;
@@ -86,6 +88,8 @@ public class Access {
 				}
 			} else if (writingPrivacy == Event.Privacy.PUBLIC) {
 				res = max(res, AccessType.WRITE);
+			} else if (event.readingPrivacy == Privacy.PRIVATE && event.linkAccess != Event.LinkAccess.NONE) {
+				res = max(res, event.linkAccess == Event.LinkAccess.READ ? AccessType.READ : AccessType.WRITE);
 			}
 		}
 
@@ -95,6 +99,8 @@ public class Access {
 					res = relation.permission;
 				}
 			} else if (event.readingPrivacy == Event.Privacy.PUBLIC) {
+				res = AccessType.READ;
+			} else if (event.readingPrivacy == Privacy.PRIVATE && event.linkAccess != Event.LinkAccess.NONE) {
 				res = AccessType.READ;
 			}
 		}
