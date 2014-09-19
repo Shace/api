@@ -6,6 +6,7 @@ import models.AccessToken;
 import models.Event;
 import models.EventUserRelation;
 import models.User;
+import play.api.libs.iteratee.Error;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -118,7 +119,7 @@ public class EventPermissions extends Controller {
                 }
             }
 
-            if (givenPermission == null || givenPermission.compareTo(userPermission) >= 0) {
+            if (givenPermission == null || givenPermission.compareTo(userPermission) > 0) {
                 continue;
             }
 
@@ -141,7 +142,7 @@ public class EventPermissions extends Controller {
 
             EventUserRelation currentRelation = null;
             for (EventUserRelation relation : event.permissions) {
-                if (relation.email != null && email.equals(relation.email)) {
+                if (relation.email != null && !relation.email.equals(access.user.email) && email.equals(relation.email)) {
                     currentRelation = relation;
                     break ;
                 }
@@ -221,7 +222,7 @@ public class EventPermissions extends Controller {
 
             boolean hasDeleted = false;
             for (EventUserRelation relation : event.permissions) {
-                if (relation.email != null && email.equals(relation.email)) {
+                if (relation.email != null && email.equals(relation.email) && !relation.email.equals(access.user.email) && userPermission.compareTo(relation.permission) >= 0) {
                     relation.delete();
                     hasDeleted = true;
                 }
@@ -246,6 +247,10 @@ public class EventPermissions extends Controller {
         if (error != null) {
             return error;
         }
+        
+        if (permissionId == access.user.id) {
+        	return new errors.Error(Type.PARAMETERS_ERROR).toResponse();
+        }
 
         Event event = Ebean.find(Event.class).where().eq("token", token).findUnique();
         if (event == null) {
@@ -260,7 +265,7 @@ public class EventPermissions extends Controller {
         ArrayNode toDeleteNode = Json.newObject().arrayNode();
 
         for (EventUserRelation relation : event.permissions) {
-            if (relation.id != null && permissionId.equals(relation.id)) {
+            if (relation.id != null && permissionId.equals(relation.id) && userPermission.compareTo(relation.permission) >= 0) {
                 relation.delete();
             }
         }

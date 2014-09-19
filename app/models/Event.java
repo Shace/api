@@ -52,6 +52,8 @@ public class Event extends Model {
 	
 	public String		description;
 	
+	public boolean		deleted;
+	
 	@Enumerated(EnumType.ORDINAL)
 	public Privacy 		readingPrivacy;
 	
@@ -102,6 +104,7 @@ public class Event extends Model {
 		this.root = new Bucket(0, null);
 		this.root.save();
 		this.coverImage = Image.create();
+		this.deleted = false;
 	}
 	
 	public void	saveOwnerPermission() {

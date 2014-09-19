@@ -1,6 +1,7 @@
 package controllers;
 
 import Utils.Access;
+import Utils.Storage;
 
 import com.avaje.ebean.Ebean;
 import com.avaje.ebean.SqlUpdate;
@@ -12,12 +13,15 @@ import errors.Error.ParameterType;
 import errors.Error.Type;
 import models.AccessToken;
 import models.AccessTokenEventRelation;
+import models.Bucket;
 import models.Event;
 import models.Event.LinkAccess;
 import models.Image;
 import models.Event.Privacy;
 import models.Image.FormatType;
+import models.ImageFileRelation;
 import models.Media;
+import play.Logger;
 import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
@@ -28,7 +32,9 @@ import play.mvc.Http.MultipartFormData.FilePart;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Controller that handles the different API action applied to an Event
@@ -102,6 +108,7 @@ public class Events extends Controller {
 
         List<Event> events = Event.find.where().eq("readingPrivacy", Event.Privacy.PUBLIC)
                                        .where().istartsWith("token", query)
+                                       .where().eq("deleted", false)
                                        .orderBy("token")
                                        .setMaxRows(20)
                                        .findList();
@@ -220,7 +227,7 @@ public class Events extends Controller {
         	return error;
         }
 
-        Event event = Event.find.where().eq("token", token).findUnique();
+        Event event = Event.find.fetch("medias").fetch("root").where().eq("token", token).findUnique();
         if (event == null) {
         	return new errors.Error(errors.Error.Type.EVENT_NOT_FOUND).toResponse();
         }
@@ -229,12 +236,31 @@ public class Events extends Controller {
         if (error != null) {
         	return error;
         }
-
-        // TODO This is a really tricky operation. All the medias, events, tokens, files ... need to be delete !
-        // For now, deletion is not yet possible
-        // Maybe only set a valid flag
-
-        return TODO;
+        
+        event.deleted = true;
+        event.token = UUID.randomUUID().toString();
+        event.readingPrivacy = Privacy.PRIVATE;
+        event.writingPrivacy = Privacy.PRIVATE;
+        Ebean.delete(event.permissions);
+        event.permissions.clear();
+        event.update();
+//        List<Image> images = new LinkedList<Image>();
+//        images.add(event.coverImage);
+//        for (Media media : event.medias) {
+//        	images.add(media.image);
+//        	media.deleteManyToManyAssociations("buckets");
+//        }
+//        List<ImageFileRelation> fileRelations = ImageFileRelation.find.fetch("file").where().in("image", images).findList();
+//        for (ImageFileRelation fileRelation : fileRelations) {
+//        	Storage.deleteFile(fileRelation.file);
+//        }
+//        Ebean.delete(event.medias);
+//        List<Bucket> buckets = Bucket.find.where().eq("event", event).findList();
+//        event.root = null;
+//        event.save();
+//        Ebean.delete(buckets);
+//        event.delete();
+        return noContent();
     }
 
     /**

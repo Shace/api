@@ -16,6 +16,7 @@ import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageOutputStream;
 
+import models.File.Type;
 import models.Image;
 import models.ImageFormat;
 import play.Logger;
@@ -46,6 +47,18 @@ public class Storage {
         }
         
         return extension;
+    }
+    
+    /**
+     * Delete a file from Shace depending on LOCAL_STORAGE value
+     * @param file File to delete
+     */
+    public static boolean deleteFile(models.File file) {
+    	if (file != null && file.type == Type.Local) {
+    		File toDelete = new File(Play.application().configuration().getString("storage.path") + File.separator + file.uid);
+    		return toDelete.delete();
+    	}
+    	return false;
     }
     
     private static void storeLocal(BufferedImage image, String extension) throws IOException {

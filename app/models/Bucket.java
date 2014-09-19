@@ -33,7 +33,7 @@ public class Bucket extends Model implements Comparable<Bucket> {
     @Id
     public Integer      id;
     
-    @ManyToMany(cascade=CascadeType.ALL)
+    @ManyToMany
     @OrderBy("original")
     public List<Media>  medias;
     

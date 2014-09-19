@@ -24,6 +24,7 @@ import play.mvc.Http.MultipartFormData;
 import play.mvc.Http.MultipartFormData.FilePart;
 import play.mvc.Result;
 import Utils.Access;
+import Utils.Access.AccessType;
 import Utils.BucketsUpdater;
 import Utils.RequestParameters;
 
@@ -120,12 +121,13 @@ public class Medias extends Controller {
     	}
     	
     	Event	currentEvent = currentMedia.event;
+    	Access.AccessType userPermission = Access.getPermissionOnEvent(access, currentEvent);
     	if (currentEvent == null) {
         	return new errors.Error(errors.Error.Type.MEDIA_NOT_FOUND).toResponse();
-    	} else if (!currentMedia.owner.equals(access.user)) {
+    	} else if (!currentMedia.owner.equals(access.user) && Access.hasPermissionOnEvent(access, currentEvent, AccessType.ADMINISTRATE) != null) {
         	return new errors.Error(errors.Error.Type.NEED_OWNER).toResponse();
     	}
-
+    	
     	List<Bucket> buckets = new ArrayList<>(currentMedia.buckets);
     	currentMedia.buckets.clear();
     	currentMedia.saveManyToManyAssociations("buckets");
