@@ -6,6 +6,7 @@ import models.AccessToken;
 import models.Event;
 import models.EventUserRelation;
 import models.User;
+import play.db.ebean.Transactional;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -29,6 +30,7 @@ import errors.Error.Type;
  */
 @CORS
 public class EventPermissions extends Controller {
+	@Transactional
     public static Result	permissions(String token, String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
@@ -77,6 +79,7 @@ public class EventPermissions extends Controller {
         return ok(result);
     }
 
+	@Transactional
     public static Result	setPermissions(String token, String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
@@ -171,6 +174,7 @@ public class EventPermissions extends Controller {
         return ok(permissionsNode);
     }
 
+	@Transactional
     public static Result	deletePermissions(String token, String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
@@ -240,6 +244,7 @@ public class EventPermissions extends Controller {
         return ok(toDeleteNode);
     }
 
+	@Transactional
     public static Result    deleteUserPermissions(String token, String accessToken, Integer permissionId) {
         AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);

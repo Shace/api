@@ -4,6 +4,7 @@ import models.AccessToken;
 import models.Comment;
 import models.Event;
 import models.Media;
+import play.db.ebean.Transactional;
 import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
@@ -32,6 +33,7 @@ public class Comments extends Controller {
      * @return An HTTP Json response containing the properties of the new comment
      */
     @BodyParser.Of(BodyParser.Json.class)
+    @Transactional
     public static Result add(String ownerEventToken, Integer mediaId, String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
@@ -77,6 +79,7 @@ public class Comments extends Controller {
      * @param id : the comment identifier
      * @return An HTTP response that specifies if the deletion succeeded or not
      */
+    @Transactional
     public static Result delete(String token, Integer mediaId, Integer id, String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
