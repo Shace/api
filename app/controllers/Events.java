@@ -25,6 +25,7 @@ import play.mvc.Result;
 import Utils.Access;
 
 import com.avaje.ebean.Ebean;
+import com.avaje.ebean.Expr;
 import com.avaje.ebean.SqlUpdate;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -66,7 +67,9 @@ public class Events extends Controller {
 			return error;
 		}
 
-		List<Event> events = Event.find.where().eq("readingPrivacy", Event.Privacy.PUBLIC)
+		List<Event> events = Event.find.where()
+				.or(Expr.eq("readingPrivacy", Event.Privacy.PUBLIC),
+					Expr.eq("readingPrivacy", Event.Privacy.PROTECTED))
 				.where().istartsWith("token", query)
 				.orderBy("token")
 				.setMaxRows(20)
@@ -75,7 +78,7 @@ public class Events extends Controller {
 		ArrayNode eventsNode = Json.newObject().arrayNode();
 
 		for (Event event : events) {
-			eventsNode.add(getEventObjectNode(event, access));
+			eventsNode.add(getEventObjectNode(event, access, false));
 		}
 		ObjectNode result = Json.newObject();
 		result.put("events", eventsNode);
@@ -88,7 +91,7 @@ public class Events extends Controller {
      * @param event An Event object to convert
      * @return The JSON object containing the event information
      */
-    public static ObjectNode getEventObjectNode(Event event, AccessToken accessToken) {
+    public static ObjectNode getEventObjectNode(Event event, AccessToken accessToken, boolean full) {
         ObjectNode result = Json.newObject();
 
         result.put("id", event.id);
@@ -110,17 +113,19 @@ public class Events extends Controller {
         	result.put("cover", Images.getImageObjectNode(event.coverImage));
         }
         
-        ArrayNode medias = result.putArray("medias");
-        if (event.medias != null) {
-	        for (Media media : event.medias) {
-	            if (media.image != null && media.image.files != null) {
-	                if (media.image.files.size() > 0)
-	                    medias.add(Medias.mediaToJson(accessToken, event, media, null, false));
-	            }
+        if (full) {
+	        ArrayNode medias = result.putArray("medias");
+	        if (event.medias != null) {
+		        for (Media media : event.medias) {
+		            if (media.image != null && media.image.files != null) {
+		                if (media.image.files.size() > 0)
+		                    medias.add(Medias.mediaToJson(accessToken, event, media, null, false));
+		            }
+		        }
 	        }
+	        
+	        result.put("bucket", Buckets.getBucketObjectNode(accessToken, event, event.root));
         }
-        
-        result.put("bucket", Buckets.getBucketObjectNode(accessToken, event, event.root));
 
         return result;
     }
@@ -209,7 +214,7 @@ public class Events extends Controller {
         event.root.save();
         
         event.saveOwnerPermission();
-        return created(getEventObjectNode(event, access));
+        return created(getEventObjectNode(event, access, true));
     }
 
     /**
@@ -321,7 +326,7 @@ public class Events extends Controller {
 		}
 
 		newAccess.save();
-		return ok(getEventObjectNode(event, access));
+		return ok(getEventObjectNode(event, access, true));
 	}
 
 	/**
@@ -348,7 +353,7 @@ public class Events extends Controller {
 		if (error != null) {
 			return error;
 		}
-		return ok(getEventObjectNode(event, access));
+		return ok(getEventObjectNode(event, access, true));
 	}
 
 	/**
@@ -522,7 +527,7 @@ public class Events extends Controller {
     	}
         fillEventFromJSON(event, root);
         event.update();
-        return ok(getEventObjectNode(event, access));
+        return ok(getEventObjectNode(event, access, true));
     }
     
     /**
