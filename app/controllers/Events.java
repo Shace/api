@@ -383,7 +383,9 @@ public class Events extends Controller {
 		if (filePart != null) {
 			File file = filePart.getFile();
 			try {
+				event.coverImage.owner = access.user;
 				addCoverFile(event, file);
+				event.coverImage.save();
 			} catch (Image.BadFormat b) {
 				return new errors.Error(errors.Error.Type.BAD_FORMAT_IMAGE).toResponse();
 			}

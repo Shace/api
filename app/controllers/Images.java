@@ -26,6 +26,8 @@ public class Images extends Controller {
     public static ObjectNode getImageObjectNode(Image image) {
         ObjectNode result = Json.newObject();
 
+        result.put("id", image.id);
+        result.put("hash", image.hash);
         result.put("creation", image.creation.getTime());
         if (image.files != null) {
             for (ImageFileRelation ifr : image.files) {

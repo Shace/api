@@ -61,6 +61,8 @@ public class Error {
 		NEED_PASSWORD			(411, Returns.FORBIDDEN, "You need a password for this event"),
 		EVENT_FORBIDDEN			(412, Returns.FORBIDDEN, "You dont have the required permission for this event"),
 		USER_FORBIDDEN			(413, Returns.FORBIDDEN, "You dont have the required permission for this user"),
+		ONLY_ONE_REPORT			(414, Returns.FORBIDDEN, "Only one report per media per user is authorized"),
+		IMAGE_NOT_FOUND			(415, Returns.NOT_FOUND, "Image not found"),
 		
 		USER_NOT_FOUND			(500, Returns.NOT_FOUND, "User not found")
 		

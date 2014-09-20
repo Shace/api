@@ -448,13 +448,15 @@ public class Users extends Controller {
           File file = filePart.getFile();
           try {
         	  if (user.profilePicture == null) {
-        		  user.profilePicture = Image.create();
+        		  user.profilePicture = Image.create(null);
         	  }
         	  String s = "DELETE FROM se_image_file_relation where image_id = :imageid";
               SqlUpdate update = Ebean.createSqlUpdate(s);
               update.setParameter("imageid", user.profilePicture.id);
               Ebean.execute(update);
               user.profilePicture.addFile(file, FormatType.PROFILE_PICTURE);
+              user.profilePicture.owner = access.user;
+              user.profilePicture.save();
           } catch (Image.BadFormat b) {
           	return new errors.Error(errors.Error.Type.BAD_FORMAT_IMAGE).toResponse();
           }
@@ -498,13 +500,15 @@ public class Users extends Controller {
           File file = filePart.getFile();
           try {
         	  if (user.coverPicture == null) {
-        		  user.coverPicture = Image.create();
+        		  user.coverPicture = Image.create(null);
         	  }
         	  String s = "DELETE FROM se_image_file_relation where image_id = :imageid";
               SqlUpdate update = Ebean.createSqlUpdate(s);
               update.setParameter("imageid", user.coverPicture.id);
               Ebean.execute(update);
               user.coverPicture.addFile(file, FormatType.COVER);
+              user.coverPicture.owner = access.user;
+              user.coverPicture.save();
           } catch (Image.BadFormat b) {
           	return new errors.Error(errors.Error.Type.BAD_FORMAT_IMAGE).toResponse();
           }

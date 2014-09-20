@@ -103,7 +103,7 @@ public class Event extends Model {
 		this.owner = ownerUser;
 		this.root = new Bucket(0, null);
 		this.root.save();
-		this.coverImage = Image.create();
+		this.coverImage = Image.create(null);
 		this.deleted = false;
 	}
 	

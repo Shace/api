@@ -3,73 +3,77 @@
 # ~~~~
 
 # Enable CORS
-OPTIONS        /*opt                                            controllers.Application.checkPreFlight(opt)
+OPTIONS        	/*opt                                           controllers.Application.checkPreFlight(opt)
 
 # Application
-GET            /                                                controllers.Application.index()
+GET            	/                                               controllers.Application.index()
 
 # AccessToken
-POST           /access_token                                    controllers.AccessTokens.accessToken()
-PUT            /access_token/:access_token                      controllers.AccessTokens.connection(access_token : String)
-DELETE         /access_token                                    controllers.AccessTokens.delete(access_token)
-PUT            /language                                        controllers.AccessTokens.changeLanguage(language : String, access_token : String)
+POST           	/access_token                                   controllers.AccessTokens.accessToken()
+PUT            	/access_token/:access_token                     controllers.AccessTokens.connection(access_token : String)
+DELETE         	/access_token                                   controllers.AccessTokens.delete(access_token)
+PUT            	/language                                       controllers.AccessTokens.changeLanguage(language : String, access_token : String)
 
 # Events
-POST           /events                                          controllers.Events.add(access_token)
-GET            /events/search                                   controllers.Events.search(q, access_token)
-DELETE         /events/:token                                   controllers.Events.delete(token : String, access_token)
-PUT            /events/:token                                   controllers.Events.update(token : String, access_token)
-POST           /events/:token/access                            controllers.Events.access(token : String, access_token)
-GET            /events/:token                                   controllers.Events.event(token : String, access_token)
-POST           /events/:token/cover                        		controllers.Events.addCover(token : String, access_token)
+POST           	/events                                         controllers.Events.add(access_token)
+GET            	/events/search                                  controllers.Events.search(q, access_token)
+DELETE         	/events/:token                                  controllers.Events.delete(token : String, access_token)
+PUT            	/events/:token                                  controllers.Events.update(token : String, access_token)
+POST           	/events/:token/access                           controllers.Events.access(token : String, access_token)
+GET            	/events/:token                                  controllers.Events.event(token : String, access_token)
+POST           	/events/:token/cover                        	controllers.Events.addCover(token : String, access_token)
 
 # Medias
-POST           /events/:token/medias                            controllers.Medias.add(token : String, access_token)
-DELETE         /events/:token/medias/:id                        controllers.Medias.delete(token : String, id : Integer, access_token)
-PUT            /events/:token/medias/:id                        controllers.Medias.update(token : String, id : Integer, access_token)
-GET            /events/:token/medias/:id                        controllers.Medias.media(token : String, id : Integer, access_token)
-POST           /events/:token/medias/:id/like                   controllers.Medias.like(token : String, id : Integer, access_token)
-DELETE         /events/:token/medias/:id/like                   controllers.Medias.unlike(token : String, id : Integer, access_token)
+POST           	/events/:token/medias                           controllers.Medias.add(token : String, access_token)
+DELETE         	/events/:token/medias/:id                       controllers.Medias.delete(token : String, id : Integer, access_token)
+PUT            	/events/:token/medias/:id                       controllers.Medias.update(token : String, id : Integer, access_token)
+GET            	/events/:token/medias/:id                       controllers.Medias.media(token : String, id : Integer, access_token)
+POST           	/events/:token/medias/:id/like                  controllers.Medias.like(token : String, id : Integer, access_token)
+DELETE         	/events/:token/medias/:id/like                  controllers.Medias.unlike(token : String, id : Integer, access_token)
 
 # EventUserRelation
-GET            /events/:token/users                             controllers.EventPermissions.permissions(token : String, access_token)
-PUT            /events/:token/users                             controllers.EventPermissions.setPermissions(token : String, access_token)
-DELETE         /events/:token/users                             controllers.EventPermissions.deletePermissions(token : String, access_token)
-DELETE         /events/:token/users/:permissionId               controllers.EventPermissions.deleteUserPermissions(token : String, access_token, permissionId : Integer)
+GET            	/events/:token/users                            controllers.EventPermissions.permissions(token : String, access_token)
+PUT            	/events/:token/users                            controllers.EventPermissions.setPermissions(token : String, access_token)
+DELETE         	/events/:token/users                            controllers.EventPermissions.deletePermissions(token : String, access_token)
+DELETE         	/events/:token/users/:permissionId              controllers.EventPermissions.deleteUserPermissions(token : String, access_token, permissionId : Integer)
 
 # File
-POST           /events/:token/medias/:id                        controllers.Medias.addFile(token : String, id : Integer, access_token)
+POST           	/events/:token/medias/:id                       controllers.Medias.addFile(token : String, id : Integer, access_token)
 
 # Users
-GET            /users                                           controllers.Users.users(access_token)
-POST           /users                                           controllers.Users.add(access_token)
-GET            /users/me                                        controllers.Users.me(access_token)
-GET            /users/me/events                                 controllers.Users.events(access_token)
-DELETE         /users/:id                                       controllers.Users.delete(id : Integer, access_token)
-PUT            /users/:id                                       controllers.Users.update(id : Integer, access_token)
-GET            /users/:id                                       controllers.Users.user(id : Integer, access_token)
-POST           /users/:id/profile                        		controllers.Users.addProfilePicture(id : Integer, access_token)
-POST           /users/:id/cover                        			controllers.Users.addCoverPicture(id: Integer, access_token)
+GET            	/users                                          controllers.Users.users(access_token)
+POST           	/users                                          controllers.Users.add(access_token)
+GET            	/users/me                                       controllers.Users.me(access_token)
+GET            	/users/me/events                                controllers.Users.events(access_token)
+DELETE         	/users/:id                                      controllers.Users.delete(id : Integer, access_token)
+PUT            	/users/:id                                      controllers.Users.update(id : Integer, access_token)
+GET            	/users/:id                                      controllers.Users.user(id : Integer, access_token)
+POST           	/users/:id/profile                        		controllers.Users.addProfilePicture(id : Integer, access_token)
+POST           	/users/:id/cover                        		controllers.Users.addCoverPicture(id: Integer, access_token)
 
 # Comments
-POST           /events/:token/medias/:media/comments            controllers.Comments.add(token : String, media : Integer, access_token)
-DELETE         /events/:token/medias/:media/comments/:id        controllers.Comments.delete(token : String, media : Integer, id : Integer, access_token)
+POST           	/events/:token/medias/:media/comments           controllers.Comments.add(token : String, media : Integer, access_token)
+DELETE         	/events/:token/medias/:media/comments/:id       controllers.Comments.delete(token : String, media : Integer, id : Integer, access_token)
 
 # Tags
-POST           /events/:token/medias/:media/tags                controllers.Tags.add(token : String, media : Integer, access_token)
-DELETE         /events/:token/medias/:media/tags/:id            controllers.Tags.delete(token : String, media : Integer, id : Integer, access_token)
+POST           	/events/:token/medias/:media/tags				controllers.Tags.add(token : String, media : Integer, access_token)
+DELETE         	/events/:token/medias/:media/tags/:id			controllers.Tags.delete(token : String, media : Integer, id : Integer, access_token)
 
 # Beta
-POST           /beta/invitations                                controllers.BetaInvitations.add(access_token)
-GET            /beta/invitations                                controllers.BetaInvitations.invitations(access_token)
-GET            /beta/administration                             controllers.BetaInvitations.processingList(access_token)
-PUT            /beta/administration                             controllers.BetaInvitations.validateProcessing(access_token)
+POST           	/beta/invitations                               controllers.BetaInvitations.add(access_token)
+GET            	/beta/invitations                               controllers.BetaInvitations.invitations(access_token)
+GET            	/beta/administration                            controllers.BetaInvitations.processingList(access_token)
+PUT            	/beta/administration                            controllers.BetaInvitations.validateProcessing(access_token)
 
 # Feedback
-POST           /feedback			                            controllers.Feedbacks.add(access_token)
-GET            /feedback/administration                         controllers.Feedbacks.adminList(access_token)
-GET            /feedback/processing                         	controllers.Feedbacks.processingList(access_token)
-PUT            /feedback/administration                         controllers.Feedbacks.validateProcessing(access_token)
+POST           	/feedback			                            controllers.Feedbacks.add(access_token)
+GET            	/feedback/administration                        controllers.Feedbacks.adminList(access_token)
+GET            	/feedback/processing                         	controllers.Feedbacks.processingList(access_token)
+PUT				/feedback/administration                        controllers.Feedbacks.validateProcessing(access_token)
+
+# Report
+POST			/images/:hash/report							controllers.Reports.addOnImage(access_token, hash : String)
+GET             /reports/administration                         controllers.Reports.adminList(access_token)
 
 # Map static resources from the /public folder to the /assets URL path
-GET            /assets/*file                                    controllers.Assets.at(path="/public", file)
+GET            	/assets/*file                                   controllers.Assets.at(path="/public", file)

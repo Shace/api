@@ -180,6 +180,8 @@ public class Medias extends Controller {
 		Event	currentEvent = currentMedia.event;
 		if (currentEvent == null) {
 			return new errors.Error(errors.Error.Type.MEDIA_NOT_FOUND).toResponse();
+		} else if (!currentEvent.token.equals(token)) {
+			return new errors.Error(errors.Error.Type.EVENT_NOT_FOUND).toResponse();
 		} else if (!currentMedia.owner.equals(access.user)) {
 			return new errors.Error(errors.Error.Type.NEED_OWNER).toResponse();
 		}

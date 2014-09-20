@@ -45,7 +45,7 @@ public class Media extends Model {
 		this.rank = 0;
 		this.valid = true;
 		
-		this.image = Image.create();
+		this.image = Image.create(ownerUser);
 	}
 	
 	@GeneratedValue

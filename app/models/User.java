@@ -77,8 +77,8 @@ public class User extends Model {
 		this.inscriptionDate = new Date();
 		this.isAdmin = false;
 		this.lang = Lang.NONE;
-		this.profilePicture = Image.create();
-		this.coverPicture = Image.create();
+		this.profilePicture = Image.create(null);
+		this.coverPicture = Image.create(null);
 	}
 	
 	public static Finder<Integer, User> find = new Finder<Integer, User>

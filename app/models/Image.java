@@ -14,13 +14,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
 import javax.persistence.Table;
 
 import org.imgscalr.Scalr;
@@ -60,27 +64,41 @@ public class Image extends Model {
      */
     private static final long serialVersionUID = 6727022222330879650L;
 
-    public Image() {
+    public Image(User owner) {
         this.creation = new Date();
+        this.owner = owner;
+        this.hash = UUID.randomUUID().toString();
     }
     
     @GeneratedValue
     @Column(unique=true)
     @Id
-    public Integer      id;
+    public Integer       id;
+    
+    @Column(unique=true)
+    public String		hash;
     
     public Date         creation;
     
+	@ManyToOne
+	@JoinColumn(name="owner_id")
+	public User			owner;
+
     @OneToMany(mappedBy="image", cascade=CascadeType.ALL)
     public List<ImageFileRelation>   files;
     
-    public static Image create() {
-        Image image = new Image();
+    public static Image create(User owner) {
+        Image image = new Image(owner);
         image.save();
         
         image.files = new ArrayList<>();
         return image;
     }
+    
+    @OneToMany(mappedBy="image", cascade=CascadeType.ALL)
+    @OrderBy("creation")
+    public List<Report> reports;
+
     
     /**
      * Generate and store all formats images given a file
@@ -239,4 +257,8 @@ public class Image extends Model {
         }
         return image;
     }
+	
+	public static Finder<String, Image> find = new Finder<String, Image>(
+			String.class, Image.class
+	);
 }
