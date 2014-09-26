@@ -1,12 +1,17 @@
 package controllers;
 
+import java.util.List;
+
 import models.File;
 import models.Image;
+import models.Image.BadFormat;
+import models.Image.FormatType;
 import models.ImageFileRelation;
 import play.libs.Json;
 import play.mvc.Controller;
 import Utils.Storage;
 
+import com.avaje.ebean.Ebean;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -42,5 +47,14 @@ public class Images extends Controller {
         }
 
         return result;
+    }
+    
+    public static void	replaceImage(Image image, java.io.File file, FormatType format) throws BadFormat {
+		List<ImageFileRelation> fileRelations = ImageFileRelation.find.fetch("file").where().eq("image", image).findList();
+		for (ImageFileRelation fileRelation : fileRelations) {
+			Storage.deleteFile(fileRelation.file);
+		}
+		Ebean.delete(fileRelations);
+		image.addFile(file, format);
     }
 }

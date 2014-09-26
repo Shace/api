@@ -55,8 +55,20 @@ public class Storage {
      */
     public static boolean deleteFile(models.File file) {
     	if (file != null && file.type == Type.Local) {
+
+//    		File toDelete = new File("C:/Users/samuel/Documents/Dev/ShaceEvent/medias/test.jpg");
     		File toDelete = new File(Play.application().configuration().getString("storage.path") + File.separator + file.uid);
-    		return toDelete.delete();
+    		Logger.debug(Play.application().configuration().getString("storage.path") + File.separator + file.uid);
+    		Logger.debug("Exists : " + toDelete.exists());
+    		
+    		boolean res = false;
+    		try {
+    			res = toDelete.delete();
+    		} catch (Exception e) {
+    			Logger.debug("Exception : " + e);
+    		}
+    		Logger.debug("Return : " + res);
+    		return res;
     	}
     	return false;
     }
@@ -64,14 +76,14 @@ public class Storage {
     private static void storeLocal(BufferedImage image, String extension) throws IOException {
         long partialStartTime = System.nanoTime();
         File file = new File(Play.application().configuration().getString("storage.path"), extension);
-        
         //ImageIO.write(image, "JPEG", file);
         
         Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpg");
         if (!writers.hasNext())
             throw new Image.BadFormat("Error with image writer");
         ImageWriter writer = (ImageWriter) writers.next();
-        ImageOutputStream ios = ImageIO.createImageOutputStream(new FileOutputStream(file));
+        FileOutputStream outStream = new FileOutputStream(file);
+        ImageOutputStream ios = ImageIO.createImageOutputStream(outStream);
         writer.setOutput(ios);
 
         ImageWriteParam param = writer.getDefaultWriteParam();
@@ -86,6 +98,8 @@ public class Storage {
 
         writer.write(null, new IIOImage(image, null, null), param);
         writer.dispose();
+        ios.close();
+        outStream.close();
     }
     
     private static void storeAmazonS3(BufferedImage image, String extension) throws IOException {

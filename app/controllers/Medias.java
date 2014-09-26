@@ -319,7 +319,7 @@ public class Medias extends Controller {
 					error = Access.hasPermissionOnEvent(access, currentEvent, Access.AccessType.ADMINISTRATE);
 					if (error == null) {
 						try {
-							Events.addCoverFile(currentEvent, file);
+							Images.replaceImage(currentEvent.coverImage, file, FormatType.COVER);				
 						} catch (BadFormat e) {}
 					}
 				}

@@ -14,6 +14,7 @@ import models.Event.Privacy;
 import models.Image;
 import models.Image.BadFormat;
 import models.Image.FormatType;
+import models.ImageFileRelation;
 import models.Media;
 import play.db.ebean.Transactional;
 import play.libs.Json;
@@ -23,6 +24,7 @@ import play.mvc.Http.MultipartFormData;
 import play.mvc.Http.MultipartFormData.FilePart;
 import play.mvc.Result;
 import Utils.Access;
+import Utils.Storage;
 
 import com.avaje.ebean.Ebean;
 import com.avaje.ebean.Expr;
@@ -392,7 +394,8 @@ public class Events extends Controller {
 			File file = filePart.getFile();
 			try {
 				event.coverImage.owner = access.user;
-				addCoverFile(event, file);
+				Images.replaceImage(event.coverImage, file, FormatType.COVER);				
+//				addCoverFile(event, file);
 				event.coverImage.save();
 			} catch (Image.BadFormat b) {
 				return new errors.Error(errors.Error.Type.BAD_FORMAT_IMAGE).toResponse();
@@ -404,18 +407,20 @@ public class Events extends Controller {
 		return ok(Images.getImageObjectNode(event.coverImage));
 	}
 
-	@Transactional
-	public static Result addCoverFile(Event event, File file) throws BadFormat {
-		String s = "DELETE FROM se_image_file_relation where image_id = :imageid";
-		SqlUpdate update = Ebean.createSqlUpdate(s);
-		update.setParameter("imageid", event.coverImage.id);
-		Ebean.execute(update);
-		event.coverImage.addFile(file, FormatType.COVER);
-
-		event.update();
-
-		return ok(Images.getImageObjectNode(event.coverImage));
-	}
+//	@Transactional
+//	public static Result addCoverFile(Event event, File file) throws BadFormat {
+//
+//		List<ImageFileRelation> fileRelations = ImageFileRelation.find.fetch("file").where().eq("image", event.coverImage).findList();
+//		for (ImageFileRelation fileRelation : fileRelations) {
+//			Storage.deleteFile(fileRelation.file);
+//		}
+//		Ebean.delete(fileRelations);
+//		event.coverImage.addFile(file, FormatType.COVER);
+//
+//		event.update();
+//
+//		return ok(Images.getImageObjectNode(event.coverImage));
+//	}
     
     /**
      * Update the event identified by the token parameter.
