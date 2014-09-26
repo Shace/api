@@ -3,8 +3,11 @@ package controllers;
 import java.util.List;
 
 import models.AccessToken;
+import models.Event;
 import models.Image;
+import models.Media;
 import models.Report;
+import models.User;
 import play.db.ebean.Transactional;
 import play.libs.Json;
 import play.mvc.BodyParser;
@@ -103,7 +106,21 @@ public class Reports extends Controller {
 				}
 				currentNode = Json.newObject();
 				currentImageId = report.image.id;
-				currentNode.put("image", Images.getImageObjectNode(report.image));
+//				currentNode.put("image", Images.getImageObjectNode(report.image));
+				Media ownerMedia = Media.find.fetch("event").where().eq("image", report.image).findUnique();
+				if (ownerMedia == null) {
+					Event ownerEvent = Event.find.where().eq("coverImage", report.image).findUnique();
+					if (ownerEvent == null) {
+						User ownerUser = User.find.where().eq("profilePicture", report.image).findUnique();
+						if (ownerUser != null) {
+							currentNode.put("user", Users.getUserObjectNode(ownerUser));
+						}
+					} else {
+						currentNode.put("event", Events.getEventObjectNode(ownerEvent, access, false));
+					}
+				} else {
+					currentNode.put("media", Medias.mediaToJson(access, ownerMedia.event, ownerMedia, false));
+				}
 				currentReportArray = Json.newObject().arrayNode();
 			}
 			ObjectNode infos = Json.newObject();
@@ -112,7 +129,6 @@ public class Reports extends Controller {
 			infos.put("sender", report.creator.id);
 			infos.put("reason", report.reason);
 			infos.put("creation_date", report.creation.getTime());
-//			infos.put("adminRead", feedback.adminRead);
 			currentReportArray.add(infos);
 		}
 		currentNode.put("reports", currentReportArray);

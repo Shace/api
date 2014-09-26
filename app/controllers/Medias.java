@@ -91,8 +91,7 @@ public class Medias extends Controller {
 			updateOneMedia(newMedia, mediaNode);
 
 			newMedia.save();
-			RequestParameters	params = RequestParameters.create(request());
-			mediasNode.add(mediaToJson(access, ownerEvent, newMedia, params, false));
+			mediasNode.add(mediaToJson(access, ownerEvent, newMedia, false));
 		}
 
 		if (mediasNode.size() == 0) {
@@ -194,8 +193,7 @@ public class Medias extends Controller {
 		updateOneMedia(currentMedia, root);
 		currentMedia.save();
 		ObjectNode result = Json.newObject();
-		RequestParameters	params = RequestParameters.create(request());
-		result.put("medias", mediaToJson(access, currentEvent, currentMedia, params, false));
+		result.put("medias", mediaToJson(access, currentEvent, currentMedia, false));
 		return ok(result);
 	}
 
@@ -227,8 +225,7 @@ public class Medias extends Controller {
 			return error;
 		}
 
-		RequestParameters	params = RequestParameters.create(request());
-		return ok(mediaToJson(access, currentEvent, currentMedia, params, true));
+		return ok(mediaToJson(access, currentEvent, currentMedia, true));
 	}
 
 	/**
@@ -252,7 +249,7 @@ public class Medias extends Controller {
 	 * @param full : True will display all information about the media
 	 * @return The Json object containing the media information
 	 */
-	public static ObjectNode mediaToJson(AccessToken access, Event ownerEvent, Media media, RequestParameters params, boolean full) {
+	public static ObjectNode mediaToJson(AccessToken access, Event ownerEvent, Media media, boolean full) {
 		//		JSONSerializer tmp = new JSONSerializer();
 		ObjectNode result = Json.newObject();
 

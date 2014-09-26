@@ -119,7 +119,7 @@ public class Events extends Controller {
 		        for (Media media : event.medias) {
 		            if (media.image != null && media.image.files != null) {
 		                if (media.image.files.size() > 0)
-		                    medias.add(Medias.mediaToJson(accessToken, event, media, null, false));
+		                    medias.add(Medias.mediaToJson(accessToken, event, media, false));
 		            }
 		        }
 	        }
