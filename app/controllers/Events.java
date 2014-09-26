@@ -125,6 +125,9 @@ public class Events extends Controller {
 	        }
 	        
 	        result.put("bucket", Buckets.getBucketObjectNode(accessToken, event, event.root));
+        } else {
+            result.put("first_picture", (event.root.first != null) ? (event.root.first.getTime()) : (null));
+            result.put("last_picture", (event.root.last != null) ? (event.root.last.getTime()) : (null));        	
         }
 
         return result;
