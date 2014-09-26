@@ -199,12 +199,12 @@ public class Image extends Model {
      * @return resized image
      */
     private BufferedImage resizeImage(BufferedImage original, int width, int height, boolean crop) {
-    	if (original.getWidth() < width && original.getHeight() < height) {
+    	if (!crop && original.getWidth() < width && original.getHeight() < height) {
     		return original;
     	}
     	BufferedImage resized = null;
-    	if (crop && width == height) {
-    		if (original.getWidth() > original.getHeight()) {
+    	if (crop) {
+    		if ((float)original.getWidth() / (float)width > (float)original.getHeight() / (float)height) {
         		resized = Scalr.resize(original, Scalr.Method.AUTOMATIC, Scalr.Mode.FIT_TO_HEIGHT, width, height);
     		} else {
         		resized = Scalr.resize(original, Scalr.Method.AUTOMATIC, Scalr.Mode.FIT_TO_WIDTH, width, height);
