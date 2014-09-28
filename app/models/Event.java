@@ -1,5 +1,6 @@
 package models;
 
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -14,6 +15,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Version;
 
 import play.db.ebean.Model;
 import Utils.Access;
@@ -90,6 +92,9 @@ public class Event extends Model {
     @JoinColumn(name="cover_image_id")
 	public Image       coverImage;
 
+    @Version
+    Timestamp updateTime;
+    
 	public Event(Privacy readingPrivacy, User ownerUser) {
 		this.id = UUID.randomUUID().toString();
 		this.token = this.id;

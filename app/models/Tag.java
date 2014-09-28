@@ -1,5 +1,6 @@
 package models;
 
+import java.sql.Timestamp;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -9,6 +10,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Version;
 
 import play.db.ebean.Model;
 import Utils.JSONable;
@@ -52,6 +54,9 @@ public class Tag extends Model {
     
     public Date         creation;
 	
+    @Version
+    Timestamp updateTime;
+    
 	public static Finder<Integer, Tag> find = new Finder<Integer, Tag>(
 			Integer.class, Tag.class
 	);

@@ -1,5 +1,6 @@
 package models;
 
+import java.sql.Timestamp;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -12,6 +13,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Version;
 
 import play.db.ebean.Model;
 
@@ -51,6 +53,9 @@ public class Report extends Model {
     @OneToOne
     @JoinColumn(name="image_id")
     public Image		image;
+    
+    @Version
+    Timestamp updateTime;
     
 	public Report(User creator, Type type, String reason) {
 		this.creator = creator;

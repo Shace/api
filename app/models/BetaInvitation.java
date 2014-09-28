@@ -1,5 +1,6 @@
 package models;
 
+import java.sql.Timestamp;
 import java.util.Date;
 
 import javax.persistence.CascadeType;
@@ -9,6 +10,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Version;
 
 import models.AccessToken.Lang;
 import play.data.format.Formats;
@@ -68,6 +70,9 @@ public class BetaInvitation extends Model {
 	
 	@Column
 	public Lang			lang;
+	
+	@Version
+    Timestamp updateTime;
 	
 	public BetaInvitation(User user, String mail, String password, String firstname, String lastname, State state) {
 		this.originalUser = user;

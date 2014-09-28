@@ -1,5 +1,6 @@
 package models;
 
+import java.sql.Timestamp;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -7,6 +8,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Version;
 
 import play.db.ebean.Model;
 import plugins.S3Plugin;
@@ -43,6 +45,9 @@ public class File extends Model {
     
     public Type			type;
 
+    @Version
+    Timestamp updateTime;
+    
     public static File create(String uid, String baseURL) {
         models.File file = new models.File();
         file.uid = uid;

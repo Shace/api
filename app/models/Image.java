@@ -11,6 +11,7 @@ import java.awt.image.Raster;
 import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -26,6 +27,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
+import javax.persistence.Version;
 
 import org.imgscalr.Scalr;
 
@@ -84,6 +86,9 @@ public class Image extends Model {
 	@JoinColumn(name="owner_id")
 	public User			owner;
 
+	@Version
+    Timestamp updateTime;
+	
     @OneToMany(mappedBy="image", cascade=CascadeType.ALL)
     public List<ImageFileRelation>   files;
     

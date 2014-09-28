@@ -1,5 +1,6 @@
 package models;
 
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
@@ -14,6 +15,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
+import javax.persistence.Version;
 
 import play.db.ebean.Model;
 import Utils.JSONable;
@@ -59,6 +61,9 @@ public class Bucket extends Model implements Comparable<Bucket> {
     @ManyToOne
     @JoinColumn(name="event_id")
     public Event        event;
+    
+    @Version
+    Timestamp updateTime;
 
     public Bucket(int level, Event event) {
         this.name = "";

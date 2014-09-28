@@ -1,5 +1,6 @@
 package models;
 
+import java.sql.Timestamp;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -9,6 +10,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Version;
 
 import play.db.ebean.Model;
 
@@ -44,6 +46,9 @@ public class Comment extends Model {
         this.media = media;
         this.message = message;
     }
+    
+    @Version
+    Timestamp updateTime;
     
     public static Finder<Integer, Comment> find = new Finder<Integer, Comment>(
             Integer.class, Comment.class

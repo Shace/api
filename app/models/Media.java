@@ -1,5 +1,6 @@
 package models;
 
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
@@ -17,6 +18,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
+import javax.persistence.Version;
 
 import play.db.ebean.Model;
 
@@ -91,6 +93,9 @@ public class Media extends Model {
     
 	@ManyToMany(mappedBy = "medias")
 	public List<Bucket>		buckets;
+	
+	@Version
+    Timestamp updateTime;
 	
 	public static Finder<Integer, Media> find = new Finder<Integer, Media>(
 			Integer.class, Media.class

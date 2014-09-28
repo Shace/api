@@ -1,5 +1,6 @@
 package models;
 
+import java.sql.Timestamp;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -9,6 +10,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Version;
 
 import play.data.format.Formats;
 import play.data.validation.Constraints;
@@ -45,6 +47,9 @@ public class Feedback extends Model {
 	public Date			creationDate;
 	
 	public boolean		adminRead;
+	
+	@Version
+    Timestamp updateTime;
 	
 	public Feedback(String email, User sender, String description, boolean okForAnswer) {
 		this.description = description;

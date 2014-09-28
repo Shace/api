@@ -1,5 +1,6 @@
 package models;
 
+import java.sql.Timestamp;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -9,6 +10,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Version;
 
 import play.db.ebean.Model;
 import play.db.ebean.Model.Finder;
@@ -42,6 +44,9 @@ public class UserMediaLikeRelation extends Model {
     public User         creator;
     
     public Date         creation;
+    
+    @Version
+    Timestamp updateTime;
     
 	public static Finder<Integer, UserMediaLikeRelation> find = new Finder<Integer, UserMediaLikeRelation>(
 			Integer.class, UserMediaLikeRelation.class
