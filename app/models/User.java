@@ -1,5 +1,6 @@
 package models;
 
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
@@ -12,6 +13,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Version;
 
 import models.AccessToken.Lang;
 import play.data.format.Formats;
@@ -67,7 +69,9 @@ public class User extends Model {
     @OneToOne(cascade=CascadeType.ALL)
     @JoinColumn(name="cover_picture_id")
 	public Image       coverPicture;
-
+    
+    @Version
+    Timestamp updateTime;
 	
 	public User(String email, String password, String firstname, String lastname) {
 		this.email = email;

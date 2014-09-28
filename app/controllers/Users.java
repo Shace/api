@@ -271,7 +271,7 @@ public class Users extends Controller {
         }
 
         updateOneUser(user, root);
-        user.update();
+        user.save();
 
         return ok(getUserObjectNode(user));
     }
