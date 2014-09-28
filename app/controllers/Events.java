@@ -197,7 +197,7 @@ public class Events extends Controller {
         if (token != null) {
         	if (FORBIDDEN_TOKENS.contains(token)) {
             	return new errors.Error(Type.FORBIDDEN_TOKEN).toResponse();
-        	} else if (!token.matches("[a-zA-Z0-9|-]*")) {
+        	} else if (!token.matches("[a-zA-Z0-9|-]*") || token.length() < 1) {
             	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("token", ParameterType.FORMAT).toResponse();
         	}
         	event.token = token;
@@ -532,7 +532,7 @@ public class Events extends Controller {
 
         if (FORBIDDEN_TOKENS.contains(event.token)) {
         	return new errors.Error(Type.FORBIDDEN_TOKEN).toResponse();
-    	} else if (!event.token.matches("[a-zA-Z0-9|-]*")) {
+    	} else if (!event.token.matches("[a-zA-Z0-9|-]*") || event.token.length() < 1) {
         	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("token", ParameterType.FORMAT).toResponse();
     	}
         fillEventFromJSON(event, root);
