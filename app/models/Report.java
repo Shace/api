@@ -30,7 +30,7 @@ public class Report extends Model {
 		Spam,
 		Copycat,
 		Explicit,
-		Personnal
+		Personal
 	}
 	
 	@GeneratedValue
