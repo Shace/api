@@ -74,6 +74,23 @@ public class BetaInvitations extends Controller {
     	            infos.put("email", mail);
     	            infos.put("hasAccepted", false);
     	            guestsNode.add(infos);
+    			} else if (newGuest.state == State.REQUESTING) {
+       				newGuest.originalUser = access.user;
+       				newGuest.state = State.CREATED;
+       				newGuest.save();
+    				current.invitedPeople++;
+
+    				User newUser = new User(newGuest.email, newGuest.password, newGuest.firstName, newGuest.lastName);
+    				newUser.password = newGuest.password;
+    				newUser.lang = newGuest.lang;
+    		        newUser.save();
+    				
+    		    	Mailer.get().sendMail(EmailType.BETA_REQUEST_ACCEPTED, newUser.lang, newUser.email, ImmutableMap.of("FIRSTNAME", newUser.firstName, "LASTNAME", newUser.lastName));
+    				
+    				ObjectNode infos = Json.newObject();
+    	            infos.put("email", mail);
+    	            infos.put("hasAccepted", true);
+    	            guestsNode.add(infos);
     			}
     		}
 		}
