@@ -56,19 +56,11 @@ public class Storage {
     public static boolean deleteFile(models.File file) {
     	if (file != null && file.type == Type.Local) {
 
-//    		File toDelete = new File("C:/Users/samuel/Documents/Dev/ShaceEvent/medias/test.jpg");
     		File toDelete = new File(Play.application().configuration().getString("storage.path") + File.separator + file.uid);
-    		Logger.debug(Play.application().configuration().getString("storage.path") + File.separator + file.uid);
-    		Logger.debug("Exists : " + toDelete.exists());
     		
-    		boolean res = false;
     		try {
-    			res = toDelete.delete();
-    		} catch (Exception e) {
-    			Logger.debug("Exception : " + e);
-    		}
-    		Logger.debug("Return : " + res);
-    		return res;
+    			return toDelete.delete();
+    		} catch (Exception e) {}
     	}
     	return false;
     }

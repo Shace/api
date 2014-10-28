@@ -12,10 +12,10 @@ import models.Comment;
 import models.Event;
 import models.Image;
 import models.Image.BadFormat;
-import models.UserMediaLikeRelation;
 import models.Image.FormatType;
 import models.Media;
 import models.Tag;
+import models.UserMediaLikeRelation;
 import play.Logger;
 import play.db.ebean.Transactional;
 import play.libs.Json;
@@ -27,7 +27,6 @@ import play.mvc.Result;
 import Utils.Access;
 import Utils.Access.AccessType;
 import Utils.BucketsUpdater;
-import Utils.RequestParameters;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
@@ -362,7 +361,7 @@ public class Medias extends Controller {
 		BucketsUpdater.get().updateBucket(currentEvent, currentMedia);
 
 		long estimatedTime = System.nanoTime() - startTime;
-		Logger.debug("Time elapsed to add file : " + Long.toString(estimatedTime / 1000000) + "ms");
+//		Logger.debug("Time elapsed to add file : " + Long.toString(estimatedTime / 1000000) + "ms");
 
 		return noContent();
 	}

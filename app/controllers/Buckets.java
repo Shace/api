@@ -84,7 +84,7 @@ public class Buckets extends Controller {
         mergeLevel(event, 0, added.id, media);
         
         long estimatedTime = System.nanoTime() - startTime;
-        Logger.debug("Time elapsed to compute buckets : " + Long.toString(estimatedTime / 1000000) + "ms");
+//        Logger.debug("Time elapsed to compute buckets : " + Long.toString(estimatedTime / 1000000) + "ms");
     }
     
     @Transactional

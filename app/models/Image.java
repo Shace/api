@@ -38,10 +38,12 @@ import Utils.Storage;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
+import com.drew.lang.GeoLocation;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.MetadataException;
 import com.drew.metadata.exif.ExifIFD0Directory;
+import com.drew.metadata.exif.GpsDirectory;
 
 @Entity
 @Table(name="se_image")
@@ -70,6 +72,8 @@ public class Image extends Model {
         this.creation = new Date();
         this.owner = owner;
         this.hash = UUID.randomUUID().toString();
+        this.latitude = 0;
+        this.longitude = 0;
     }
     
     @GeneratedValue
@@ -104,6 +108,9 @@ public class Image extends Model {
     @OrderBy("creation")
     public List<Report> reports;
 
+    public float latitude;
+    
+    public float longitude;
     
     /**
      * Generate and store all formats images given a file
@@ -130,7 +137,7 @@ public class Image extends Model {
             
             {
             	long partialEstimatedTime = System.nanoTime() - partialStartTime;
-                Logger.debug("Reading image : " + Long.toString(partialEstimatedTime / 1000000) + "ms");
+//                Logger.debug("Reading image : " + Long.toString(partialEstimatedTime / 1000000) + "ms");
                 partialStartTime = System.nanoTime();
             }
             /* 
@@ -139,16 +146,19 @@ public class Image extends Model {
             int orientation = 1;
             try {
                 Metadata metadata = ImageMetadataReader.readMetadata(file);
+                readGPSInfo(metadata);
+                Logger.debug("Lat : " + this.latitude + " | Lon : " + this.longitude);
                 Directory directory = metadata.getDirectory(ExifIFD0Directory.class);
-                if (directory != null)
+                if (directory != null && directory.containsTag(ExifIFD0Directory.TAG_ORIENTATION)) {
                     orientation = directory.getInt(ExifIFD0Directory.TAG_ORIENTATION);
-            } catch (ImageProcessingException e) {
-            } catch (MetadataException e) {
+                }
+            } catch (Exception e) {
+                Logger.debug(e.toString());
             }
             
             {
             	long partialEstimatedTime = System.nanoTime() - partialStartTime;
-                Logger.debug("Getting metadata : " + Long.toString(partialEstimatedTime / 1000000) + "ms");
+//                Logger.debug("Getting metadata : " + Long.toString(partialEstimatedTime / 1000000) + "ms");
                 partialStartTime = System.nanoTime();
             }
 
@@ -161,7 +171,7 @@ public class Image extends Model {
             
             {
             	long partialEstimatedTime = System.nanoTime() - partialStartTime;
-                Logger.debug("Rotate (transform) image : " + Long.toString(partialEstimatedTime / 1000000) + "ms");
+//                Logger.debug("Rotate (transform) image : " + Long.toString(partialEstimatedTime / 1000000) + "ms");
                 partialStartTime = System.nanoTime();
             }
             
@@ -173,13 +183,13 @@ public class Image extends Model {
             		BufferedImage resized = resizeImage(original, format.width, format.height, format.crop);
             		{
                     	long partialEstimatedTime = System.nanoTime() - partialStartTime;
-                        Logger.debug("Resize image " + format.name + " : " + Long.toString(partialEstimatedTime / 1000000) + "ms");
+//                        Logger.debug("Resize image " + format.name + " : " + Long.toString(partialEstimatedTime / 1000000) + "ms");
                         partialStartTime = System.nanoTime();
                     }
             		this.files.add(ImageFileRelation.create(this, models.File.create(Storage.storeImage(resized, format), Storage.getBaseUrl()), format.width, format.height, format.name));
             		{
                     	long partialEstimatedTime = System.nanoTime() - partialStartTime;
-                        Logger.debug("Store image " + format.name + " : " + Long.toString(partialEstimatedTime / 1000000) + "ms");
+//                        Logger.debug("Store image " + format.name + " : " + Long.toString(partialEstimatedTime / 1000000) + "ms");
                         partialStartTime = System.nanoTime();
                     }
             	}
@@ -188,7 +198,7 @@ public class Image extends Model {
             this.save();
             
             long estimatedTime = System.nanoTime() - startTime;
-            Logger.debug("Time elapsed to store picture : " + Long.toString(estimatedTime / 1000000) + "ms");
+//            Logger.debug("Time elapsed to store picture : " + Long.toString(estimatedTime / 1000000) + "ms");
 
         } catch (IOException | InterruptedException e) {
             throw new BadFormat(e.getMessage());
@@ -262,7 +272,63 @@ public class Image extends Model {
         }
         return image;
     }
-	
+    
+    private static float convertToDegree(String stringDMS){
+    	float result = 0;
+    	String[] DMS = stringDMS.split(" ", 3);
+
+    	try {
+    		String[] stringD = DMS[0].split("/", 2);
+    		double D0 = Double.parseDouble(stringD[0]);
+    		double D1 = Double.parseDouble(stringD[1]);
+    		double floatD = D0/D1;
+
+    		String[] stringM = DMS[1].split("/", 2);
+    		double M0 = Double.parseDouble(stringM[0]);
+    		double M1 = Double.parseDouble(stringM[1]);
+    		double floatM = M0/M1;
+
+    		String[] stringS = DMS[2].split("/", 2);
+    		Double S0 = Double.parseDouble(stringS[0]);
+    		Double S1 = Double.parseDouble(stringS[1]);
+    		Double floatS = S0/S1;
+
+    		result = (float) (floatD + (floatM / 60) + (floatS / 3600));
+    		return result;
+    	} catch (Exception e) {
+    		Logger.debug(e.toString());
+    		return 0;
+    	}
+    };
+
+    private void	readGPSInfo(Metadata metadata) {
+        Directory gpsDir = metadata.getDirectory(GpsDirectory.class);
+        if (gpsDir != null) {
+        	String lat = gpsDir.getString(GpsDirectory.TAG_GPS_LATITUDE);
+        	String latRef = gpsDir.getString(GpsDirectory.TAG_GPS_LATITUDE_REF);
+        	String lon = gpsDir.getString(GpsDirectory.TAG_GPS_LONGITUDE);
+        	String lonRef = gpsDir.getString(GpsDirectory.TAG_GPS_LONGITUDE_REF);
+
+        	float latitude = 0, longitude = 0;
+
+        	if (lat != null && latRef != null && lon != null && lonRef != null)
+        	{
+        		if (latRef.equals("N")){
+        			latitude = convertToDegree(lat);
+        		} else {
+        			latitude = 0 - convertToDegree(lat);
+        		}
+        		if (lonRef.equals("E")){
+        			longitude = convertToDegree(lon);
+        		} else{
+        			longitude = 0 - convertToDegree(lon);
+        		}
+        	}
+        	this.latitude = latitude;
+        	this.longitude = longitude;
+        }
+    }
+    	
 	public static Finder<String, Image> find = new Finder<String, Image>(
 			String.class, Image.class
 	);
