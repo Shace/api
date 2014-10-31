@@ -10,7 +10,6 @@ import play.mvc.With;
 /**
  * Special annotation to handle CORS request
  * @author Loick Michard
- * @category controllers
  */
 @With(CORSAction.class)
 @Target(value = {ElementType.TYPE, ElementType.METHOD})

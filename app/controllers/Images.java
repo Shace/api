@@ -17,7 +17,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 /**
  * Controller that handles the different API action applied to an Image
  * @author Loick Michard
- * @category controllers
  */
 @CORS
 public class Images extends Controller {
