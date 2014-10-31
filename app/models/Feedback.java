@@ -43,6 +43,9 @@ public class Feedback extends Model {
 	
 	public boolean		okForAnswer;
 
+	@Column(columnDefinition = "TEXT")
+	public String		answer;
+	
 	@Formats.DateTime(pattern="dd/MM/yyyy")
 	public Date			creationDate;
 	

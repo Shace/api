@@ -76,6 +76,7 @@ public class Feedbacks extends Controller {
     		infos.put("okForAnswer", feedback.okForAnswer);
     		infos.put("creationDate", feedback.creationDate.getTime());
     		infos.put("adminRead", feedback.adminRead);
+    		infos.put("answer", feedback.answer);
     		feedbacksNode.add(infos);
 		}
     	ObjectNode result = Json.newObject();
@@ -103,6 +104,7 @@ public class Feedbacks extends Controller {
     		infos.put("okForAnswer", feedback.okForAnswer);
     		infos.put("creationDate", feedback.creationDate.getTime());
     		infos.put("adminRead", feedback.adminRead);    		
+    		infos.put("answer", feedback.answer);
     		feedbacksNode.add(infos);
 		}
     	ObjectNode result = Json.newObject();
@@ -136,14 +138,15 @@ public class Feedbacks extends Controller {
     			Feedback currentFeedback = Feedback.find.byId(id.intValue());
     			if (currentFeedback != null && currentFeedback.adminRead == false) {
     		        currentFeedback.adminRead = true;
-    		        currentFeedback.save();
 
     		        String answer = feedbackNode.get("answer").textValue();
     		        if (answer != null && currentFeedback.okForAnswer == true) {
     		        	String subject = "[Shace] Re : Feedback";
     		        	String content = answer + "<br/><br/><br/>Feedback :<br/><i>" + currentFeedback.description + "</i>";
         		    	Mailer.get().sendMail(currentFeedback.senderEmail, subject, content, "Shace <noreply@shace.io>");
+        		    	currentFeedback.answer = answer;
     		        }
+    		        currentFeedback.save();
     				validatedNode.add(id);
     			}
     		}
