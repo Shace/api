@@ -476,17 +476,11 @@ public class Events extends Controller {
         		} else if (token != null && !token.equals(event.token) && Event.find.where().eq("token", token).findUnique() != null) {
                 	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("token", ParameterType.DUPLICATE).toResponse();
         		}
-   
-        		String readingPassword = root.path("password").textValue();
-        		if (readingPassword == null) {
-                	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("password", ParameterType.REQUIRED).toResponse();
-        		}
         		
         		event.readingPrivacy = Privacy.PROTECTED;
         		if (token != null) {
         			event.token = token;
         		}
-        		event.readingPassword = Utils.Hasher.hash(readingPassword);
 
         		Access.AccessType toDelete = (event.writingPrivacy == Event.Privacy.NOT_SET) ? Access.AccessType.WRITE : Access.AccessType.READ;
             	Ebean.delete(AccessTokenEventRelation.find.where().eq("event", event).eq("permission", toDelete).findList());
@@ -504,10 +498,6 @@ public class Events extends Controller {
         	if (writingPrivacyStr.equals("public")) {
         		event.writingPrivacy = Privacy.PUBLIC;
         	} else if (writingPrivacyStr.equals("protected")) {
-        		String writingPassword = root.path("writingPassword").textValue();
-        		if (writingPassword == null) {
-                	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("writingPassword", ParameterType.REQUIRED).toResponse();
-        		}
         		if (event.writingPrivacy == Event.Privacy.NOT_SET && event.readingPrivacy == Event.Privacy.PROTECTED) {
         			List<AccessTokenEventRelation> permissions = AccessTokenEventRelation.find.where().eq("event", event).eq("permission", Access.AccessType.WRITE).findList();
         			for (AccessTokenEventRelation permission : permissions) {
@@ -518,7 +508,6 @@ public class Events extends Controller {
                 	Ebean.delete(AccessTokenEventRelation.find.where().eq("event", event).eq("permission", Access.AccessType.WRITE).findList());
         		}
         		event.writingPrivacy = Privacy.PROTECTED;
-        		event.writingPassword = Utils.Hasher.hash(writingPassword);
         	} else if (writingPrivacyStr.equals("private")) {
         		event.writingPrivacy = Privacy.PRIVATE;
         	} else {
