@@ -127,6 +127,7 @@ public class Medias extends Controller {
         	return new errors.Error(errors.Error.Type.NEED_OWNER).toResponse();
     	}
     	
+    	
     	List<Bucket> buckets = new ArrayList<>(currentMedia.buckets);
     	currentMedia.buckets.clear();
     	currentMedia.saveManyToManyAssociations("buckets");
@@ -152,6 +153,10 @@ public class Medias extends Controller {
     			currentBucket.save();
     		}
     	}
+    	currentEvent.medias.remove(currentMedia);
+    	currentEvent.save();
+    	currentMedia.event = null;
+    	currentMedia.save();
     	return noContent();
 	}
 
