@@ -433,6 +433,7 @@ public class Events extends Controller {
     @Transactional
     public static Result update(String token, String accessToken) {
         AccessToken access = AccessTokens.access(accessToken);
+        String	readingPassword = null;
         Result error = Access.checkAuthentication(access, Access.AuthenticationType.CONNECTED_USER);
         if (error != null) {
         	return error;
@@ -469,13 +470,17 @@ public class Events extends Controller {
         			}
         		}
         	} else if (readingPrivacyStr.equals("protected")) {
+        		
         		token = root.path("token").textValue();
+                readingPassword = root.path("password").textValue();
 
         		if (event.readingPrivacy == Privacy.PRIVATE && token == null) {
                 	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("token", ParameterType.REQUIRED).toResponse();
         		} else if (token != null && !token.equals(event.token) && Event.find.where().eq("token", token).findUnique() != null) {
                 	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("token", ParameterType.DUPLICATE).toResponse();
-        		}
+        		} else if (readingPassword == null) {
+                	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("password", ParameterType.REQUIRED).toResponse();
+                }
         		
         		event.readingPrivacy = Privacy.PROTECTED;
         		if (token != null) {
@@ -484,7 +489,7 @@ public class Events extends Controller {
 
         		Access.AccessType toDelete = (event.writingPrivacy == Event.Privacy.NOT_SET) ? Access.AccessType.WRITE : Access.AccessType.READ;
             	Ebean.delete(AccessTokenEventRelation.find.where().eq("event", event).eq("permission", toDelete).findList());
-
+                readingPassword = Utils.Hasher.hash(readingPassword);
         	} else if (readingPrivacyStr.equals("private")) {
         		event.readingPrivacy = Privacy.PRIVATE;
         		event.linkAccess = LinkAccess.NONE;
@@ -525,6 +530,9 @@ public class Events extends Controller {
         	return new errors.Error(Type.PARAMETERS_ERROR).addParameter("token", ParameterType.FORMAT).toResponse();
     	}
         fillEventFromJSON(event, root);
+        if (readingPassword != null) {
+        	event.readingPassword = readingPassword;
+        }
         event.update();
         return ok(getEventObjectNode(event, access, true));
     }
