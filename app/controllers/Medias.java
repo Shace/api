@@ -325,7 +325,7 @@ public class Medias extends Controller {
 
 				try {
 					currentMedia.image.addFile(file, FormatType.GALLERY);
-				} catch (Image.BadFormat b) {
+				} catch (Exception e) {
 					return new errors.Error(errors.Error.Type.BAD_FORMAT_IMAGE).toResponse();
 				}
 
